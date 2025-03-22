@@ -1,0 +1,36 @@
+services:
+
+  nginx:
+    container_name: nginx
+    build: containers/nginx
+    restart: always
+    env_file:
+      - containers/nginx/.env
+    ports:
+      - 443:443
+    networks:
+      - transcendence
+    volumes:
+      - website:/var/www/html
+    depends_on:
+      - backend
+
+  backend:
+    container_name: backend
+    build: containers/backend
+    restart: always
+    networks:
+      - transcendence
+    volumes: # unsure if this will be required
+      - website:/var/www/html
+
+volumes:
+  website:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./website
+
+networks:
+  transcendence: {}
