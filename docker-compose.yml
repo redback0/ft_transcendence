@@ -21,7 +21,7 @@ services:
     restart: always
     networks:
       - transcendence
-    volumes: # unsure if this will be required
+    volumes:
       - website:/var/www/html
 
 volumes:
