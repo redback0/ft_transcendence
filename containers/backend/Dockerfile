@@ -12,6 +12,9 @@
 
 FROM node:23.10-alpine3.21
 
-RUN npm install fastify tailwindcss @tailwindcss/cli
+WORKDIR /var/www/html/
+
+RUN npm init -y && \
+    npm install fastify tailwindcss @tailwindcss/cli
 
 CMD [ "node", "server" ]
