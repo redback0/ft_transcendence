@@ -12,10 +12,10 @@
 
 FROM node:23.10-alpine3.21
 
-COPY ../../website /var/www/html
-WORKDIR /var/www/html/
+COPY ./website /var/www/html
 
-RUN npm init -y && \
+RUN cd /var/www/html && \
+    npm init -y && \
     npm install fastify tailwindcss @tailwindcss/cli
 
 CMD [ "node", "server" ]
