@@ -18,4 +18,4 @@ RUN cd /var/www/html && \
     npm init -y && \
     npm install fastify tailwindcss @tailwindcss/cli
 
-CMD [ "node", "server" ]
+CMD [ "node", "/var/www/html/server" ]
