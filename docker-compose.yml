@@ -27,10 +27,6 @@ services:
 volumes:
   website:
     driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ./website
 
 networks:
   transcendence: {}
