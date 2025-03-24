@@ -7,9 +7,17 @@ fastify.get('/', function handler (request, reply) {
 })
 
 // Run the server!
-fastify.listen({ port: 3000 }, (err) => {
+fastify.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
   if (err) {
     fastify.log.error(err)
     process.exit(1)
   }
+})
+
+process.on('SIGINT', () => {
+  process.exit(0);
+})
+
+process.on('SIGTERM', () => {
+  process.exit(0);
 })
