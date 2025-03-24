@@ -4,7 +4,7 @@ server {
     server_name             ${SERVER_NAME};
 
     # SSL
-    ssl_certificate         /etc/ssl/website_ssl.csr;
+    ssl_certificate         /etc/ssl/certs/website_ssl.csr;
     ssl_certificate_key     /etc/ssl/website_ssl.key;
 
     # security

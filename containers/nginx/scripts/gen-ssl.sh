@@ -4,4 +4,6 @@ if [ ! -f /etc/ssl/website_ssl.key ]; then
         -keyout /etc/ssl/website_ssl.key -x509 -days 365\
         -out /etc/ssl/certs/website_ssl.csr\
         -subj '/CN='${SERVER_NAME}''
+else
+    echo "Key already generated"
 fi
