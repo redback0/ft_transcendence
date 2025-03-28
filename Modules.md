@@ -1,19 +1,20 @@
 
 # Major Modules
-- Use a Framework to build the backend. +1
-- Standard user management, authentication, users across tournaments. +1
-- Implementing a remote authentication. +1
-- Remote players +1
-- Live chat. +1
-- Implement Two-Factor Authentication (2FA) and JWT. +1
-- Replacing Basic Pong with Server-Side Pong and Implementing an API. +1
+- Use a Framework (Fastify + Nodejs) to build the backend.
+- Standard user management, authentication, users across tournaments.
+- Implementing a remote authentication.
+- Remote players
+- Live chat.
+- Implement Two-Factor Authentication (2FA) and JWT.
+- Replacing Basic Pong with Server-Side Pong and Implementing an API.
 
 # Minor modules
-- Use a database for the backend. +0.5
-- Game Customization Options. +0.5
-- User and Game Stats Dashboards +0.5
-- Support on all devices. +0.5
-- Expanding Browser Compatibility. +0.5
-- GDPR Compliance Options with User Anonymization, Local Data Management, and Account Deletion. +0.5
+- Use a Framework (Tailwindcss) for the frontend.
+- Use a database (SQLite) for the backend.
+- Game Customization Options.
+- User and Game Stats Dashboards
+- Expanding Browser Compatibility.
+- Support on all devices.
+- GDPR Compliance Options with User Anonymization, Local Data Management, and Account Deletion.
 
-10/7
+10.5/7
