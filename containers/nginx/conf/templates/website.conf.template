@@ -1,0 +1,78 @@
+server {
+    listen                  443 ssl;
+    listen                  [::]:443 ssl;
+    server_name             ${SERVER_NAME};
+
+    # SSL
+    ssl_certificate         /etc/ssl/certs/website_ssl.csr;
+    ssl_certificate_key     /etc/ssl/website_ssl.key;
+
+    # security
+    include                 nginxconfig.io/security.conf;
+
+    # logging
+    access_log              /var/log/nginx/access.log combined buffer=512k flush=1m;
+    error_log               /var/log/nginx/error.log warn;
+
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        autoindex on;
+        try_files $uri $uri/ =404;
+    }
+
+    # additional config
+    include nginxconfig.io/general.conf;
+}
+
+server {
+    listen                  443 ssl;
+    listen                  [::]:443 ssl;
+    server_name             api.${SERVER_NAME};
+
+    # SSL
+    ssl_certificate         /etc/ssl/certs/website_ssl.csr;
+    ssl_certificate_key     /etc/ssl/website_ssl.key;
+
+    # security
+    include                 nginxconfig.io/security.conf;
+
+    # logging
+    access_log              /var/log/nginx/access.log combined buffer=512k flush=1m;
+    error_log               /var/log/nginx/error.log warn;
+
+    # reverse proxy
+    location / {
+        proxy_pass            http://nodejs:3000;
+        proxy_set_header Host $host;
+        include               nginxconfig.io/proxy.conf;
+    }
+
+    # additional config
+    include nginxconfig.io/general.conf;
+}
+
+# subdomains redirect
+server {
+    listen                  443 ssl;
+    listen                  [::]:443 ssl;
+    server_name             *.${SERVER_NAME};
+
+    # SSL
+    ssl_certificate         /etc/ssl/certs/website_ssl.csr;
+    ssl_certificate_key     /etc/ssl/website_ssl.key;
+    return                  301 https://${SERVER_NAME}$request_uri;
+}
+
+# HTTP redirect
+server {
+    listen      80;
+    listen      [::]:80;
+    server_name .${SERVER_NAME};
+    include     nginxconfig.io/letsencrypt.conf;
+
+    location / {
+        return 301 https://${SERVER_NAME}$request_uri;
+    }
+}

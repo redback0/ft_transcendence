@@ -10,27 +10,15 @@ services:
       - 443:443
     networks:
       - transcendence
-    volumes:
-      - website:/var/www/html
     depends_on:
-      - backend
+      - nodejs
 
-  backend:
-    container_name: backend
-    build: containers/backend
+  nodejs:
+    container_name: nodejs
+    build: containers/nodejs
     restart: always
     networks:
       - transcendence
-    volumes: # unsure if this will be required
-      - website:/var/www/html
-
-volumes:
-  website:
-    driver: local
-    driver_opts:
-      o: bind
-      type: none
-      device: ./website
 
 networks:
   transcendence: {}
