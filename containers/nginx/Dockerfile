@@ -1,9 +1,17 @@
 
 FROM nginx:1.27
 
+COPY ./frontend /var/www/html
+
 # no default config
 RUN rm -rf /etc/nginx/conf.d/default.conf && \
-    mkdir -p /etc/nginx/nginxconfig.io/
+    apt-get update && \
+    apt-get install -y npm && \
+    # compile typescript
+    cd /var/www/html && \
+    npm init && \
+    npm install && \
+    tsc *.ts
 
 # copy in all our configs
 COPY ./conf /etc/nginx/
