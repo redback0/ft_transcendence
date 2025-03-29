@@ -5,6 +5,6 @@ COPY ./backend /backend
 
 RUN cd /backend && \
     npm install && \
-    tsc *.ts
+    ./node_modules/typescript/bin/tsc *.ts
 
 CMD [ "node", "/backend/server" ]

@@ -10,7 +10,7 @@ RUN rm -rf /etc/nginx/conf.d/default.conf && \
     # compile typescript
     cd /var/www/html && \
     npm install && \
-    tsc *.ts
+    ./node_modules/typescript/bin/tsc *.ts
 
 # copy in all our configs
 COPY ./conf /etc/nginx/
