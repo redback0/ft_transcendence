@@ -9,7 +9,6 @@ RUN rm -rf /etc/nginx/conf.d/default.conf && \
     apt-get install -y npm && \
     # compile typescript
     cd /var/www/html && \
-    npm init && \
     npm install && \
     tsc *.ts
 
