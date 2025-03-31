@@ -1,6 +1,6 @@
 
 async function api<T>(): Promise<T> {
-    const response = await fetch(document.URL + "api/buttonpressed")
+    const response = await fetch(`${window.location.host}/api/buttonpressed`)
 
     if (!response.ok) {
         throw new Error(response.statusText)
