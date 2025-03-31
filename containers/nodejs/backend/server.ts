@@ -14,7 +14,8 @@ fastify.get('/api/buttonpressed', function handler (request, reply) {
 // Run the fastify!
 const start = async () => {
   try {
-    await fastify.listen({ port: 3000 })
+    fastify.log.info("now listening...")
+    await fastify.listen({ port: 3000, host: '0.0.0.0' })
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)
