@@ -1,25 +1,19 @@
 
-interface buttonResponse {
-    text: string
-}
+async function api<T>(): Promise<T> {
+    const response = await fetch(document.URL + "api/buttonpressed")
 
-async function getServerResponse() {
-    try {
-        var response = await fetch(document.URL + "api/buttonpressed")
-        if (!response.ok) {
-            throw new Error(`shit broke: ${response.status}`)
-        }
-
-        return (await response.json())
-    } catch (error) {
-        let message = 'Unknown error'
-        if (error instanceof Error) message = error.message
-        console.error(message)
+    if (!response.ok) {
+        throw new Error(response.statusText)
     }
+
+    return await response.json() as T
 }
 
 const clickHandler = async (event: Event) => {
     var textbox = document.getElementById("helloworld_tb")
-    if (textbox != null)
-        textbox.textContent = "Hello world!"
+    if (textbox != null) {
+        textbox.textContent = "Hello world!";
+        const serverText = await api<{text: string}>();
+        textbox.textContent += serverText.text;
+    }
 }

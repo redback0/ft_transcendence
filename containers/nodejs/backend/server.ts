@@ -8,7 +8,7 @@ fastify.get('/', function handler (request, reply) {
 })
 
 fastify.get('/api/buttonpressed', function handler (request, reply) {
-  reply.send("Server response!!")
+  reply.send({ text: "server response!!" })
 })
 
 // Run the fastify!
