@@ -1,6 +1,7 @@
 
-async function api<T>(): Promise<T> {
-    const response = await fetch("/api/buttonpressed")
+// simple function to get json from backend
+async function api<T>(from: string): Promise<T> {
+    const response = await fetch(from)
 
     if (!response.ok) {
         throw new Error(response.statusText)
@@ -13,7 +14,8 @@ const clickHandler = async (event: Event) => {
     var textbox = document.getElementById("helloworld_tb")
     if (textbox != null) {
         textbox.textContent = "Hello world!";
-        const serverText = await api<{text: string}>();
+        // just a stupid example to show api's use
+        const serverText = await api<{text: string}>("/api/buttonpressed");
         textbox.textContent += serverText.text;
     }
 }
