@@ -12,11 +12,13 @@ async function getServerResponse() {
 
         return (await response.json())
     } catch (error) {
-        console.error(error.message)
+        let message = 'Unknown error'
+        if (error instanceof Error) message = error.message
+        console.error(message)
     }
 }
 
-const clickHandler = async (event) => {
+const clickHandler = async (event: Event) => {
     var textbox = document.getElementById("helloworld_tb")
     if (textbox != null)
         textbox.textContent = "Hello world!"
