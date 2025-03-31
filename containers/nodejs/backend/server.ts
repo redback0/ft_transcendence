@@ -7,6 +7,10 @@ fastify.get('/', function handler (request, reply) {
   reply.send("Hello world")
 })
 
+fastify.get('/api/buttonpressed', function handler (request, reply) {
+  reply.send("Server response!!")
+})
+
 // Run the fastify!
 const start = async () => {
   try {
