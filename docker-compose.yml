@@ -10,6 +10,8 @@ services:
       - 443:443
     networks:
       - transcendence
+    volumes:
+      - frontend:/var/www/html
     depends_on:
       - nodejs
 
@@ -19,6 +21,24 @@ services:
     restart: always
     networks:
       - transcendence
+    volumes:
+      - backend:/backend
+
+volumes:
+
+  frontend:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./frontend
+
+  backend:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./backend
 
 networks:
   transcendence: {}
