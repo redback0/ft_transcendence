@@ -1,5 +1,5 @@
 #!/bin/sh
 
-cd /var/www/html
+cd /var/www
 npm install
-./node_modules/typescript/bin/tsc
+npx tsc
