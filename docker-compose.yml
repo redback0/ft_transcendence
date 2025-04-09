@@ -11,7 +11,7 @@ services:
     networks:
       - transcendence
     volumes:
-      - frontend:/var/www/html
+      - frontend:/var/www
     depends_on:
       - nodejs
 
