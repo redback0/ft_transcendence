@@ -1,11 +1,20 @@
 
+import { GameArea } from './game.controller.js'
+
 export class GamePage extends HTMLElement {
+    game: GameArea
     constructor() {
         super()
-        this.innerHTML =
-            `
-            <p>just testing for now</p>
-            `
+        var canvas = document.createElement('canvas');
+        canvas.width = 1280;
+        canvas.height = 720;
+        this.game = new GameArea(canvas);
+        this.appendChild(canvas);
+
+        var startButton = document.createElement('button');
+        startButton.onclick = this.game.start;
+        startButton.textContent = "Start game!"
+        this.appendChild(startButton)
     }
 }
 
