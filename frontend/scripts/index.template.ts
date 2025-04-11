@@ -4,25 +4,13 @@ import { api } from './api.js'
 export class IndexPage extends HTMLElement {
     constructor() {
         super()
-        // this.innerHTML = 
-        //     `
-        //     <script src="scripts/index.controller.ts"></script>
-        //     <p>${document.location.pathname}</p>
-        //     <button onclick="apiTestOnClick()">this is a button</button>
-        //     <p id="api-response"></p>
-        //     `
-        let path = document.createElement('p')
-        path.textContent = document.location.pathname
-        this.appendChild(path)
-
-        let apiButton = document.createElement('button')
-        apiButton.textContent = "this is a button"
-        apiButton.onclick = apiTestOnClick
-        this.appendChild(apiButton)
-
-        let apiResponseTB = document.createElement('p')
-        apiResponseTB.id = 'api-response'
-        this.appendChild(apiResponseTB)
+        this.innerHTML =
+            `
+            <button id="api-test-button">this is a button</button>
+            <p id="api-response"></p>
+            `
+        let apiButton = this.querySelector("#api-test-button")
+        if (apiButton instanceof HTMLElement) apiButton.onclick = apiTestOnClick
     }
 }
 

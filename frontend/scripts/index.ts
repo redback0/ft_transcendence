@@ -1,9 +1,14 @@
 
-import './api.js'
+import { api } from './api.js'
 import { IndexPage } from './index.template.js'
+
+var currPage : HTMLElement
 
 document.body.onload = () => {
     document.title = "Code defined title!"
 
-    document.body.appendChild(new IndexPage)
+    if (document.location.pathname == '/') {
+        currPage = new IndexPage
+        document.body.appendChild(currPage)
+    }
 }
