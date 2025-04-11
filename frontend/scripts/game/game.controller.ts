@@ -49,7 +49,7 @@ class Component
     w: number;
     color: string;
 
-    constructor(x: number, y: number, h: number, w: number, color: string = "black")
+    constructor(x: number, y: number, h: number, w: number, color: string = window.getComputedStyle(document.body).getPropertyValue("--color-red-800"))
     {
         this.x = x;
         this.y = y;
