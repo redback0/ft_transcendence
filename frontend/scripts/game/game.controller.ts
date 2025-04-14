@@ -27,8 +27,8 @@ export class GameArea
         if (temp) this.context = temp;
         else throw new Error("Failed to get context from canvas");
         this.canvas = canvas;
-        this.player1 = new Player(50, canvas.height / 2, 'w', 's');
-        this.player2 = new Player(canvas.width - 50, canvas.height / 2, 'ArrowUp', 'ArrowDown');
+        this.player1 = new Player(50, canvas.height / 2, 'w', 's', canvas);
+        this.player2 = new Player(canvas.width - 50, canvas.height / 2, 'ArrowUp', 'ArrowDown', canvas);
         this.ball = new Ball(canvas.width / 2, canvas.height / 2);
         this.framerate = 60;
         this.player1.draw(this);
@@ -236,6 +236,7 @@ class Player extends Component
 
     constructor(x : number, y : number,
                 upKey: string, downKey: string,
+                canvas: HTMLCanvasElement,
                 h : number = 100 , w : number = 20,
                 speed : number = 10)
     {
@@ -245,8 +246,8 @@ class Player extends Component
         this.upKey = upKey;
         this.downKey = downKey;
         // these should be on the canvas, not on the body, investigate why that doesn't work
-        document.body.addEventListener("keydown", this.keyDown, false)
-        document.body.addEventListener("keyup", this.keyUp, false)
+        canvas.addEventListener("keydown", this.keyDown, false)
+        canvas.addEventListener("keyup", this.keyUp, false)
     }
 
     keyDown = (event: KeyboardEvent) =>
