@@ -12,6 +12,7 @@ export class GamePage extends HTMLElement {
         this.appendChild(canvas);
 
         var startButton = document.createElement('button');
+        startButton.id = "game-start-button";
         startButton.onclick = this.game.start;
         startButton.textContent = "Start game!"
         this.appendChild(startButton)
