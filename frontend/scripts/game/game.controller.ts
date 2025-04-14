@@ -1,8 +1,10 @@
 
-var defaultColor = window.getComputedStyle(document.body).getPropertyValue("--color-black");
-var ballColor = window.getComputedStyle(document.body).getPropertyValue("--color-black");
-var playerColor = window.getComputedStyle(document.body).getPropertyValue("--color-red-600");
-var textColor = window.getComputedStyle(document.body).getPropertyValue("--color-black");
+var DEFAULT_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-black");
+var BALL_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-blue-800");
+var PLAYER_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-red-700");
+var TEXT_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-black");
+var BUTTON_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-500");
+var BUTTON_BORDER_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-600")
 
 export class GameArea
 {
@@ -10,10 +12,14 @@ export class GameArea
     context: CanvasRenderingContext2D;
     player1: Player;
     player2: Player;
+    p1_score: number = 0;
+    p2_score: number = 0;
+    win_score: number = 11;
     ball: Ball;
     framerate: number;
     interval: number | undefined;
     started: boolean = false;
+    startButton: Button;
 
     constructor(canvas: HTMLCanvasElement)
     {
@@ -28,6 +34,10 @@ export class GameArea
         this.player1.draw(this);
         this.player2.draw(this);
         this.ball.draw(this);
+
+        this.startButton = new Button(canvas.width / 2, canvas.height * 3 / 4, 340, 50,
+            this.start, canvas, "Click here to start!");
+        this.startButton.draw(this.context);
     }
 
     clear = () =>
@@ -40,23 +50,65 @@ export class GameArea
         if (!this.started)
         {
             this.started = true;
-            let startButton = document.getElementById("game-start-button");
-            if (startButton instanceof HTMLButtonElement)
-                startButton.disabled = true;
+            this.startButton.enabled = false;
             this.ball.start(this);
             this.interval = setInterval(this.update, 30);
         }
     }
 
-    stop(winner: Player)
+    restart = () =>
     {
+        this.ball.x = this.canvas.width / 2;
+        this.ball.y = this.canvas.height / 2;
+        this.ball.hspeed = 10;
+        this.player1.y = (this.canvas.height / 2) - (this.player1.h / 2);
+        this.player2.y = (this.canvas.height / 2) - (this.player2.h / 2);
+        this.ball.start(this);
+        this.interval = setInterval(this.update, 30);
+    }
+
+    score(scorer: Player)
+    {
+        let ctx = this.context;
+
         clearInterval(this.interval);
-        this.context.font = "48px serif";
-        this.context.fillStyle = textColor;
-        if (winner == this.player1)
-            this.context.fillText("Left player wins!", 100, this.canvas.height / 2);
+        ctx.font = "36px serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = TEXT_COLOR;
+        if (scorer == this.player1)
+        {
+            this.p1_score++;
+            if (this.p1_score >= this.win_score)
+            {
+                this.win(this.player1);
+                return;
+            }
+            ctx.fillText("Left player scored!", this.canvas.width / 2, 200);
+        }
         else
-            this.context.fillText("Right player wins!", 100, this.canvas.height / 2);
+        {
+            this.p2_score++;
+            if (this.p2_score >= this.win_score)
+            {
+                this.win(this.player2);
+                return;
+            }
+            ctx.fillText("Right player scored!", this.canvas.width / 2, 200);
+        }
+        setTimeout(this.restart, 2000);
+    }
+
+    win(winner: Player)
+    {
+        let ctx = this.context;
+
+        ctx.font = "48px serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = TEXT_COLOR;
+        if (winner == this.player1)
+            ctx.fillText("Left player wins!", this.canvas.width / 2, this.canvas.height / 2);
+        else
+            ctx.fillText("Right player wins!", this.canvas.width / 2, this.canvas.height / 2);
     }
 
     update = () =>
@@ -65,6 +117,86 @@ export class GameArea
         this.player1.update(this);
         this.player2.update(this);
         this.ball.update(this);
+        this.drawScore()
+    }
+
+    drawScore()
+    {
+        let ctx = this.context;
+
+        ctx.font = "24px serif";
+        ctx.fillStyle = TEXT_COLOR;
+        ctx.textAlign = "right";
+        ctx.fillText(this.p1_score.toString(), (this.canvas.width / 2) - 50, 80)
+        ctx.textAlign = "left";
+        ctx.fillText(this.p2_score.toString(), (this.canvas.width / 2) + 50, 80)
+    }
+}
+
+class Button
+{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    event: Function;
+    text: string;
+    font: string;
+    baseColor: string;
+    borderColor: string;
+    textColor: string;
+    enabled: boolean = true;
+
+    constructor(x: number,
+        y: number,
+        w: number,
+        h: number,
+        event: Function,
+        element: HTMLElement,
+        text: string = "button",
+        font: string = "36px serif",
+        baseColor: string = BUTTON_COLOR,
+        borderColor: string = BUTTON_BORDER_COLOR,
+        textColor: string = TEXT_COLOR)
+    {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.event = event;
+        this.text = text;
+        this.font = font;
+        this.baseColor = baseColor;
+        this.borderColor = borderColor;
+        this.textColor = textColor;
+
+        element.addEventListener("click", this.onClickHandler)
+    }
+
+    draw(ctx: CanvasRenderingContext2D)
+    {
+        ctx.fillStyle = this.baseColor;
+        ctx.fillRect(this.x - (this.w / 2), this.y - (this.h / 2), this.w, this.h);
+        ctx.strokeStyle = this.borderColor;
+        ctx.strokeRect(this.x - (this.w / 2), this.y - (this.h / 2), this.w, this.h);
+        ctx.fillStyle = this.textColor;
+        ctx.font = this.font;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(this.text, this.x, this.y, this.w);
+    }
+
+    onClickHandler = (e: MouseEvent) =>
+    {
+        if (this.enabled &&
+            e.offsetX > this.x - (this.w / 2) &&
+            e.offsetX < this.x + (this.w / 2) &&
+            e.offsetY > this.y - (this.h / 2) &&
+            e.offsetY < this.y + (this.h / 2))
+        {
+            this.event();
+        }
+
     }
 }
 
@@ -77,7 +209,7 @@ class Component
     color: string;
 
     constructor(x: number, y: number, h: number, w: number,
-        color: string = defaultColor)
+        color: string = DEFAULT_COLOR)
     {
         this.x = x;
         this.y = y;
@@ -86,16 +218,11 @@ class Component
         this.color = color
     }
 
-    draw = (game: GameArea) =>
+    draw(game: GameArea)
     {
         let ctx = game.context;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.w, this.h);
-    }
-
-    update(game: GameArea)
-    {
-        this.draw(game);
     }
 }
 
@@ -113,7 +240,7 @@ class Player extends Component
                 speed : number = 10)
     {
         super(x - (w / 2), y - (h / 2), h, w,
-            playerColor)
+            PLAYER_COLOR)
         this.speed = speed;
         this.upKey = upKey;
         this.downKey = downKey;
@@ -145,7 +272,7 @@ class Player extends Component
             this.y = 0;
         else if (this.y + this.h > game.canvas.height)
             this.y = game.canvas.height - this.h;
-        super.update(game);
+        super.draw(game);
     }
 }
 
@@ -156,9 +283,9 @@ class Ball extends Component
     yvel: number = 0;
     hspeed: number = 10;
 
-    constructor(x: number, y: number, r: number = 8)
+    constructor(x: number, y: number, r: number = 8, color: string = BALL_COLOR)
     {
-        super(x, y, 0, 0);
+        super(x, y, 0, 0, color);
         this.r = r;
     }
 
@@ -177,7 +304,7 @@ class Ball extends Component
 
     start(game: GameArea)
     {
-        if (Math.random() > 0.5)
+        if ((game.p1_score + game.p2_score) % 2 == 1)
             this.xvel = this.hspeed;
         else
             this.xvel = -this.hspeed;
@@ -203,12 +330,12 @@ class Ball extends Component
         if (this.x - this.r < 0)
         {
             this.x = this.r;
-            game.stop(game.player2);
+            game.score(game.player2);
         }
         else if (this.x + this.r > game.canvas.width)
         {
             this.x = game.canvas.width - this.r;
-            game.stop(game.player1);
+            game.score(game.player1);
         }
         if (this.y - this.r < 0)
         {
@@ -240,7 +367,7 @@ class Ball extends Component
             }
         }
 
-        super.update(game);
+        this.draw(game);
     }
 
 
