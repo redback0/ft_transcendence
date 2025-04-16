@@ -3,10 +3,12 @@ import { api } from './api.js'
 import { IndexPage } from './index.template.js'
 import { GamePage } from './game/game.template.js'
 import { ErrorPage } from './error.template.js'
+import { ChatPage } from './chat/chat.template.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],
-    ['/game', GamePage]
+    ['/game', GamePage],
+    ['/chat', ChatPage]
 ])
 
 var currPage : HTMLElement

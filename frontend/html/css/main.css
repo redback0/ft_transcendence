@@ -21,6 +21,21 @@ button:disabled
     color: var(--color-gray-400);
 }
 
+input
+{
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: var(--color-gray-300);
+    border: 1px solid var(--color-gray-400);
+    border-radius: 5px;
+}
+
+input:focus
+{
+    background-color: var(--color-gray-100);
+}
+
 p, button
 {
     margin: 5px;
