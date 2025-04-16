@@ -13,7 +13,10 @@ export function initWebSocket(fastify: any)
         {
             const message = isBinary ? data : data.toString();
             console.log(`message recieved: ${message}`);
-            this.send(message, {binary: isBinary});
+            // this.send(message, {binary: isBinary});
+            wss.clients.forEach(socket => {
+                socket.send(message, {binary: isBinary});
+            });
         });
 
         ws.on("close", function (code, reason)
