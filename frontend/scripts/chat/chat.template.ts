@@ -25,7 +25,7 @@ export class ChatPage extends HTMLElement
         senderButton.addEventListener("click", wssMessageSender);
         this.appendChild(senderButton);
 
-        ws = new WebSocket("/api/wss");
+        ws = new WebSocket("/wss/chat");
         ws.onopen =  function ()
         {
             let para = document.getElementById("last-message");
@@ -40,7 +40,7 @@ export class ChatPage extends HTMLElement
             let para = document.createElement("p");
             if (typeof ev.data === "string")
             {
-                console.log(`message recieved: ${ev.data as string}`)
+                // console.log(`message recieved: ${ev.data as string}`)
                 para.innerText = ev.data as string;
                 div.appendChild(para);
             }
@@ -58,7 +58,7 @@ const wssMessageSender = (event: Event) =>
     if (!(messageTB instanceof HTMLInputElement))
         throw new Error("Text box not found");
     if (!messageTB.value.length)
-        throw new Error("Text box not a text box?")
+        return;
     if (messageTB.value.length > 0)
         ws.send(messageTB.value);
     messageTB.value = "";
