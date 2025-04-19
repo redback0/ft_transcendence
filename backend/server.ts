@@ -1,10 +1,10 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
-import { initWebSocket } from './game.js';
+import { initChat } from './chat.js';
 
-const fastify: FastifyInstance = Fastify({});
+export const fastify: FastifyInstance = Fastify({});
 // all the requests to the backend should go through /api
-fastify.get('/api/buttonpressed', function handler (request, reply)
+fastify.get('/api/buttonpressed', function handler(request, reply)
 {
     reply.send({ text: "server response!!" });
 })
@@ -14,7 +14,7 @@ const start = async () =>
 {
     try
     {
-        initWebSocket(fastify);
+        initChat(fastify);
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
