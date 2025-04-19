@@ -1,7 +1,7 @@
 
-import { GameArea } from "./game.controller.js";
+import { GameArea } from './local.controller.js'
 
-export class OnlineGamePage extends HTMLElement {
+export class LocalGamePage extends HTMLElement {
     game: GameArea
     constructor() {
         super()
@@ -13,3 +13,5 @@ export class OnlineGamePage extends HTMLElement {
         this.appendChild(canvas);
     }
 }
+
+customElements.define('game-page', LocalGamePage)

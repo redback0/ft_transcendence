@@ -19,6 +19,7 @@ export class GameArea
     framerate: number;
     interval: number | undefined;
     started: boolean = false;
+    startButton: Button;
 
     constructor(canvas: HTMLCanvasElement)
     {
@@ -26,18 +27,75 @@ export class GameArea
         if (temp) this.context = temp;
         else throw new Error("Failed to get context from canvas");
         this.canvas = canvas;
-        this.player1 = new Player(this.context, 50, canvas.height / 2, 'w', 's');
-        this.player2 = new Player(this.context, canvas.width - 50, canvas.height / 2, 'ArrowUp', 'ArrowDown');
-        this.ball = new Ball(this.context, canvas.width / 2, canvas.height / 2);
+        this.player1 = new Player(50, canvas.height / 2, 'w', 's', canvas);
+        this.player2 = new Player(canvas.width - 50, canvas.height / 2, 'ArrowUp', 'ArrowDown', canvas);
+        this.ball = new Ball(canvas.width / 2, canvas.height / 2);
         this.framerate = 60;
         this.player1.draw(this);
         this.player2.draw(this);
         this.ball.draw(this);
+
+        this.startButton = new Button(canvas.width / 2, canvas.height * 3 / 4, 340, 50,
+            this.start, canvas, "Click here to start!");
+        this.startButton.draw(this.context);
     }
 
     clear = () =>
     {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    start = () =>
+    {
+        if (!this.started)
+        {
+            this.started = true;
+            this.startButton.enabled = false;
+            this.ball.start(this);
+            this.interval = setInterval(this.update, 30);
+        }
+    }
+
+    restart = () =>
+    {
+        this.ball.x = this.canvas.width / 2;
+        this.ball.y = this.canvas.height / 2;
+        this.ball.hspeed = 10;
+        this.player1.y = (this.canvas.height / 2) - (this.player1.h / 2);
+        this.player2.y = (this.canvas.height / 2) - (this.player2.h / 2);
+        this.ball.start(this);
+        this.interval = setInterval(this.update, 30);
+    }
+
+    score(scorer: Player)
+    {
+        let ctx = this.context;
+
+        clearInterval(this.interval);
+        ctx.font = "36px serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = TEXT_COLOR;
+        if (scorer == this.player1)
+        {
+            this.p1_score++;
+            if (this.p1_score >= this.win_score)
+            {
+                this.win(this.player1);
+                return;
+            }
+            ctx.fillText("Left player scored!", this.canvas.width / 2, 200);
+        }
+        else
+        {
+            this.p2_score++;
+            if (this.p2_score >= this.win_score)
+            {
+                this.win(this.player2);
+                return;
+            }
+            ctx.fillText("Right player scored!", this.canvas.width / 2, 200);
+        }
+        setTimeout(this.restart, 2000);
     }
 
     win(winner: Player)
@@ -149,12 +207,10 @@ class Component
     h: number;
     w: number;
     color: string;
-    ctx: CanvasRenderingContext2D;
 
-    constructor(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, w: number,
+    constructor(x: number, y: number, h: number, w: number,
         color: string = DEFAULT_COLOR)
     {
-        this.ctx = ctx;
         this.x = x;
         this.y = y;
         this.h = h;
@@ -175,20 +231,47 @@ class Player extends Component
     upvel: number = 0;
     downvel: number = 0;
     speed: number;
+    upKey: string;
+    downKey: string;
 
-    constructor(ctx: CanvasRenderingContext2D,
-                x : number, y : number,
+    constructor(x : number, y : number,
                 upKey: string, downKey: string,
+                canvas: HTMLCanvasElement,
                 h : number = 100 , w : number = 20,
                 speed : number = 10)
     {
-        super(ctx, x - (w / 2), y - (h / 2), h, w,
+        super(x - (w / 2), y - (h / 2), h, w,
             PLAYER_COLOR)
         this.speed = speed;
+        this.upKey = upKey;
+        this.downKey = downKey;
+        canvas.addEventListener("keydown", this.keyDown, false)
+        canvas.addEventListener("keyup", this.keyUp, false)
+    }
+
+    keyDown = (event: KeyboardEvent) =>
+    {
+        if (event.key == this.upKey)
+            this.upvel = this.speed;
+        else if (event.key == this.downKey)
+            this.downvel = this.speed;
+    }
+
+    keyUp = (event: KeyboardEvent) =>
+    {
+        if (event.key == this.upKey)
+            this.upvel = 0;
+        else if (event.key == this.downKey)
+            this.downvel = 0;
     }
 
     update(game: GameArea)
     {
+        this.y += this.downvel - this.upvel;
+        if (this.y < 0)
+            this.y = 0;
+        else if (this.y + this.h > game.canvas.height)
+            this.y = game.canvas.height - this.h;
         super.draw(game);
     }
 }
@@ -200,9 +283,9 @@ class Ball extends Component
     yvel: number = 0;
     hspeed: number = 10;
 
-    constructor(ctx: CanvasRenderingContext2D, x: number, y: number, r: number = 8, color: string = BALL_COLOR)
+    constructor(x: number, y: number, r: number = 8, color: string = BALL_COLOR)
     {
-        super(ctx, x, y, 0, 0, color);
+        super(x, y, 0, 0, color);
         this.r = r;
     }
 
@@ -231,8 +314,59 @@ class Ball extends Component
             this.yvel = -this.yvel;
     }
 
+    collide(player: Player): boolean
+    {
+        return (this.x + this.r > player.x &&
+            this.x - this.r < player.x + player.w &&
+            this.y + this.r > player.y &&
+            this.y - this.r < player.y + player.h
+        );
+    }
+
     update(game: GameArea)
     {
+        this.x += this.xvel;
+        this.y += this.yvel;
+        if (this.x - this.r < 0)
+        {
+            this.x = this.r;
+            game.score(game.player2);
+        }
+        else if (this.x + this.r > game.canvas.width)
+        {
+            this.x = game.canvas.width - this.r;
+            game.score(game.player1);
+        }
+        if (this.y - this.r < 0)
+        {
+            this.y = this.r;
+            this.yvel = -this.yvel;
+        }
+        if (this.y + this.r > game.canvas.height)
+        {
+            this.y = game.canvas.height - this.r;
+            this.yvel = -this.yvel;
+        }
+
+        if (this.xvel > 0)
+        {
+            if (this.collide(game.player2))
+            {
+                this.hspeed++;
+                this.xvel = -this.hspeed;
+                this.yvel += (game.player2.downvel - game.player2.upvel) / 4;
+            }
+        }
+        else
+        {
+            if (this.collide(game.player1))
+            {
+                this.hspeed++;
+                this.xvel = this.hspeed;
+                this.yvel += (game.player1.downvel - game.player1.upvel) / 4;
+            }
+        }
+
         this.draw(game);
     }
 

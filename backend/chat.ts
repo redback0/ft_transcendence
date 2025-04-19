@@ -10,9 +10,13 @@ class HBWebSocket extends WebSocket
 
 export function initChat(fastify: FastifyInstance)
 {
-    const wss = new WebSocketServer({ WebSocket: HBWebSocket, server: fastify.server, path: '/wss/chat' });
+    const wss = new WebSocketServer({
+        WebSocket: HBWebSocket,
+        server: fastify.server,
+        path: '/wss/chat'
+    });
 
-    wss.on("connection", (ws: HBWebSocket) =>
+    wss.on("connection", function (ws: HBWebSocket)
     {
         // console.log("new client");
 
