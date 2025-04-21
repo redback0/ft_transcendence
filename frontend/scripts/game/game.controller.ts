@@ -16,7 +16,7 @@ export class GameArea
     p2_score: number = 0;
     win_score: number = 11;
     ball: Ball;
-    framerate: number;
+    framerate: number = 60;
     interval: number | undefined;
     started: boolean = false;
 
@@ -26,13 +26,12 @@ export class GameArea
         if (temp) this.context = temp;
         else throw new Error("Failed to get context from canvas");
         this.canvas = canvas;
-        this.player1 = new Player(this.context, 50, canvas.height / 2, 'w', 's');
-        this.player2 = new Player(this.context, canvas.width - 50, canvas.height / 2, 'ArrowUp', 'ArrowDown');
+        this.player1 = new Player(this.context, 50, canvas.height / 2);
+        this.player2 = new Player(this.context, canvas.width - 50, canvas.height / 2);
         this.ball = new Ball(this.context, canvas.width / 2, canvas.height / 2);
-        this.framerate = 60;
-        this.player1.draw(this);
-        this.player2.draw(this);
-        this.ball.draw(this);
+        this.player1.draw();
+        this.player2.draw();
+        this.ball.draw();
     }
 
     clear = () =>
@@ -56,10 +55,10 @@ export class GameArea
     update = () =>
     {
         this.clear();
-        this.player1.update(this);
-        this.player2.update(this);
-        this.ball.update(this);
-        this.drawScore()
+        this.player1.update();
+        this.player2.update();
+        this.ball.update();
+        this.drawScore();
     }
 
     drawScore()
@@ -69,9 +68,9 @@ export class GameArea
         ctx.font = "24px serif";
         ctx.fillStyle = TEXT_COLOR;
         ctx.textAlign = "right";
-        ctx.fillText(this.p1_score.toString(), (this.canvas.width / 2) - 50, 80)
+        ctx.fillText(this.p1_score.toString(), (this.canvas.width / 2) - 50, 80);
         ctx.textAlign = "left";
-        ctx.fillText(this.p2_score.toString(), (this.canvas.width / 2) + 50, 80)
+        ctx.fillText(this.p2_score.toString(), (this.canvas.width / 2) + 50, 80);
     }
 }
 
@@ -162,9 +161,9 @@ class Component
         this.color = color
     }
 
-    draw(game: GameArea)
+    draw()
     {
-        let ctx = game.context;
+        let ctx = this.ctx;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.w, this.h);
     }
@@ -178,7 +177,6 @@ class Player extends Component
 
     constructor(ctx: CanvasRenderingContext2D,
                 x : number, y : number,
-                upKey: string, downKey: string,
                 h : number = 100 , w : number = 20,
                 speed : number = 10)
     {
@@ -187,9 +185,9 @@ class Player extends Component
         this.speed = speed;
     }
 
-    update(game: GameArea)
+    update()
     {
-        super.draw(game);
+        super.draw();
     }
 }
 
@@ -206,9 +204,11 @@ class Ball extends Component
         this.r = r;
     }
 
-    draw = (game: GameArea) =>
+    draw = () =>
     {
-        let ctx = game.context;
+        let ctx = this.ctx;
+
+        
 
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, 2 * Math.PI)
@@ -219,22 +219,8 @@ class Ball extends Component
         ctx.stroke();
     }
 
-    start(game: GameArea)
+    update()
     {
-        if ((game.p1_score + game.p2_score) % 2 == 1)
-            this.xvel = this.hspeed;
-        else
-            this.xvel = -this.hspeed;
-
-        this.yvel = (Math.random() * (this.hspeed / 2)) + (this.hspeed / 2)
-        if (Math.random() > 0.5)
-            this.yvel = -this.yvel;
+        this.draw();
     }
-
-    update(game: GameArea)
-    {
-        this.draw(game);
-    }
-
-
 }
