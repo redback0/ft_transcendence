@@ -1,27 +1,43 @@
 
-export interface GameComponent
-{
-	x: number,
-	y: number
-}
-
 export interface GameInterface
 {
 	type: string
 }
 
+// Client >> Server
+export interface GameRegister
+{
+	type: "register"
+}
+
+// Server >> Client
+export interface GameRegisterResponse
+{
+	type: "registerSuccess",
+	success: boolean,
+	position: "player1" | "player2" | undefined
+}
+
+// Server >> Client
 export interface GameInfo
 {
 	type: "info",
 	gameWidth: number,
 	gameHeight: number,
+	framerate: number,
 	batHeight: number,
 	batSpeed: number,
-	p1Color: number | undefined,
-	p2Color: number | undefined,
-	ballSize: number,
+	p1Color: string | undefined,
+	p2Color: string | undefined,
+	ballRadius: number,
 	ballSpeed: number,
 	ballAcel: number
+}
+
+// Server >> Client
+export interface GameStart
+{
+	type: "start"
 }
 
 // Server >> Client
@@ -29,9 +45,10 @@ export interface GameFrameData
 {
 	type: "frame",
 	frameCount: number,
-	ball: GameComponent,
-	player1: GameComponent,
-	player2: GameComponent
+	ballX: number,
+	ballY: number,
+	player1Y: number,
+	player2Y: number
 }
 
 // Client >> Server
@@ -48,6 +65,14 @@ export interface GameScoreData
 {
 	type: "score",
 	scorer: "player1" | "player2",
+	p1Score: number,
+	p2Score: number
+}
+
+export interface GameWinData
+{
+	type: "win",
+	winner: "plaer1" | "player2",
 	p1Score: number,
 	p2Score: number
 }

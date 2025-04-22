@@ -1,15 +1,15 @@
 
 import { api } from './api.js'
 import { IndexPage } from './index.template.js'
-// import { LocalGamePage } from './game/local/local.template.js'
-// import { OnlineGamePage } from './game/online/online.template.js'
+import { LocalGamePage } from './game/local/local.template.js'
+import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],
-    // ['/game/local', LocalGamePage],
-    // ['/game/online', OnlineGamePage],
+    ['/game/local', LocalGamePage],
+    ['/game/online', OnlineGamePage],
     ['/chat', ChatPage]
 ])
 
