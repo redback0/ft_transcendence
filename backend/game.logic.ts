@@ -1,5 +1,4 @@
 
-import { ReadableByteStreamControllerCallback } from "stream/web";
 import * as GameSchema from "./game.schema"
 import { WebSocketServer, WebSocket, RawData } from "ws";
 
@@ -8,13 +7,14 @@ export class GameArea
     h: number;
     w: number;
     p1: Player;
-    p1Taken: boolean = false;
     p2: Player;
+    p1Taken: boolean = false;
     p2Taken: boolean = false;
     ball: Ball;
-    framerate: number = 60;
     p1Score: number = 0;
     p2Score: number = 0;
+    winScore: number = 11;
+    framerate: number = 60;
     interval: NodeJS.Timeout | undefined;
     wss: WebSocketServer;
     frame: GameSchema.GameFrameData = {
@@ -188,6 +188,17 @@ export class Ball
         this.x += this.xVel;
         this.y += this.yVel;
 
+        if (this.y - this.r < 0)
+        {
+            this.y = -(this.y - this.r * 2);
+            this.yVel = -this.yVel;
+        }
+        else if (this.y + this.r > game.h)
+        {
+            this.y = game.h - ((this.y + this.r * 2) - game.h);
+            this.yVel = -this.yVel;
+        }
+
         if (this.xVel < 0) // moving towards p1
         {
             if (this.x - this.r <= 0)
@@ -198,8 +209,12 @@ export class Ball
                 if (hitPoint < game.p1.y + (game.p1.h / 2) + this.r
                     && hitPoint > game.p1.y - (game.p1.h / 2) - this.r)
                 {
-                    this.x = -passDist;
+                    this.x = -passDist + this.r;
                     this.xVel = -this.xVel + this.moveAcel;
+                    if (game.p1.moveDown)
+                        this.yVel += game.p1.moveSpeed / 8;
+                    if (game.p1.moveUp)
+                        this.yVel -= game.p1.moveSpeed / 8;
                 }
                 else
                 {
@@ -212,13 +227,17 @@ export class Ball
             if (this.x + this.r >= game.w)
             {
                 let passDist = (this.x + this.r) - game.w;
-                let hitPoint = (passDist / this.xVel) * this.yVel;
+                let hitPoint = this.y + ((passDist / this.xVel) * this.yVel);
 
-                if (hitPoint < game.p1.y + (game.p1.h / 2) + this.r
-                    && hitPoint > game.p1.y - (game.p1.h / 2) - this.r)
+                if (hitPoint < game.p2.y + (game.p2.h / 2) + this.r
+                    && hitPoint > game.p2.y - (game.p2.h / 2) - this.r)
                 {
-                    this.x = game.w - passDist;
+                    this.x = game.w - passDist - this.r;
                     this.xVel = -this.xVel - this.moveAcel;
+                    if (game.p1.moveDown)
+                        this.yVel += game.p1.moveSpeed / 8;
+                    if (game.p1.moveUp)
+                        this.yVel -= game.p1.moveSpeed / 8;
                 }
                 else
                 {
