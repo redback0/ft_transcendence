@@ -8,8 +8,8 @@ export class GameArea
     w: number;
     p1: Player;
     p2: Player;
-    p1Taken: boolean = false;
-    p2Taken: boolean = false;
+    p1WebSocket: WebSocket | undefined;
+    p2WebSocket: WebSocket | undefined;
     ball: Ball;
     p1Score: number = 0;
     p2Score: number = 0;
@@ -96,6 +96,22 @@ export class GameArea
         this.start();
     }
 
+    fullReset = () =>
+    {
+        this.ball.x = this.w / 2;
+        this.ball.y = this.h / 2;
+        this.p1.y = this.h / 2;
+        this.p1.y = this.h / 2;
+        this.p1Score = 0;
+        this.p2Score = 0;
+
+        // probably send sockets a message saying the game has reset (temporary)
+        this.p1WebSocket?.removeListener("message", this.p1.wsMessage);
+        this.p1WebSocket = undefined;
+        this.p2WebSocket?.removeListener("message", this.p2.wsMessage);
+        this.p2WebSocket = undefined;
+    }
+
     update = () =>
     {
         this.p1.update(this);
@@ -177,6 +193,8 @@ export class GameArea
         {
             ws.send(message, { binary: false });
         });
+
+        setTimeout(this.fullReset, 10000);
     }
 }
 

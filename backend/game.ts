@@ -37,9 +37,9 @@ export function initGame(fastify: FastifyInstance)
                     position: undefined
                 }
 
-                if (!game.p1Taken)
+                if (!game.p1WebSocket)
                 {
-                    game.p1Taken = true;
+                    game.p1WebSocket = this;
                     
                     this.removeListener('message', onMessage)
                     this.on("message", function (data, isBinary)
@@ -47,9 +47,9 @@ export function initGame(fastify: FastifyInstance)
                     response.success = true;
                     response.position = "player1";
                 }
-                else if (!game.p2Taken)
+                else if (!game.p2WebSocket)
                 {
-                    game.p2Taken = true;
+                    game.p2WebSocket = this;
 
                     this.removeListener('message', onMessage)
                     this.on("message", function (data, isBinary)
