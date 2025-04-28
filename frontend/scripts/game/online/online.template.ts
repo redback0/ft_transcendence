@@ -6,12 +6,12 @@ export class OnlineGamePage extends HTMLElement {
     constructor() {
         super()
         var canvas = document.createElement('canvas');
-        canvas.width = 1280;
-        canvas.height = 720;
+        canvas.width = window.outerWidth * 3 / 4;
+        canvas.height = canvas.width / 2.2;
         canvas.tabIndex = 0;
         this.game = new GameArea(canvas);
         this.appendChild(canvas);
     }
 }
 
-customElements.define('online-game-page', OnlineGamePage)
+customElements.define('local-game-page', OnlineGamePage)

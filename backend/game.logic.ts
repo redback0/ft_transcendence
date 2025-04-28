@@ -52,14 +52,43 @@ export class GameArea
             ballAcel: this.ball.moveAcel
         }
 
-        // send info to everyone
+        let message = JSON.stringify(info);
+        this.wss.clients.forEach(function(ws)
+        {
+            ws.send(message, { binary: false });
+        });
     }
 
     start = () =>
     {
-        // probably add a countdown here
         this.ball.start(this);
-        this.interval = setInterval(this.update, 1000 / this.framerate)
+
+        this.frame.ballX = this.ball.x;
+        this.frame.ballY = this.ball.y;
+        this.frame.frameCount = 0;
+        this.frame.player1Y = this.p1.y;
+        this.frame.player2Y = this.p2.y;
+
+        let message = JSON.stringify(this.frame);
+        this.wss.clients.forEach(function(ws)
+        {
+            ws.send(message, { binary: false });
+        });
+
+        let game = this;
+        setTimeout(function()
+        {
+            game.interval = setInterval(game.update, 1000 / game.framerate);
+        }, 1000);
+    }
+
+    restart = () =>
+    {
+        this.ball.x = this.w / 2;
+        this.ball.y = this.h / 2;
+        this.p1.y = this.h / 2;
+        this.p2.y = this.h / 2;
+        this.start();
     }
 
     update = () =>
@@ -70,28 +99,40 @@ export class GameArea
 
         this.frame.ballX = this.ball.x;
         this.frame.ballY = this.ball.y;
+        this.frame.frameCount++;
         this.frame.player1Y = this.p1.y;
         this.frame.player2Y = this.p2.y;
 
-        // send over all sockets
-
-        this.frame.frameCount++;
+        let message = JSON.stringify(this.frame);
+        this.wss.clients.forEach(function(ws)
+        {
+            ws.send(message, { binary: false });
+        });
     }
 
     score = (scorer: Player) =>
     {
         let player: "player1" | "player2";
 
-        // disable update, start
-
+        clearInterval(this.interval);
         if (scorer === this.p1)
         {
             this.p1Score++;
+            if (this.p1Score >= this.winScore)
+            {
+                this.win(this.p1);
+                return;
+            }
             player = "player1";
         }
         else
         {
             this.p2Score++;
+            if (this.p2Score >= this.winScore)
+            {
+                this.win(this.p2);
+                return;
+            }
             player = "player2";
         }
 
@@ -102,7 +143,35 @@ export class GameArea
             p2Score: this.p2Score
         }
 
-        // send over all sockets
+        let message = JSON.stringify(scoreData);
+        this.wss.clients.forEach(function(ws)
+        {
+            ws.send(message, { binary: false });
+        });
+
+        setTimeout(this.restart, 2000);
+    }
+
+    win = (winner: Player) =>
+    {
+        let player: "player1" | "player2";
+        if (winner === this.p1)
+            player = "player1";
+        else
+            player = "player2";
+
+        let win: GameSchema.GameWinData = {
+            type: "win",
+            winner: player,
+            p1Score: this.p1Score,
+            p2Score: this.p2Score
+        }
+
+        let message = JSON.stringify(win);
+        this.wss.clients.forEach(function(ws)
+        {
+            ws.send(message, { binary: false });
+        });
     }
 }
 

@@ -72,7 +72,7 @@ export interface GameScoreData
 export interface GameWinData
 {
 	type: "win",
-	winner: "plaer1" | "player2",
+	winner: "player1" | "player2",
 	p1Score: number,
 	p2Score: number
 }
