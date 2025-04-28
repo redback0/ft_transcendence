@@ -201,8 +201,6 @@ export class Player
     {
         if (isBinary) throw new Error("data unknown");
 
-        console.debug(data.toString());
-
         let message = JSON.parse(data.toString()) as GameSchema.GameInterface;
 
         if (message.type === "input")

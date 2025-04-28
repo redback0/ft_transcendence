@@ -10,18 +10,16 @@ class GameWebSocket extends WebSocket
     isAlive: boolean = true;
 }
 
+export const gameWebSocketServer = new WebSocketServer({
+    WebSocket: GameWebSocket,
+    noServer: true,
+});
 
 export function initGame(fastify: FastifyInstance)
 {
-    const wss = new WebSocketServer({
-        WebSocket: GameWebSocket,
-        server: fastify.server,
-        path: "/wss/game"
-    });
+    const game: GameArea = new GameArea(gameWebSocketServer);
 
-    const game: GameArea = new GameArea(wss);
-
-    wss.on("connection", function (ws: GameWebSocket)
+    gameWebSocketServer.on("connection", function (ws: GameWebSocket)
     {
         console.log("new client");
 
@@ -85,7 +83,7 @@ export function initGame(fastify: FastifyInstance)
     // simple ping as a heartbeat for the connection
     const interval = setInterval(() =>
     {
-        wss.clients.forEach(ws => {
+        gameWebSocketServer.clients.forEach(ws => {
             if ((<any>ws).isAlive === false)
             {
                 console.debug("client failed to ping (game)");

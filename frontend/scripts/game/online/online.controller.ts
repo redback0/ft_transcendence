@@ -365,6 +365,8 @@ class PlayerController
     {
         this.upKey = upKey;
         this.downKey = downKey;
+        canvas.addEventListener("keydown", this.keyDownHandler)
+        canvas.addEventListener("keyup", this.keyUpHandler)
     }
 
     keyUpHandler = (e: KeyboardEvent) =>

@@ -7,15 +7,16 @@ class HBWebSocket extends WebSocket
     isAlive: boolean = true;
 }
 
+export const chatWebSocketServer = new WebSocketServer({
+    WebSocket: HBWebSocket,
+    noServer: true,
+    path: '/wss/chat'
+});
+
 export function initChat(fastify: FastifyInstance)
 {
-    const wss = new WebSocketServer({
-        WebSocket: HBWebSocket,
-        server: fastify.server,
-        path: '/wss/chat'
-    });
 
-    wss.on("connection", function (ws: HBWebSocket)
+    chatWebSocketServer.on("connection", function (ws: HBWebSocket)
     {
         console.log("new client");
 
@@ -24,7 +25,7 @@ export function initChat(fastify: FastifyInstance)
             const message = isBinary ? data : data.toString();
             console.log(`message recieved: ${message}, ${isBinary}`);
             // this.send(message, {binary: isBinary});
-            wss.clients.forEach(ws => {
+            chatWebSocketServer.clients.forEach(ws => {
                 ws.send(message, {binary: isBinary});
             });
         });
@@ -42,7 +43,7 @@ export function initChat(fastify: FastifyInstance)
 
     const interval = setInterval(() =>
     {
-        wss.clients.forEach(ws => {
+        chatWebSocketServer.clients.forEach(ws => {
             if ((<any>ws).isAlive === false)
             {
                 console.debug("client failed to ping (chat)");
