@@ -14,4 +14,4 @@ export class OnlineGamePage extends HTMLElement {
     }
 }
 
-customElements.define('local-game-page', OnlineGamePage)
+customElements.define('online-game-page', OnlineGamePage)

@@ -23,10 +23,11 @@ export function initGame(fastify: FastifyInstance)
 
     wss.on("connection", function (ws: GameWebSocket)
     {
+        console.log("new client");
 
-        ws.on("message", function (data, isBinary)
+        ws.on("message", function onMessage(data, isBinary)
         {
-            if (isBinary) throw new Error("Unknown message");
+            if (isBinary) {console.error("Unknown message"); return};
 
             let parsed : GameSchema.GameInterface = JSON.parse(data.toString());
 
@@ -41,7 +42,8 @@ export function initGame(fastify: FastifyInstance)
                 if (!game.p1Taken)
                 {
                     game.p1Taken = true;
-
+                    
+                    this.removeListener('message', onMessage)
                     this.on("message", function (data, isBinary)
                             { game.p1.wsMessage(this, data, isBinary) });
                     response.success = true;
@@ -51,6 +53,7 @@ export function initGame(fastify: FastifyInstance)
                 {
                     game.p2Taken = true;
 
+                    this.removeListener('message', onMessage)
                     this.on("message", function (data, isBinary)
                             { game.p2.wsMessage(this, data, isBinary) });
                     response.success = true;
@@ -62,7 +65,8 @@ export function initGame(fastify: FastifyInstance)
             }
             else
             {
-                throw new Error("Unknown message");
+                console.error("Unknown message");
+                return;
             }
         });
 
@@ -84,7 +88,7 @@ export function initGame(fastify: FastifyInstance)
         wss.clients.forEach(ws => {
             if ((<any>ws).isAlive === false)
             {
-                // console.debug("client failed to ping");
+                console.debug("client failed to ping (game)");
                 return ws.terminate();
             }
             ws.isAlive = false;

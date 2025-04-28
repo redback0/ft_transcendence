@@ -5,13 +5,13 @@ export interface GameInterface
 }
 
 // Client >> Server
-export interface GameRegister
+export interface GameRegister extends GameInterface
 {
 	type: "register"
 }
 
 // Server >> Client
-export interface GameRegisterResponse
+export interface GameRegisterResponse extends GameInterface
 {
 	type: "registerSuccess",
 	success: boolean,
@@ -19,7 +19,7 @@ export interface GameRegisterResponse
 }
 
 // Server >> Client
-export interface GameInfo
+export interface GameInfo extends GameInterface
 {
 	type: "info",
 	gameWidth: number,
@@ -35,13 +35,13 @@ export interface GameInfo
 }
 
 // Server >> Client
-export interface GameStart
+export interface GameStart extends GameInterface
 {
 	type: "start"
 }
 
 // Server >> Client
-export interface GameFrameData
+export interface GameFrameData extends GameInterface
 {
 	type: "frame",
 	frameCount: number,
@@ -52,7 +52,7 @@ export interface GameFrameData
 }
 
 // Client >> Server
-export interface GameUserInput
+export interface GameUserInput extends GameInterface
 {
 	type: "input",
 	frameCount: number,
@@ -61,7 +61,7 @@ export interface GameUserInput
 }
 
 // Server >> Client (when scored)
-export interface GameScoreData
+export interface GameScoreData extends GameInterface
 {
 	type: "score",
 	scorer: "player1" | "player2",
@@ -69,7 +69,7 @@ export interface GameScoreData
 	p2Score: number
 }
 
-export interface GameWinData
+export interface GameWinData extends GameInterface
 {
 	type: "win",
 	winner: "player1" | "player2",

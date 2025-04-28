@@ -19,14 +19,17 @@ export class GameArea
     sidePadding: number;
     p1: Player;
     p2: Player;
+    pController: PlayerController;
+    player: "player1" | "player2" | undefined;
     ball: Ball;
     p1Score: number = 0;
     p2Score: number = 0;
     winScore: number = 11;
     framerate: number;
+    lastRecFrame: number = -1;
+    frameNo: number = 0;
     interval: number | undefined;
-    started: boolean = false;
-    startButton: Button;
+    registerButton: Button;
 
     constructor(canvas: HTMLCanvasElement, h = 100, w = 200)
     {
@@ -41,29 +44,111 @@ export class GameArea
         this.w = w;
         this.ratio = canvas.height / this.h;
         this.sidePadding = (canvas.width - (this.w * this.ratio)) / 2;
-        this.p1 = new Player(0, h / 2, 'w', 's', canvas);
-        this.p2 = new Player(w, h / 2, 'ArrowUp', 'ArrowDown', canvas);
+        this.p1 = new Player(0, h / 2);
+        this.p2 = new Player(w, h / 2);
+        this.pController = new PlayerController(canvas, 'w', 's')
         this.ball = new Ball(w / 2, h / 2);
         this.framerate = 60;
-        this.startButton = new Button(w / 2, h * 3 / 4, w / 3.5, h / 12,
-            this.start, canvas, this, "Click here to start!");
+        this.registerButton = new Button(w / 2, h * 3 / 4, w / 3.5, h / 12,
+            this.register, canvas, this, "Click here to register!");
 
         this.drawBackground();
         this.p1.draw(this);
         this.p2.draw(this);
         this.ball.draw(this);
 
-        this.startButton.draw(this);
+        this.registerButton.draw(this);
     }
 
     wsConnect = () =>
     {
-
+        console.log("Game WebSocket connected");
     }
 
-    wsMessage = () =>
+    wsMessage = (ev: MessageEvent) =>
     {
+        if (typeof ev.data !== "string")
+        {
+            throw new Error("Unknown data recieved on WebSocket");
+        }
+        const data: GameSchema.GameInterface = JSON.parse(ev.data);
 
+        switch (data.type)
+        {
+        case "registerSuccess":
+        {
+            const info = (data as GameSchema.GameRegisterResponse);
+            if (info.success)
+                this.player = info.position;
+            break;
+        }
+        case "info":
+        {
+            const info = (data as GameSchema.GameInfo);
+            this.w = info.gameWidth;
+            this.h = info.gameHeight;
+            this.framerate = info.framerate;
+            this.p1.h = info.batHeight;
+            this.p2.h = info.batHeight;
+            //bat speed
+            if (info.p1Color)
+                this.p1.color = info.p1Color;
+            if (info.p2Color)
+                this.p2.color = info.p2Color;
+            this.ball.r = info.ballRadius;
+            //ball speed
+            //ball acel
+            break;
+        }
+        case "start":
+            this.start();
+            break;
+        case "frame":
+        {
+            const info = (data as GameSchema.GameFrameData);
+            if (info.frameCount < this.lastRecFrame + 1)
+                console.warn("Lost a frame");
+            else if (info.frameCount > this.lastRecFrame + 1)
+                console.warn("Frame was late");
+            this.lastRecFrame = info.frameCount;
+            this.ball.x = info.ballX;
+            this.ball.y = info.ballY;
+            this.p1.y = info.player1Y;
+            this.p2.y = info.player2Y;
+            break;
+        }
+        case "score":
+        {
+            const info = (data as GameSchema.GameScoreData);
+            if (info.scorer === "player1")
+                this.score(this.p1);
+            else
+                this.score(this.p2);
+            if (this.p1Score !== info.p1Score)
+                console.warn("p1 score has differed");
+            if (this.p2Score !== info.p2Score)
+                console.warn("p2 score has differed");
+            this.p1Score = info.p1Score;
+            this.p2Score = info.p2Score;
+            break;
+        }
+        case "win":
+            const info = (data as GameSchema.GameWinData);
+            if (info.winner === "player1")
+                this.win(this.p1);
+            else
+                this.win(this.p2);
+            this.p1Score = info.p1Score;
+            this.p2Score = info.p2Score;
+            break;
+        default:
+            throw new Error("Unknown message from WebSocket");
+        }
+    }
+
+    register = () =>
+    {
+        this.ws.send(JSON.stringify({type: "register"} as GameSchema.GameRegister));
     }
 
     clear = () =>
@@ -73,22 +158,6 @@ export class GameArea
 
     start = () =>
     {
-        if (!this.started)
-        {
-            this.started = true;
-            this.startButton.enabled = false;
-            this.ball.start(this);
-            this.interval = setInterval(this.update, 1000 / this.framerate);
-        }
-    }
-
-    restart = () =>
-    {
-        this.ball.x = this.w / 2;
-        this.ball.y = this.h / 2;
-        this.p1.y = this.h / 2;
-        this.p2.y = this.h / 2;
-        this.ball.start(this);
         this.interval = setInterval(this.update, 1000 / this.framerate);
     }
 
@@ -103,41 +172,44 @@ export class GameArea
         if (scorer == this.p1)
         {
             this.p1Score++;
-            if (this.p1Score >= this.winScore)
-            {
-                this.win(this.p1);
-                return;
-            }
             ctx.fillText("Left player scored!", this.canvas.width / 2, 200);
         }
         else
         {
             this.p2Score++;
-            if (this.p2Score >= this.winScore)
-            {
-                this.win(this.p2);
-                return;
-            }
             ctx.fillText("Right player scored!", this.canvas.width / 2, 200);
         }
-        setTimeout(this.restart, 2000);
     }
 
     win(winner: Player)
     {
         let ctx = this.context;
 
+        clearInterval(this.interval);
         ctx.font = "48px serif";
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (winner == this.p1)
+        {
+            this.p1Score++;
             ctx.fillText("Left player wins!", this.canvas.width / 2, this.canvas.height / 2);
+        }
         else
+        {
+            this.p2Score++;
             ctx.fillText("Right player wins!", this.canvas.width / 2, this.canvas.height / 2);
+        }
     }
 
     update = () =>
     {
+        this.ws.send(JSON.stringify({
+            type: "input",
+            frameCount: this.frameNo++,
+            moveUp: this.pController.moveUp,
+            moveDown: this.pController.moveDown
+        } as GameSchema.GameUserInput));
+
         this.clear();
         this.drawBackground();
         this.p1.update(this);
@@ -282,53 +354,48 @@ class Component
     }
 }
 
-class Player extends Component
+class PlayerController
 {
-    upvel: number = 0;
-    downvel: number = 0;
-    speed: number;
+    moveUp: boolean = false;
+    moveDown: boolean = false;
     upKey: string;
     downKey: string;
 
+    constructor(canvas: HTMLCanvasElement, upKey: string, downKey: string)
+    {
+        this.upKey = upKey;
+        this.downKey = downKey;
+    }
+
+    keyUpHandler = (e: KeyboardEvent) =>
+    {
+        if (e.key === this.upKey)
+            this.moveUp = false;
+        else if (e.key === this.downKey)
+            this.moveDown = false;
+    }
+
+    keyDownHandler = (e: KeyboardEvent) =>
+    {
+        if (e.key === this.upKey)
+            this.moveUp = true;
+        else if (e.key === this.downKey)
+            this.moveDown = true;
+    }
+}
+
+class Player extends Component
+{
     constructor(x : number, y : number,
-                upKey: string, downKey: string,
-                canvas: HTMLCanvasElement,
-                h : number = 12, w : number = 2,
-                speed : number = 1)
+                h : number = 12, w : number = 2)
     {
         if (x == 0)
             w = -w;
         super(x, y, h, w, PLAYER_COLOR)
-        this.speed = speed;
-        this.upKey = upKey;
-        this.downKey = downKey;
-        canvas.addEventListener("keydown", this.keyDown, false)
-        canvas.addEventListener("keyup", this.keyUp, false)
-    }
-
-    keyDown = (event: KeyboardEvent) =>
-    {
-        if (event.key == this.upKey)
-            this.upvel = this.speed;
-        else if (event.key == this.downKey)
-            this.downvel = this.speed;
-    }
-
-    keyUp = (event: KeyboardEvent) =>
-    {
-        if (event.key == this.upKey)
-            this.upvel = 0;
-        else if (event.key == this.downKey)
-            this.downvel = 0;
     }
 
     update(game: GameArea)
     {
-        this.y += this.downvel - this.upvel;
-        if (this.y - this.h / 2 < 0)
-            this.y = 0 + this.h / 2;
-        else if (this.y + this.h / 2 > game.h)
-            this.y = game.h - this.h / 2;
         super.draw(game);
     }
 }
@@ -336,10 +403,6 @@ class Player extends Component
 class Ball extends Component
 {
     r: number;
-    xVel: number = 0;
-    yVel: number = 0;
-    moveSpeed: number = 1;
-    moveAcel: number = 0.1;
 
     constructor(x: number, y: number, r: number = 1, color: string = BALL_COLOR)
     {
@@ -360,76 +423,8 @@ class Ball extends Component
         ctx.stroke();
     }
 
-    start(game: GameArea)
-    {
-        if ((game.p1Score + game.p2Score) % 2 == 1)
-            this.xVel = this.moveSpeed;
-        else
-            this.xVel = -this.moveSpeed;
-
-        this.yVel = (Math.random() * (this.moveSpeed / 2)) + (this.moveSpeed / 2)
-        if (Math.random() > 0.5)
-            this.yVel = -this.yVel;
-    }
-
     update(game: GameArea)
     {
-        this.x += this.xVel;
-        this.y += this.yVel;
-
-        // bounce off top wall
-        if (this.y - this.r < 0)
-        {
-            this.y = -(this.y - this.r * 2);
-            this.yVel = -this.yVel;
-        }
-        else if (this.y + this.r > game.h)
-        {
-            this.y = game.h - ((this.y + this.r * 2) - game.h);
-            this.yVel = -this.yVel;
-        }
-
-        // check if ball hit bat
-        if (this.xVel < 0) // moving towards p1
-        {
-            if (this.x - this.r <= 0)
-            {
-                let passDist = this.x - this.r;
-                let hitPoint = this.y + ((passDist / this.xVel) * this.yVel);
-
-                if (hitPoint < game.p1.y + (game.p1.h / 2) + this.r
-                    && hitPoint > game.p1.y - (game.p1.h / 2) - this.r)
-                {
-                    this.x = -passDist + this.r;
-                    this.xVel = -this.xVel + this.moveAcel;
-                    this.yVel += (game.p1.downvel - game.p1.upvel) / 8;
-                }
-                else
-                {
-                    game.score(game.p2);
-                }
-            }
-        }
-        else // not moving or moving towards p2
-        {
-            if (this.x + this.r >= game.w)
-            {
-                let passDist = (this.x + this.r) - game.w;
-                let hitPoint = this.y + ((passDist / this.xVel) * this.yVel);
-
-                if (hitPoint < game.p2.y + (game.p2.h / 2) + this.r
-                    && hitPoint > game.p2.y - (game.p2.h / 2) - this.r)
-                {
-                    this.x = game.w - passDist - this.r;
-                    this.xVel = -this.xVel - this.moveAcel;
-                    this.yVel += (game.p2.downvel - game.p2.upvel) / 8;
-                }
-                else
-                {
-                    game.score(game.p1);
-                }
-            }
-        }
         this.draw(game);
     }
 }

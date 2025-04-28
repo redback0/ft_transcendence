@@ -61,6 +61,11 @@ export class GameArea
 
     start = () =>
     {
+        this.wss.clients.forEach(function(ws)
+        {
+            ws.send(JSON.stringify({type: "start"} as GameSchema.GameStart), { binary: false });
+        });
+
         this.ball.start(this);
 
         this.frame.ballX = this.ball.x;
@@ -69,13 +74,13 @@ export class GameArea
         this.frame.player1Y = this.p1.y;
         this.frame.player2Y = this.p2.y;
 
-        let message = JSON.stringify(this.frame);
+        const message = JSON.stringify(this.frame);
         this.wss.clients.forEach(function(ws)
         {
             ws.send(message, { binary: false });
         });
 
-        let game = this;
+        const game = this;
         setTimeout(function()
         {
             game.interval = setInterval(game.update, 1000 / game.framerate);
@@ -195,6 +200,8 @@ export class Player
     wsMessage = (ws: WebSocket, data: RawData, isBinary: boolean) =>
     {
         if (isBinary) throw new Error("data unknown");
+
+        console.debug(data.toString());
 
         let message = JSON.parse(data.toString()) as GameSchema.GameInterface;
 

@@ -1,7 +1,6 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { FastifyInstance } from 'fastify';
-// declare const fastify: FastifyInstance;
 
 class HBWebSocket extends WebSocket
 {
@@ -18,12 +17,12 @@ export function initChat(fastify: FastifyInstance)
 
     wss.on("connection", function (ws: HBWebSocket)
     {
-        // console.log("new client");
+        console.log("new client");
 
         ws.on("message", function (data, isBinary: boolean)
         {
             const message = isBinary ? data : data.toString();
-            // console.log(`message recieved: ${message}`);
+            console.log(`message recieved: ${message}, ${isBinary}`);
             // this.send(message, {binary: isBinary});
             wss.clients.forEach(ws => {
                 ws.send(message, {binary: isBinary});
@@ -46,7 +45,7 @@ export function initChat(fastify: FastifyInstance)
         wss.clients.forEach(ws => {
             if ((<any>ws).isAlive === false)
             {
-                // console.debug("client failed to ping");
+                console.debug("client failed to ping (chat)");
                 return ws.terminate();
             }
             ws.isAlive = false;

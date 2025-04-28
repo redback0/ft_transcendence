@@ -1,6 +1,7 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat } from './chat.js';
+import { initGame } from './game.js';
 
 export const fastify: FastifyInstance = Fastify({});
 // all the requests to the backend should go through /api
@@ -14,7 +15,8 @@ const start = async () =>
 {
     try
     {
-        initChat(fastify);
+        // initChat(fastify);
+        initGame(fastify);
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
