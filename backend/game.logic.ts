@@ -2,6 +2,8 @@
 import * as GameSchema from "./game.schema"
 import { WebSocketServer, WebSocket, RawData } from "ws";
 
+export type GameWinFunc = (winner: "player1" | "player2", p1Score: number, p2Score: number) => void;
+
 export class GameArea
 {
     h: number;
@@ -25,8 +27,9 @@ export class GameArea
         player1Y: 0,
         player2Y: 0
     };
+    winFunction: GameWinFunc
 
-    constructor(wss: WebSocketServer, h = 100, w = 200)
+    constructor(wss: WebSocketServer, winFunction: GameWinFunc, h = 100, w = 200)
     {
         this.wss = wss;
         this.h = h;
@@ -34,6 +37,7 @@ export class GameArea
         this.p1 = new Player(0, h / 2);
         this.p2 = new Player(w, h / 2);
         this.ball = new Ball(w / 2, h / 2);
+        this.winFunction = winFunction;
     }
 
     sendInfo = () =>
@@ -181,6 +185,8 @@ export class GameArea
         else
             player = "player2";
 
+        this.winFunction(player, this.p1Score, this.p2Score);
+
         let win: GameSchema.GameWinData = {
             type: "win",
             winner: player,
@@ -193,8 +199,6 @@ export class GameArea
         {
             ws.send(message, { binary: false });
         });
-
-        setTimeout(this.fullReset, 10000);
     }
 }
 

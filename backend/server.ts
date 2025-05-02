@@ -1,7 +1,7 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
-import { initGame, gameWebSocketServer } from './game.js';
+import { gameWebSocketServers } from './game.js';
 import { IncomingMessage } from 'http';
 
 export const fastify: FastifyInstance = Fastify({});
@@ -16,8 +16,7 @@ const start = async () =>
 {
     try
     {
-        initChat(fastify);
-        initGame(fastify);
+        initChat();
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
@@ -42,11 +41,15 @@ fastify.server.on("upgrade", function (req, socket, head)
             chatWebSocketServer.emit('connection', ws, req);
         });
     }
-    else if (req.url === '/wss/game')
+    else if (req.url?.startsWith('/wss/game'))
     {
-        gameWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
+        const id = req.url.substring("/wss/game/".length)
+        const gameServer = gameWebSocketServers.get(id)?.wss;
+        if (!gameServer)
+            return; // invalid game
+        gameServer.handleUpgrade(req, socket, head, function done(ws)
         {
-            gameWebSocketServer.emit('connection', ws, req);
+            gameServer.emit('connection', ws, req);
         });
     }
     else

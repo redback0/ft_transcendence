@@ -13,7 +13,7 @@ export const chatWebSocketServer = new WebSocketServer({
     path: '/wss/chat'
 });
 
-export function initChat(fastify: FastifyInstance)
+export function initChat()
 {
 
     chatWebSocketServer.on("connection", function (ws: HBWebSocket)
