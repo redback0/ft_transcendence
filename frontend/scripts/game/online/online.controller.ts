@@ -31,12 +31,18 @@ export class GameArea
     interval: number | undefined;
     registerButton: Button;
 
-    constructor(canvas: HTMLCanvasElement, h = 100, w = 200)
+    constructor(gameID: string, canvas: HTMLCanvasElement, h = 100, w = 200)
     {
         let temp = canvas.getContext("2d");
         if (temp) this.context = temp;
         else throw new Error("Failed to get context from canvas");
-        this.ws = new WebSocket("/wss/game");
+        this.ws = new WebSocket("/wss/game/" + gameID);
+        let ws = this.ws;
+        window.addEventListener("popstate", function disconnectGame(e)
+        {
+            ws.close();
+            this.removeEventListener("popstate", disconnectGame);
+        });
         this.ws.onopen = this.wsConnect;
         this.ws.onmessage = this.wsMessage;
         this.canvas = canvas;
@@ -51,18 +57,20 @@ export class GameArea
         this.framerate = 60;
         this.registerButton = new Button(w / 2, h * 3 / 4, w / 3.5, h / 12,
             this.register, canvas, this, "Click here to register!");
+        this.registerButton.enabled = false;
 
         this.drawBackground();
         this.p1.draw(this);
         this.p2.draw(this);
         this.ball.draw(this);
 
-        this.registerButton.draw(this);
     }
 
     wsConnect = () =>
     {
         console.log("Game WebSocket connected");
+        this.registerButton.enabled = true;
+        this.registerButton.draw(this);
     }
 
     wsMessage = (ev: MessageEvent) =>
@@ -85,6 +93,8 @@ export class GameArea
         case "info":
         {
             const info = (data as GameSchema.GameInfo);
+            if (info.started)
+                this.start();
             this.w = info.gameWidth;
             this.h = info.gameHeight;
             this.framerate = info.framerate;
@@ -203,12 +213,15 @@ export class GameArea
 
     update = () =>
     {
-        this.ws.send(JSON.stringify({
-            type: "input",
-            frameCount: this.frameNo++,
-            moveUp: this.pController.moveUp,
-            moveDown: this.pController.moveDown
-        } as GameSchema.GameUserInput));
+        if (this.player)
+        {
+            this.ws.send(JSON.stringify({
+                type: "input",
+                frameCount: this.frameNo++,
+                moveUp: this.pController.moveUp,
+                moveDown: this.pController.moveDown
+            } as GameSchema.GameUserInput));
+        }
 
         this.clear();
         this.drawBackground();

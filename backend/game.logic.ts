@@ -42,8 +42,12 @@ export class GameArea
 
     sendInfo = () =>
     {
+        let started = false
+        if (this.interval)
+            started = true;
         let info: GameSchema.GameInfo = {
             type: "info",
+            started: started,
             gameWidth: this.w,
             gameHeight: this.h,
             framerate: this.framerate,

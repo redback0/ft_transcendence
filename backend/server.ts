@@ -1,15 +1,16 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
-import { gameWebSocketServers } from './game.js';
-import { IncomingMessage } from 'http';
+import * as Game from './game.js';
 
 export const fastify: FastifyInstance = Fastify({});
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
 {
     reply.send({ text: "server response!!" });
-})
+});
+
+fastify.register(Game.gameInit);
 
 // Run the fastify!
 const start = async () =>
@@ -44,7 +45,9 @@ fastify.server.on("upgrade", function (req, socket, head)
     else if (req.url?.startsWith('/wss/game'))
     {
         const id = req.url.substring("/wss/game/".length)
-        const gameServer = gameWebSocketServers.get(id)?.wss;
+        if (id === "")
+            return; // no ID given
+        const gameServer = Game.gameWebSocketServers.get(id)?.wss;
         if (!gameServer)
             return; // invalid game
         gameServer.handleUpgrade(req, socket, head, function done(ws)
@@ -61,6 +64,11 @@ fastify.server.on("upgrade", function (req, socket, head)
 // these 2 functions are so the server will close nicely with docker
 process.on('SIGINT', () =>
 {
+    Game.gameWebSocketServers.forEach((v, k, m) =>
+    {
+        v.wss.close();
+    });
+    chatWebSocketServer.close();
     process.exit(0);
 })
 process.on('SIGTERM', () =>

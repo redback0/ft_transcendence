@@ -18,10 +18,17 @@ export interface GameRegisterResponse extends GameInterface
 	position: "player1" | "player2" | undefined
 }
 
+// Client >> Server
+export interface GameInfoRequest extends GameInterface
+{
+	type: "infoRequest"
+}
+
 // Server >> Client
 export interface GameInfo extends GameInterface
 {
 	type: "info",
+	started: boolean,
 	gameWidth: number,
 	gameHeight: number,
 	framerate: number,

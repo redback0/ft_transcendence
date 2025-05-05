@@ -25,6 +25,12 @@ export class ChatPage extends HTMLElement
         senderButton.addEventListener("click", wssMessageSender);
         this.appendChild(senderButton);
 
+        window.addEventListener("popstate", function disconnectChat(e)
+        {
+            ws?.close();
+            this.removeEventListener("popstate", disconnectChat);
+        });
+
         function connectWS()
         {
             ws = new WebSocket("/wss/chat");
