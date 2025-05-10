@@ -2,3 +2,5 @@ node_modules
 *.js
 .vscode
 .env
+
+/frontend/html/css/output.css

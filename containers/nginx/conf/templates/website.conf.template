@@ -28,6 +28,12 @@ server {
         include               nginxconfig.io/proxy.conf;
     }
 
+    location /wss/ {
+        proxy_pass            http://nodejs:3000;
+        proxy_set_header Host $host;
+        include               nginxconfig.io/proxy.conf;
+    }
+
     # additional config
     include nginxconfig.io/general.conf;
 }

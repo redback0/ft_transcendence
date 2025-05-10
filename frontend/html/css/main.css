@@ -1,19 +1,8 @@
 @import "tailwindcss";
 
-#nav
+body
 {
-    padding: 30px
-}
-
-#body
-{
-    padding: 30px
-}
-
-#footer
-{
-    height: 500px;
-    padding: 30px;
+    background-color: var(--color-gray-500);
 }
 
 button
@@ -31,7 +20,36 @@ button:hover
     background-color: var(--color-gray-300);
 }
 
+button:disabled
+{
+    background-color: var(--color-gray-200);
+    color: var(--color-gray-400);
+}
+
+input
+{
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: var(--color-gray-300);
+    border: 1px solid var(--color-gray-400);
+    border-radius: 5px;
+}
+
+input:focus
+{
+    background-color: var(--color-gray-100);
+}
+
 p, button
 {
     margin: 5px;
+}
+
+canvas
+{
+    margin: auto;
+    border: 1px solid var(--color-gray-800);
+    margin-top: 30px;
+    background-color: var(--color-gray-400);
 }
