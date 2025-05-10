@@ -5,6 +5,8 @@ import { FastifyInstance, RegisterOptions } from "fastify";
 import * as GameSchema from "./game.schema";
 import { GameArea, GameWinFunc } from "./game.logic";
 
+let testGameWinner: "Player 1" | "Player 2" | "No winner yet";
+
 class GameWebSocket extends WebSocket
 {
     isAlive: boolean = true;
@@ -33,6 +35,29 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
         AddNewGame(id);
 
         reply.send({ success: true, id: id });
+    });
+
+    fastify.get('/api/game/create/test', function (request, reply)
+    {
+        let id = NewID(5);
+        while (id in gameWebSocketServers.keys)
+        {
+            id = NewID(5);
+        }
+        AddNewGame(id, (winner) =>
+        {
+            if (winner === "player1")
+                testGameWinner = "Player 1";
+            else
+                testGameWinner = "Player 2";
+        });
+
+        reply.send({ success: true, id: id });
+    });
+
+    fastify.get('/api/game/test/winner', function (request, reply)
+    {
+        reply.send({ winner: testGameWinner });
     })
 
     done();
@@ -47,13 +72,11 @@ export function AddNewGame(id: string, gameComplete: GameWinFunc | undefined = u
         if (gameComplete)
             gameComplete(winner, p1Score, p2Score);
         gameWebSocketServers.delete(id);
-    }));
+    }));AddNewGame
 }
 
 class Game extends GameArea
 {
-    id: string;
-    wss: WebSocketServer;
     timeout: NodeJS.Timeout | undefined;
 
     constructor(id: string, winFunction: GameWinFunc)
@@ -64,7 +87,6 @@ class Game extends GameArea
         });
 
         super(wss, winFunction);
-        this.wss = wss;
         this.id = id;
 
         const game = this;
@@ -98,8 +120,13 @@ class Game extends GameArea
                         this.removeListener('message', onMessage)
                         this.on("message", function (data, isBinary)
                                 { game.p1.wsMessage(this, data, isBinary) });
+                        this.on("close", function (code, reason)
+                                { game.p1.wsClose(game, code, reason) });
                         response.success = true;
                         response.position = "player1";
+
+                        if (game.p1WebSocket && game.p2WebSocket)
+                            game.start();
                     }
                     else if (!game.p2WebSocket)
                     {
@@ -108,10 +135,13 @@ class Game extends GameArea
                         this.removeListener('message', onMessage)
                         this.on("message", function (data, isBinary)
                                 { game.p2.wsMessage(this, data, isBinary) });
+                        this.on("close", function (code, reason)
+                                { game.p2.wsClose(game, code, reason) });
                         response.success = true;
                         response.position = "player2";
 
-                        game.start();
+                        if (game.p1WebSocket && game.p2WebSocket)
+                            game.start();
                     }
                     this.send(JSON.stringify(response), { binary: false });
                 }
@@ -119,7 +149,7 @@ class Game extends GameArea
                 {
                     this.send(JSON.stringify({
                         type: "infoRequest"
-                    } as GameSchema.GameInfoRequest), { binary: false });
+                    } as GameSchema.GameInfoRequest), { binary: false })
                 }
                 else
                 {

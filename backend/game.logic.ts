@@ -1,6 +1,7 @@
 
 import * as GameSchema from "./game.schema"
 import { WebSocketServer, WebSocket, RawData } from "ws";
+import { gameWebSocketServers } from "./game";
 
 export type GameWinFunc = (winner: "player1" | "player2", p1Score: number, p2Score: number) => void;
 
@@ -15,7 +16,10 @@ export class GameArea
     ball: Ball;
     p1Score: number = 0;
     p2Score: number = 0;
+    p1DisconnectTimeout: NodeJS.Timeout | undefined;
+    p2DisconnectTimeout: NodeJS.Timeout | undefined;
     winScore: number = 11;
+    running: boolean = false;
     framerate: number = 60;
     interval: NodeJS.Timeout | undefined;
     wss: WebSocketServer;
@@ -28,6 +32,7 @@ export class GameArea
         player2Y: 0
     };
     winFunction: GameWinFunc
+    id: string = "";
 
     constructor(wss: WebSocketServer, winFunction: GameWinFunc, h = 100, w = 200)
     {
@@ -73,6 +78,7 @@ export class GameArea
         {
             ws.send(JSON.stringify({type: "start"} as GameSchema.GameStart), { binary: false });
         });
+        this.running = true;
 
         this.ball.start(this);
 
@@ -183,6 +189,7 @@ export class GameArea
 
     win = (winner: Player) =>
     {
+        this.running = false;
         let player: "player1" | "player2";
         if (winner === this.p1)
             player = "player1";
@@ -203,6 +210,44 @@ export class GameArea
         {
             ws.send(message, { binary: false });
         });
+    }
+
+    kill = () =>
+    {
+        gameWebSocketServers.delete(this.id);
+    }
+
+    playerDisconnected = (player: Player) =>
+    {
+        // this will do 1 of a few things in the future, for now, it just makes
+        // the remaining player win after 10 seconds, if the player doesn't
+        // reconnect
+        const game = this;
+
+        if (player === this.p1)
+        {
+            this.p1WebSocket = undefined;
+            this.p1DisconnectTimeout = setTimeout(function ()
+            {
+                clearInterval(game.interval);
+                if (game.p2DisconnectTimeout)
+                    game.kill();
+                else
+                    game.win(game.p2);
+            }, 10000);
+        }
+        else
+        {
+            this.p2WebSocket = undefined
+            this.p2DisconnectTimeout = setTimeout(function ()
+            {
+                clearInterval(game.interval);
+                if (game.p1DisconnectTimeout)
+                    game.kill();
+                else
+                    game.win(game.p1);
+            }, 10000);
+        }
     }
 }
 
@@ -236,6 +281,14 @@ export class Player
             this.moveDown = input.moveDown;
             this.moveUp = input.moveUp;
         }
+    }
+
+    wsClose = (game: GameArea, code: number, reason: Buffer) =>
+    {
+        console.log("Player disconnected");
+
+        if (game.running)
+            game.playerDisconnected(this);
     }
 
     update(game: GameArea)

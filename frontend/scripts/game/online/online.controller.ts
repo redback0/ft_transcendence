@@ -140,9 +140,11 @@ export class GameArea
                 console.warn("p2 score has differed");
             this.p1Score = info.p1Score;
             this.p2Score = info.p2Score;
+            this.drawScore();
             break;
         }
         case "win":
+        {
             const info = (data as GameSchema.GameWinData);
             if (info.winner === "player1")
                 this.win(this.p1);
@@ -150,7 +152,9 @@ export class GameArea
                 this.win(this.p2);
             this.p1Score = info.p1Score;
             this.p2Score = info.p2Score;
+            this.drawScore();
             break;
+        }
         default:
             throw new Error("Unknown message from WebSocket");
         }
