@@ -140,7 +140,7 @@ export class GameArea
                 console.warn("p2 score has differed");
             this.p1Score = info.p1Score;
             this.p2Score = info.p2Score;
-            this.drawScore();
+            this.draw();
             break;
         }
         case "win":
@@ -180,6 +180,7 @@ export class GameArea
         let ctx = this.context;
 
         clearInterval(this.interval);
+        this.draw();
         ctx.font = "36px serif";
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
@@ -200,6 +201,7 @@ export class GameArea
         let ctx = this.context;
 
         clearInterval(this.interval);
+        this.draw();
         ctx.font = "48px serif";
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
@@ -227,11 +229,19 @@ export class GameArea
             } as GameSchema.GameUserInput));
         }
 
-        this.clear();
-        this.drawBackground();
         this.p1.update(this);
         this.p2.update(this);
         this.ball.update(this);
+        this.draw();
+    }
+
+    draw()
+    {
+        this.clear();
+        this.drawBackground();
+        this.p1.draw(this);
+        this.p2.draw(this);
+        this.ball.draw(this);
         this.drawScore();
     }
 
@@ -377,13 +387,18 @@ class PlayerController
     moveDown: boolean = false;
     upKey: string;
     downKey: string;
+    canvas: HTMLCanvasElement;
 
     constructor(canvas: HTMLCanvasElement, upKey: string, downKey: string)
     {
         this.upKey = upKey;
         this.downKey = downKey;
-        canvas.addEventListener("keydown", this.keyDownHandler)
-        canvas.addEventListener("keyup", this.keyUpHandler)
+        this.canvas = canvas;
+        canvas.addEventListener("keydown", this.keyDownHandler);
+        canvas.addEventListener("keyup", this.keyUpHandler);
+        canvas.addEventListener("touchstart", this.touchHandler);
+        canvas.addEventListener("touchmove", this.touchHandler);
+        canvas.addEventListener("touchend", this.stopMovement);
     }
 
     keyUpHandler = (e: KeyboardEvent) =>
@@ -401,6 +416,32 @@ class PlayerController
         else if (e.key === this.downKey)
             this.moveDown = true;
     }
+
+    stopMovement = () =>
+    {
+        this.moveUp = false;
+        this.moveDown = false;
+    }
+
+    touchHandler = (e: TouchEvent) =>
+    {
+        this.moveUp = false;
+        this.moveDown = false;
+
+        const touches = e.changedTouches;
+
+        let avg = 0;
+        for (let i = 0; i < touches.length; i++)
+        {
+            avg += touches[i].pageY;
+        }
+        let height = avg / touches.length;
+
+        if (height > this.canvas.height / 2)
+            this.moveDown = true;
+        else
+            this.moveUp = true;
+    }
 }
 
 class Player extends Component
@@ -415,7 +456,6 @@ class Player extends Component
 
     update(game: GameArea)
     {
-        super.draw(game);
     }
 }
 
@@ -444,6 +484,5 @@ class Ball extends Component
 
     update(game: GameArea)
     {
-        this.draw(game);
     }
 }
