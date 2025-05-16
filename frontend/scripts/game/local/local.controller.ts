@@ -273,6 +273,7 @@ class Player extends Component
     speed: number;
     upKey: string;
     downKey: string;
+    canvas: HTMLCanvasElement;
 
     constructor(x : number, y : number,
                 upKey: string, downKey: string,
@@ -286,8 +287,12 @@ class Player extends Component
         this.speed = speed;
         this.upKey = upKey;
         this.downKey = downKey;
-        canvas.addEventListener("keydown", this.keyDown, false)
-        canvas.addEventListener("keyup", this.keyUp, false)
+        this.canvas = canvas;
+        canvas.addEventListener("keydown", this.keyDown, false);
+        canvas.addEventListener("keyup", this.keyUp, false);
+        canvas.addEventListener("touchstart", this.touchHandler);
+        canvas.addEventListener("touchmove", this.touchHandler);
+        canvas.addEventListener("touchend", this.stopMovement);
     }
 
     keyDown = (event: KeyboardEvent) =>
@@ -304,6 +309,39 @@ class Player extends Component
             this.upvel = 0;
         else if (event.key == this.downKey)
             this.downvel = 0;
+    }
+
+    stopMovement = () =>
+    {
+        this.upvel = 0;
+        this.downvel = 0;
+    }
+
+    touchHandler = (e: TouchEvent) =>
+    {
+        this.upvel = 0;
+        this.downvel = 0;
+
+        if (e.changedTouches.length < 1)
+            return ;
+        const bx = this.canvas.getBoundingClientRect();
+        const t = e.changedTouches[0];
+
+        if (this.x < this.canvas.width / 2
+                && t.clientX - bx.left < this.canvas.width)
+        {
+            if (t.clientY - bx.top < this.canvas.height / 2)
+                this.upvel = this.speed;
+            else
+                this.downvel = this.speed;
+        }
+        else
+        {
+            if (t.clientY - bx.top < this.canvas.height / 2)
+                this.upvel = this.speed;
+            else
+                this.downvel = this.speed;
+        }
     }
 
     update(game: GameArea)
