@@ -325,23 +325,25 @@ class Player extends Component
         if (e.changedTouches.length < 1)
             return ;
         const bx = this.canvas.getBoundingClientRect();
-        const t = e.changedTouches[0];
+        const t = e.changedTouches;
 
-        if (this.x < this.canvas.width / 2
-                && t.clientX - bx.left < this.canvas.width)
-        {
-            if (t.clientY - bx.top < this.canvas.height / 2)
-                this.upvel = this.speed;
-            else
-                this.downvel = this.speed;
-        }
-        else
-        {
-            if (t.clientY - bx.top < this.canvas.height / 2)
-                this.upvel = this.speed;
-            else
-                this.downvel = this.speed;
-        }
+        for (let i = 0; i < t.length; i++)
+            if (this.x === 0
+                    && t[i].clientX - bx.left < this.canvas.width / 2)
+            {
+                if (t[i].clientY - bx.top < this.canvas.height / 2)
+                    this.upvel = this.speed;
+                else
+                    this.downvel = this.speed;
+            }
+            else if (this.x !== 0
+                    && t[i].clientX - bx.left > this.canvas.width / 2)
+            {
+                if (t[i].clientY - bx.top < this.canvas.height / 2)
+                    this.upvel = this.speed;
+                else
+                    this.downvel = this.speed;
+            }
     }
 
     update(game: GameArea)
