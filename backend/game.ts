@@ -159,12 +159,13 @@ class Game extends GameArea
             {
                 // if there are no sockets connected, and there's no winFunction
                 // just kill this game
-                if (wss.clients.entries.length === 0)
+                if (wss.clients.size === 0)
                 {
                     console.log(`Game (${game.id}) empty, remove in 10 seconds`);
                     game.timeout = setTimeout(() =>
                     {
                         gameWebSocketServers.delete(game.id);
+                        console.log(`Game deleted (${game.id})`);
                     }, 10000)
                 }
             });
