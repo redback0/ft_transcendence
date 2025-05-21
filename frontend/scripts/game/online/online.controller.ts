@@ -130,6 +130,12 @@ export class GameArea
         case "score":
         {
             const info = (data as GameSchema.GameScoreData);
+            this.p1Score = info.p1Score;
+            this.p2Score = info.p2Score;
+            this.ball.x = info.ballX;
+            this.ball.y = info.ballY;
+            this.p1.y = info.player1Y;
+            this.p2.y = info.player2Y;
             if (info.scorer === "player1")
                 this.score(this.p1);
             else
@@ -138,21 +144,21 @@ export class GameArea
                 console.warn("p1 score has differed");
             if (this.p2Score !== info.p2Score)
                 console.warn("p2 score has differed");
-            this.p1Score = info.p1Score;
-            this.p2Score = info.p2Score;
-            this.draw();
             break;
         }
         case "win":
         {
             const info = (data as GameSchema.GameWinData);
+            this.p1Score = info.p1Score;
+            this.p2Score = info.p2Score;
+            this.ball.x = info.ballX;
+            this.ball.y = info.ballY;
+            this.p1.y = info.player1Y;
+            this.p2.y = info.player2Y;
             if (info.winner === "player1")
                 this.win(this.p1);
             else
                 this.win(this.p2);
-            this.p1Score = info.p1Score;
-            this.p2Score = info.p2Score;
-            this.drawScore();
             break;
         }
         default:
@@ -186,12 +192,10 @@ export class GameArea
         ctx.fillStyle = TEXT_COLOR;
         if (scorer == this.p1)
         {
-            this.p1Score++;
             ctx.fillText("Left player scored!", this.canvas.width / 2, 200);
         }
         else
         {
-            this.p2Score++;
             ctx.fillText("Right player scored!", this.canvas.width / 2, 200);
         }
     }
@@ -201,22 +205,16 @@ export class GameArea
         let ctx = this.context;
 
         clearInterval(this.interval);
+        this.draw();
+        ctx.font = "48px serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = TEXT_COLOR;
         if (winner == this.p1)
         {
-            this.p1Score++;
-            this.draw();
-            ctx.font = "48px serif";
-            ctx.textAlign = "center";
-            ctx.fillStyle = TEXT_COLOR;
             ctx.fillText("Left player wins!", this.canvas.width / 2, this.canvas.height / 2);
         }
         else
         {
-            this.p2Score++;
-            this.draw();
-            ctx.font = "48px serif";
-            ctx.textAlign = "center";
-            ctx.fillStyle = TEXT_COLOR;
             ctx.fillText("Right player wins!", this.canvas.width / 2, this.canvas.height / 2);
         }
     }

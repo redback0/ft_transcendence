@@ -175,7 +175,11 @@ export class GameArea
             type: "score",
             scorer: player,
             p1Score: this.p1Score,
-            p2Score: this.p2Score
+            p2Score: this.p2Score,
+            ballX: this.ball.x,
+            ballY: this.ball.y,
+            player1Y: this.p1.y,
+            player2Y: this.p2.y
         }
 
         let message = JSON.stringify(scoreData);
@@ -202,7 +206,11 @@ export class GameArea
             type: "win",
             winner: player,
             p1Score: this.p1Score,
-            p2Score: this.p2Score
+            p2Score: this.p2Score,
+            ballX: this.ball.x,
+            ballY: this.ball.y,
+            player1Y: this.p1.y,
+            player2Y: this.p2.y
         }
 
         let message = JSON.stringify(win);
@@ -317,7 +325,7 @@ export class Ball
     moveSpeed: number = 1;
     moveAcel: number = 0.1;
 
-    constructor(x: number, y: number, r = 2)
+    constructor(x: number, y: number, r = 1)
     {
         this.x = x;
         this.y = y;
