@@ -58,8 +58,8 @@ export class GameArea
             framerate: this.framerate,
             batHeight: this.p1.h,
             batSpeed: this.p1.moveSpeed,
-            p1Color: "#000",
-            p2Color: "#000",
+            p1Color: undefined,
+            p2Color: undefined,
             ballRadius: this.ball.r,
             ballSpeed: this.ball.moveSpeed,
             ballAcel: this.ball.moveAcel
