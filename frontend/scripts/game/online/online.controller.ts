@@ -71,6 +71,9 @@ export class GameArea
         console.log("Game WebSocket connected");
         this.registerButton.enabled = true;
         this.registerButton.draw(this);
+        this.ws.send(JSON.stringify({
+            type: "infoRequest"
+        } as GameSchema.GameInfoRequest));
     }
 
     wsMessage = (ev: MessageEvent) =>

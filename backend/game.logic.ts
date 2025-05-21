@@ -45,7 +45,7 @@ export class GameArea
         this.winFunction = winFunction;
     }
 
-    sendInfo = () =>
+    getInfo = (): string =>
     {
         let started = false
         if (this.interval)
@@ -66,10 +66,7 @@ export class GameArea
         }
 
         let message = JSON.stringify(info);
-        this.wss.clients.forEach(function(ws)
-        {
-            ws.send(message, { binary: false });
-        });
+        return message;
     }
 
     start = () =>

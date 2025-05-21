@@ -147,9 +147,7 @@ class Game extends GameArea
                 }
                 else if (parsed.type === "infoRequest")
                 {
-                    this.send(JSON.stringify({
-                        type: "infoRequest"
-                    } as GameSchema.GameInfoRequest), { binary: false })
+                    this.send(game.getInfo(), { binary: false });
                 }
                 else
                 {
