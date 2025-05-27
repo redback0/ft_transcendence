@@ -6,6 +6,7 @@ import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
+import { AddNavigation } from './navigation.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],
@@ -19,6 +20,8 @@ let currPage : HTMLElement
 
 document.body.onload = () => {
     document.title = "Code defined title!";
+
+    AddNavigation();
 
     newPage();
     history.replaceState(null, "", document.location.href);

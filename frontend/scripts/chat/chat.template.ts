@@ -54,9 +54,13 @@ export class ChatPage extends HTMLElement
 
             ws.onclose = function (ev)
             {
-                messageReciever("disconnected, attempting to reconnect", "info");
+                try
+                {
+                    messageReciever("disconnected, attempting to reconnect", "info");
+                    setTimeout(connectWS, 1000)
+                }
+                catch {}
                 // console.log("Socket disconnected, attempting to reconnect after 1 second...");
-                setTimeout(connectWS, 1000)
             }
         }
         connectWS();
