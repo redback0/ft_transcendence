@@ -1,0 +1,24 @@
+services:
+
+
+  sqlite:
+    container_name: sqlite
+    build: .
+    restart: always
+    networks:
+      - transcendence
+    volumes:
+      - database:/database
+
+volumes:
+
+
+  database:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./database
+
+networks:
+  transcendence: {}
