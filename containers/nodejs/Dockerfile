@@ -1,6 +1,8 @@
 
 FROM node:23.10-alpine3.21
 
+RUN apk add --no-cache sqlite
+
 # COPY ./backend /backend
 
 # RUN cd /backend && \
