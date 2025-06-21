@@ -19,7 +19,7 @@
 
 - ✅ 0.5 Use a framework or a toolkit to build the frontend
 
-- 🔧 0.5 Use a database for the backend -- Jack
+- ✅ 0.5 Use a database for the backend -- Jack
 
 - 🔧 1 Standard user management, authentication, users across tournaments -- Nicole (Jack) (Beth)
 
@@ -44,6 +44,6 @@
 - ❔ 0.5 Support on all devices
 
 
-✅ 3.5/7
-🔧 5
+✅ 4/7
+🔧 4.5
 ❔ 2
