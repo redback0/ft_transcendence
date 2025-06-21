@@ -4,7 +4,7 @@ import { initChat, chatWebSocketServer } from './chat.js';
 import * as Game from './game.js';
 import Database from 'better-sqlite3';
 
-const db = new Database('/backend/database/pong.db');
+const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({});
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
