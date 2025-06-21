@@ -23,6 +23,8 @@ services:
       - transcendence
     volumes:
       - backend:/backend
+      - database:/database
+
   sqlitebrowser:
     container_name: sqlitebrowser
     build: containers/sqlitebrowser
@@ -31,8 +33,19 @@ services:
     depends_on:
       - nodejs
     volumes:
-      - backend:/backend
-    
+      - database:/database
+
+  volume-fix:
+    image: alpine
+    container_name: volume-fix
+    restart: "no"
+    entrypoint: |
+      /bin/sh -c "chown 1000:1000 /database"
+    volumes:
+      - database:/database
+
+
+
 volumes:
 
   frontend:
@@ -48,6 +61,13 @@ volumes:
       o: bind
       type: none
       device: ./backend
+
+  database:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./database
 
 networks:
   transcendence: {}

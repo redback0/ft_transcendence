@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "type": "module",
   "dependencies": {
     "@types/node": "^22.13.14",
     "better-sqlite3": "^11.10.0",
