@@ -1,7 +1,8 @@
 #!/bin/sh
 
-if [ ! -f /backend/database/pong.db ]; then
-    sqlite3 /backend/database/pong.db <  /backend/database/sqlite_setup.sql
+if [ ! -f /database/pong.db ]; then
+    sqlite3 /database/pong.db <  /database/sqlite_setup.sql
+    chmod 666 /database/pong.db
 fi
 
 cd /backend
