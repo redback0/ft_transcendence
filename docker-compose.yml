@@ -26,6 +26,8 @@ services:
       - database:/database
 
   sqlitebrowser:
+    profiles:
+      - dbcontrol
     container_name: sqlitebrowser
     build: containers/sqlitebrowser
     ports:

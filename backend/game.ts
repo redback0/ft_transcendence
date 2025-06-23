@@ -67,19 +67,27 @@ export const gameWebSocketServers = new Map<string, Game>;
 
 export function AddNewGame(id: string, gameComplete: GameWinFunc | undefined = undefined)
 {
-    gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2", p1Score: number, p2Score: number) =>
-    {
-        if (gameComplete)
-            gameComplete(winner, p1Score, p2Score);
-        gameWebSocketServers.delete(id);
-    }));AddNewGame
+    gameWebSocketServers.set(id, new Game(id, gameComplete))
+
+    // gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) =>
+    // {
+    //     // if there was a gameComplete function, call it, otherwise save to the
+    //     // database if both players were registered users.
+
+    //     // NOTE: gameComplete function will be responsible for writing to the
+    //     // database if set
+    //     if (gameComplete)
+    //         gameComplete(winner, p1Score, p2Score);
+    //     else if ()
+    //     gameWebSocketServers.delete(id);
+    // }));
 }
 
 class Game extends GameArea
 {
     timeout: NodeJS.Timeout | undefined;
 
-    constructor(id: string, winFunction: GameWinFunc)
+    constructor(id: string, winFunction: GameWinFunc | undefined)
     {
         const wss = new WebSocketServer({
             WebSocket: GameWebSocket,
@@ -159,6 +167,10 @@ class Game extends GameArea
             {
                 // if there are no sockets connected, and there's no winFunction
                 // just kill this game
+                // the game should only get deleted when it never started in
+                // in the first place, so normally, even if both players leave,
+                // the winFunction will be called, making the player that stayed
+                // longer win
                 if (wss.clients.size === 0)
                 {
                     console.log(`Game (${game.id}) empty, remove in 10 seconds`);

@@ -2,8 +2,9 @@
 import * as GameSchema from "./game.schema"
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import { gameWebSocketServers } from "./game";
+import { db } from "./database"
 
-export type GameWinFunc = (winner: "player1" | "player2", p1Score: number, p2Score: number) => void;
+export type GameWinFunc = (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => void;
 
 export class GameArea
 {
@@ -34,7 +35,7 @@ export class GameArea
     winFunction: GameWinFunc
     id: string = "";
 
-    constructor(wss: WebSocketServer, winFunction: GameWinFunc, h = 100, w = 200)
+    constructor(wss: WebSocketServer, winFunction: GameWinFunc | undefined, h = 100, w = 200)
     {
         this.wss = wss;
         this.h = h;
@@ -42,7 +43,22 @@ export class GameArea
         this.p1 = new Player(0, h / 2);
         this.p2 = new Player(w, h / 2);
         this.ball = new Ball(w / 2, h / 2);
-        this.winFunction = winFunction;
+        const game = this;
+        if (winFunction)
+            this.winFunction = winFunction;
+        else
+            this.winFunction = (winner, p1Score, p2Score) =>
+            {
+                // TODO: game.id IS NOT GARANTEED TO BE UNIQUE CURRENTLY
+                db.saveGame.run({
+                    id: game.id,
+                    leftId: game.p1.userId,
+                    rightId: game.p2.userId,
+                    tournId: null,
+                    leftScore: game.p1Score,
+                    rightScore: game.p2Score
+                })
+            };
     }
 
     getInfo = (): string =>
@@ -188,13 +204,13 @@ export class GameArea
         setTimeout(this.restart, 2000);
     }
 
-    win = (winner: Player) =>
+    win = (winner: Player | undefined) =>
     {
         this.running = false;
-        let player: "player1" | "player2";
+        let player: "player1" | "player2" | undefined = undefined;
         if (winner === this.p1)
             player = "player1";
-        else
+        else if (winner === this.p2)
             player = "player2";
 
         this.winFunction(player, this.p1Score, this.p2Score);
@@ -217,6 +233,7 @@ export class GameArea
         });
     }
 
+    // not used currently
     kill = () =>
     {
         gameWebSocketServers.delete(this.id);
@@ -225,8 +242,8 @@ export class GameArea
     playerDisconnected = (player: Player) =>
     {
         // this will do 1 of a few things in the future, for now, it just makes
-        // the remaining player win after 10 seconds, if the player doesn't
-        // reconnect
+        // the remaining player win after 10 seconds
+
         const game = this;
 
         if (player === this.p1)
@@ -234,11 +251,14 @@ export class GameArea
             this.p1WebSocket = undefined;
             this.p1DisconnectTimeout = setTimeout(function ()
             {
+                game.p1DisconnectTimeout = undefined;
                 clearInterval(game.interval);
                 if (game.p2DisconnectTimeout)
-                    game.kill();
-                else
-                    game.win(game.p2);
+                {
+                    clearTimeout(game.p2DisconnectTimeout);
+                    game.p2DisconnectTimeout = undefined;
+                }
+                game.win(game.p2);
             }, 10000);
         }
         else
@@ -246,11 +266,14 @@ export class GameArea
             this.p2WebSocket = undefined
             this.p2DisconnectTimeout = setTimeout(function ()
             {
+                game.p2DisconnectTimeout = undefined;
                 clearInterval(game.interval);
                 if (game.p1DisconnectTimeout)
-                    game.kill();
-                else
-                    game.win(game.p1);
+                {
+                    clearTimeout(game.p1DisconnectTimeout);
+                    game.p1DisconnectTimeout = undefined;
+                }
+                game.win(game.p1);
             }, 10000);
         }
     }
@@ -265,6 +288,8 @@ export class Player
     moveUp: boolean = false;
     moveDown: boolean = false;
     moveSpeed: number = 1;
+    userId: number | null | undefined; // null is unregistered user, undefined
+                                       // is unset
 
     constructor(x: number, y: number, h = 10)
     {

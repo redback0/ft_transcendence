@@ -83,7 +83,7 @@ export interface GameScoreData extends GameInterface
 export interface GameWinData extends GameInterface
 {
 	type: "win",
-	winner: "player1" | "player2",
+	winner: "player1" | "player2" | undefined,
 	p1Score: number,
 	p2Score: number,
 	ballX: number,
