@@ -6,14 +6,18 @@ import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
+import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { AddNavigation } from './navigation.js'
+import { LobbyJoinPage } from './tournament/join/join.template.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],
     ['/game', GamePage],
     ['/game/local', LocalGamePage],
     ['/game/online', OnlineGamePage],
-    ['/chat', ChatPage]
+    ['/chat', ChatPage],
+    ['/lobby', LobbyNavPage],
+    ['/lobby/join', LobbyJoinPage],
 ])
 
 let currPage : HTMLElement

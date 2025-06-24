@@ -2,6 +2,7 @@
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
 import * as Game from './game.js';
+import * as Lobby from './lobby.js';
 
 export const fastify: FastifyInstance = Fastify({});
 // all the requests to the backend should go through /api
@@ -11,6 +12,7 @@ fastify.get('/api/buttonpressed', function handler(request, reply)
 });
 
 fastify.register(Game.gameInit);
+fastify.register(Lobby.lobbyInit);
 
 // Run the fastify!
 const start = async () =>
@@ -53,6 +55,19 @@ fastify.server.on("upgrade", function (req, socket, head)
         gameServer.handleUpgrade(req, socket, head, function done(ws)
         {
             gameServer.emit('connection', ws, req);
+        });
+    }
+    else if (req.url?.startsWith('/wss/lobby'))
+    {
+        const room_code = req.url.substring("/wss/lobby/".length);
+        if (room_code === "")
+            return;
+        const lobbyServer = Lobby.lobbyWebSocketServers.get(room_code)?.wss;
+        if (!lobbyServer) {
+            return;
+        }
+        lobbyServer.handleUpgrade(req, socket, head, function done(ws) {
+            lobbyServer.emit('connection', ws, req);
         });
     }
     else

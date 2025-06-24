@@ -12,7 +12,7 @@ class GameWebSocket extends WebSocket
     isAlive: boolean = true;
 }
 
-function NewID(length: number)
+export function NewID(length: number)
 {
     let result = "";
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
