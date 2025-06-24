@@ -1,8 +1,10 @@
 
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer, WebSocket, Server } from "ws";
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
 import { LobbyResponse, LobbyInfoResponse, ClientUUID, LobbyRequest } from './lobby.schema';
+import { server } from 'typescript';
+import { IncomingMessage } from "http";
 
 export type RoomCode = string;
 export const lobbyWebSocketServers = new Map<RoomCode, Lobby>;
@@ -33,12 +35,11 @@ class LobbyWebSocket extends WebSocket {
 // FIXME: if no one connects to lobby it will never get deleteed i thinkers
 class Lobby {
 	room_code: RoomCode;
-	// BUG: for some reason, when using this.wss over the one declared in the constructor TypeScript forgets that the clients are LobbyWebSockets and not regular WebSockets
-	wss: WebSocketServer;
+	wss: Server<typeof LobbyWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
 	timeout: NodeJS.Timeout | undefined;
 
 	constructor(room_code: RoomCode) {
-		const wss = new WebSocketServer({
+		this.wss = new WebSocketServer({
             WebSocket: LobbyWebSocket,
             noServer: true,
         });
@@ -46,7 +47,7 @@ class Lobby {
 		this.room_code = room_code;
 
 		const lobby = this;
-		this.wss = wss;
+		const wss = this.wss;
 
 		wss.on("connection", function (ws: LobbyWebSocket) {
             console.log("new client in lobby !!1!!! yay");
@@ -67,19 +68,7 @@ class Lobby {
 				const request: LobbyRequest = JSON.parse(data.toString());
 				switch (request.type) {
 					case "infoRequest":
-						var clients: ClientUUID[] = [];
-						wss.clients.forEach((client) => {
-							clients.push(client.uuid);
-						});
-
-						var message: LobbyResponse = {
-							type: "info",
-							msg: {
-								whoami: ws.uuid,
-								clients: clients,
-							}
-						}
-						ws.send(JSON.stringify(message), { binary: false });
+						lobby.sendInfoResponse(ws);
 						break;
 					default:
 						console.warn("unknown lobby request from client");
@@ -112,7 +101,7 @@ class Lobby {
 
 		const interval = setInterval(() =>
         {
-            wss.clients.forEach(ws => {
+            this.wss.clients.forEach(ws => {
                 if ((<any>ws).isAlive === false)
                 {
                     console.debug("client failed to ping (game)");
@@ -123,4 +112,20 @@ class Lobby {
             })
         }, 1000)
 	} //end contructor
+
+	sendInfoResponse = (ws: LobbyWebSocket) => {
+		var clients: ClientUUID[] = [];
+		this.wss.clients.forEach((client) => {
+			clients.push(client.uuid);
+		});
+
+		var message: LobbyResponse = {
+			type: "info",
+			msg: {
+				whoami: ws.uuid,
+				clients: clients,
+			}
+		}
+		ws.send(JSON.stringify(message), { binary: false })
+	}
 }
