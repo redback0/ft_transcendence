@@ -33,13 +33,12 @@ class LobbyWebSocket extends WebSocket {
 // FIXME: if no one connects to lobby it will never get deleteed i thinkers
 class Lobby {
 	room_code: RoomCode;
+	// BUG: for some reason, when using this.wss over the one declared in the constructor TypeScript forgets that the clients are LobbyWebSockets and not regular WebSockets
 	wss: WebSocketServer;
 	timeout: NodeJS.Timeout | undefined;
-	clients: LobbyWebSocket[];
 
 	constructor(room_code: RoomCode) {
-		this.clients = [];
-		this.wss = new WebSocketServer({
+		const wss = new WebSocketServer({
             WebSocket: LobbyWebSocket,
             noServer: true,
         });
@@ -47,17 +46,14 @@ class Lobby {
 		this.room_code = room_code;
 
 		const lobby = this;
-		const wss = this.wss;
+		this.wss = wss;
 
-		this.wss.on("connection", function (ws: LobbyWebSocket) {
+		wss.on("connection", function (ws: LobbyWebSocket) {
             console.log("new client in lobby !!1!!! yay");
 			// TODO: get an actual UUID lmao
 			ws.uuid = NewID(8);
 			console.log(`client id: ${ws.uuid}`);
-			lobby.clients.push(ws);
-			console.log(ws.uuid);
 			wss.clients.forEach((client) => {
-				console.log(ws.uuid);
 				client.send(JSON.stringify({ type: "new_client", msg: ws.uuid }), { binary: false });
 			});
             if (lobby.timeout)
@@ -71,7 +67,19 @@ class Lobby {
 				const request: LobbyRequest = JSON.parse(data.toString());
 				switch (request.type) {
 					case "infoRequest":
-						lobby.wsInfoMessage(ws);
+						var clients: ClientUUID[] = [];
+						wss.clients.forEach((client) => {
+							clients.push(client.uuid);
+						});
+
+						var message: LobbyResponse = {
+							type: "info",
+							msg: {
+								whoami: ws.uuid,
+								clients: clients,
+							}
+						}
+						ws.send(JSON.stringify(message), { binary: false });
 						break;
 					default:
 						console.warn("unknown lobby request from client");
@@ -80,17 +88,8 @@ class Lobby {
 
             ws.on("close", function (code, reason)
             {
-				let idx = 0;
-				while (idx < lobby.clients.length) {
-					if (lobby.clients[idx] === this) {
-						lobby.clients.splice(idx, 1);
-						console.log(`removed clinet ${lobby.clients[idx]} !!!!!!!!!!`);
-						break;
-					}
-					++idx;
-				}
 				wss.clients.forEach((client) => {
-					client.send(JSON.stringify({ type: "client_left", uuid: ws.uuid }), { binary: false });
+					client.send(JSON.stringify({ type: "client_left", msg: ws.uuid }), { binary: false });
 				});
                 // if there are no sockets connected just kill this game
                 if (lobby.wss.clients.size === 0)
@@ -110,21 +109,18 @@ class Lobby {
             });
 		});
 		lobbyWebSocketServers.set(this.room_code, this);
-	}
 
-	wsInfoMessage = (ws: LobbyWebSocket) => {
-		var clients: ClientUUID[] = [];
-		this.clients.forEach((client) => {
-			clients.push(client.uuid);
-		});
-
-		var message: LobbyResponse = {
-			type: "info",
-			msg: {
-				whoami: ws.uuid,
-				clients: clients,
-			}
-		}
-		ws.send(JSON.stringify(message), { binary: false });
-	};
+		const interval = setInterval(() =>
+        {
+            wss.clients.forEach(ws => {
+                if ((<any>ws).isAlive === false)
+                {
+                    console.debug("client failed to ping (game)");
+                    return ws.terminate();
+                }
+                ws.isAlive = false;
+                ws.ping();
+            })
+        }, 1000)
+	} //end contructor
 }
