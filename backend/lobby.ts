@@ -1,5 +1,5 @@
 
-import { WebSocketServer, WebSocket, Server } from "ws";
+import { WebSocketServer, WebSocket, Server, RawData } from 'ws';
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
 import { LobbyResponse, LobbyInfoResponse, ClientUUID, LobbyRequest } from './lobby.schema';
@@ -27,93 +27,86 @@ export function lobbyInit(fastify: FastifyInstance, opts: RegisterOptions, done:
 	done();
 }
 
-class LobbyWebSocket extends WebSocket {
+class TournamentWebSocket extends WebSocket {
 	isAlive: boolean = true;
 	uuid: ClientUUID;
+	wins: number = 0;
 }
 
 // FIXME: if no one connects to lobby it will never get deleteed i thinkers
 class Lobby {
 	room_code: RoomCode;
-	wss: Server<typeof LobbyWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
+	wss: Server<typeof TournamentWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
 	timeout: NodeJS.Timeout | undefined;
+	host: TournamentWebSocket | undefined;
 
 	constructor(room_code: RoomCode) {
+		this.host = undefined;
 		this.wss = new WebSocketServer({
-            WebSocket: LobbyWebSocket,
+            WebSocket: TournamentWebSocket,
             noServer: true,
         });
-
 		this.room_code = room_code;
 
-		const lobby = this;
-		const wss = this.wss;
-
-		wss.on("connection", function (ws: LobbyWebSocket) {
+		this.wss.on("connection", (ws: TournamentWebSocket) => {
             console.log("new client in lobby !!1!!! yay");
 			// TODO: get an actual UUID lmao
 			ws.uuid = NewID(8);
 			console.log(`client id: ${ws.uuid}`);
-			wss.clients.forEach((client) => {
-				client.send(JSON.stringify({ type: "new_client", msg: ws.uuid }), { binary: false });
-			});
-            if (lobby.timeout)
-            {
-                clearTimeout(lobby.timeout);
-                lobby.timeout = undefined;
+			
+			if (!this.host)
+				this.host = ws;
+			
+			this.sendToAll({ type: "new_client", msg: ws.uuid });
+            
+			if (this.timeout) {
+                clearTimeout(this.timeout);
+                this.timeout = undefined;
             }
 
-            ws.on("message", function onMessage(data, isBinary) {
-				console.log(`msg from client in lobby: (${isBinary}, ${data})`);
-				const request: LobbyRequest = JSON.parse(data.toString());
-				switch (request.type) {
-					case "infoRequest":
-						lobby.sendInfoResponse(ws);
-						break;
-					default:
-						console.warn("unknown lobby request from client");
-				}
-            });
-
-            ws.on("close", function (code, reason)
-            {
-				wss.clients.forEach((client) => {
-					client.send(JSON.stringify({ type: "client_left", msg: ws.uuid }), { binary: false });
-				});
-                // if there are no sockets connected just kill this game
-                if (lobby.wss.clients.size === 0)
-                {
-                    console.log(`Lobby (${lobby.room_code}) empty, remove in 10 seconds`);
-                    lobby.timeout = setTimeout(() =>
-                    {
-                        lobbyWebSocketServers.delete(lobby.room_code);
-                        console.log(`Lobby deleted (${lobby.room_code})`);
-                    }, 10000)
-                }
-            });
-
-            ws.on("pong", function ()
-            {
+            ws.on("message", (data, isBinary) => { this.wsOnMessage(ws, data, isBinary) });
+            ws.on("close", (code, reason) => { this.wsOnClose(ws, code, reason) });
+            ws.on("pong", () => {
+				// client responded to ping message, keep the connection alive
                 ws.isAlive = true;
             });
 		});
 		lobbyWebSocketServers.set(this.room_code, this);
-
-		const interval = setInterval(() =>
-        {
-            this.wss.clients.forEach(ws => {
-                if ((<any>ws).isAlive === false)
-                {
-                    console.debug("client failed to ping (game)");
-                    return ws.terminate();
-                }
-                ws.isAlive = false;
-                ws.ping();
-            })
-        }, 1000)
+		this.setPingInterval(1000);
 	} //end contructor
 
-	sendInfoResponse = (ws: LobbyWebSocket) => {
+	wsOnMessage = (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
+		console.log(`msg from client in lobby: (${isBinary}, ${data})`);
+		const request: LobbyRequest = JSON.parse(data.toString());
+		switch (request.type) {
+			case "infoRequest":
+				this.sendInfoResponse(ws);
+				break;
+			default:
+				console.warn("unknown lobby request from client");
+		}
+	}
+
+	wsOnClose = (ws: TournamentWebSocket, code: number, reason: Buffer<ArrayBufferLike>) => {
+		if (ws == this.host) {
+			this.chooseNewHost();
+		}
+		this.wss.clients.forEach((client) => {
+			client.send(JSON.stringify({ type: "client_left", msg: ws.uuid }), { binary: false });
+		});
+		// if there are no sockets connected just kill this game
+		if (this.wss.clients.size === 0)
+		{
+			console.log(`Lobby (${this.room_code}) empty, remove in 10 seconds`);
+			this.timeout = setTimeout(() =>
+			{
+				lobbyWebSocketServers.delete(this.room_code);
+				console.log(`Lobby deleted (${this.room_code})`);
+			}, 10000)
+		}
+	}
+
+	sendInfoResponse = (ws: TournamentWebSocket) => {
 		var clients: ClientUUID[] = [];
 		this.wss.clients.forEach((client) => {
 			clients.push(client.uuid);
@@ -123,9 +116,43 @@ class Lobby {
 			type: "info",
 			msg: {
 				whoami: ws.uuid,
+				host: this.host?.uuid,
 				clients: clients,
 			}
 		}
 		ws.send(JSON.stringify(message), { binary: false })
+	}
+
+	chooseNewHost = () => {
+		console.log("lobby host left !!!");
+		if (this.wss.clients.size > 0) {
+			// gross, i just one thing from the list of clients
+			for (let c of this.wss.clients) {
+				this.host = c;
+				break;
+			}
+		} else {
+			this.host = undefined;
+		}
+	}
+
+	sendToAll = (response: LobbyResponse) => {
+		this.wss.clients.forEach((client) => {
+			client.send(JSON.stringify(response), { binary: false });
+		});
+	}
+
+	setPingInterval = (interval: number) => {
+		const thing = setInterval(() => {
+            this.wss.clients.forEach(ws => {
+                if (ws.isAlive === false)
+                {
+                    console.debug("client failed to ping (game)");
+                    return ws.terminate();
+                }
+                ws.isAlive = false;
+                ws.ping();
+            });
+        }, interval);
 	}
 }

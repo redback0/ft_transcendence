@@ -56,7 +56,7 @@ export class LobbyJoinArea {
 					break;
 				}
 				const lobby_info: LobbyInfoResponse = data.msg;
-				console.log(`whoami: ${data.msg?.whoami}, clients: ${data.msg?.clients}`);
+				console.log(`whoami: ${data.msg?.whoami}, host: ${data.msg?.host}, clients: ${data.msg?.clients}`);
 				break;
 			default:
 				console.warn("unrecognised message from lobby !!!");

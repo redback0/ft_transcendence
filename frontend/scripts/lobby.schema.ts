@@ -7,6 +7,7 @@ export interface LobbyResponse {
 
 export interface LobbyInfoResponse {
 	whoami: ClientUUID,
+	host: ClientUUID,
 	clients: ClientUUID[],
 }
 
