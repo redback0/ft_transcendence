@@ -1,4 +1,4 @@
-import { LobbyInfoResponse, LobbyRequest, LobbyResponse } from "../../lobby.schema";
+import { LobbyRequest, LobbyMessage } from "../../lobby.schema";
 
 export class LobbyJoinArea {
 	canvas: HTMLCanvasElement;
@@ -37,12 +37,11 @@ export class LobbyJoinArea {
 
 	wsMessage = (ev: MessageEvent) => {
 		console.log("Recieved lobby message from server");	
-		if (typeof ev.data !== "string")
-        {
+		if (typeof ev.data !== "string") {
             throw new Error("Unknown data recieved on WebSocket");
         }
 		
-		const data: LobbyResponse = JSON.parse(ev.data);
+		const data: LobbyMessage = JSON.parse(ev.data);
 		switch (data.type) {
 			case "new_client":
 				console.log(`new client ${data.msg} joined lobby !!!`);
@@ -51,12 +50,7 @@ export class LobbyJoinArea {
 				console.log(`client (${data.msg}) left !!!`);
 				break;
 			case "info":
-				if (!data.msg || typeof data.msg === "string") {
-					console.warn("bad info response from lobby");
-					break;
-				}
-				const lobby_info: LobbyInfoResponse = data.msg;
-				console.log(`whoami: ${data.msg?.whoami}, host: ${data.msg?.host}, clients: ${data.msg?.clients}`);
+				console.log(`whoami: ${data.msg.whoami}, host: ${data.msg.host}, clients: ${data.msg.clients}`);
 				break;
 			default:
 				console.warn("unrecognised message from lobby !!!");

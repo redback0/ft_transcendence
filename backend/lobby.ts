@@ -2,7 +2,7 @@
 import { WebSocketServer, WebSocket, Server, RawData } from 'ws';
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
-import { LobbyResponse, LobbyInfoResponse, ClientUUID, LobbyRequest } from './lobby.schema';
+import { LobbyMessage, ClientUUID, LobbyRequest } from './lobby.schema';
 import { server } from 'typescript';
 import { IncomingMessage } from "http";
 
@@ -57,7 +57,7 @@ class Lobby {
 			if (!this.host)
 				this.host = ws;
 			
-			this.sendToAll({ type: "new_client", msg: ws.uuid });
+			this.sendToAll({ type: "new_client", msg: { client: ws.uuid } });
             
 			if (this.timeout) {
                 clearTimeout(this.timeout);
@@ -112,7 +112,7 @@ class Lobby {
 			clients.push(client.uuid);
 		});
 
-		var message: LobbyResponse = {
+		var message: LobbyMessage = {
 			type: "info",
 			msg: {
 				whoami: ws.uuid,
@@ -136,9 +136,9 @@ class Lobby {
 		}
 	}
 
-	sendToAll = (response: LobbyResponse) => {
+	sendToAll = (message: LobbyMessage) => {
 		this.wss.clients.forEach((client) => {
-			client.send(JSON.stringify(response), { binary: false });
+			client.send(JSON.stringify(message), { binary: false });
 		});
 	}
 

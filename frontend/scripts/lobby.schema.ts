@@ -1,15 +1,40 @@
 export type ClientUUID = string | undefined;
 
-export interface LobbyResponse {
-	type: "new_client" | "client_left" | "info",
-	msg: LobbyInfoResponse | ClientUUID;
+export interface LobbyInfoMessage {
+	type: "info",
+	msg: {
+		whoami: ClientUUID,
+		host: ClientUUID,
+		clients: ClientUUID[],
+	},
 }
 
-export interface LobbyInfoResponse {
-	whoami: ClientUUID,
-	host: ClientUUID,
-	clients: ClientUUID[],
+export interface LobbyNewClientMessage {
+	type: "new_client",
+	msg: {
+		client: ClientUUID,
+	}
 }
+
+export interface LobbyClientLeftMessage {
+	type: "client_left",
+	msg: {
+		client: ClientUUID,
+	}
+}
+
+export interface LobbyNewHostMessage {
+	type: "new_host",
+	msg: {
+		client: ClientUUID,
+	}
+}
+
+export type LobbyMessage = 
+	LobbyInfoMessage
+	| LobbyNewClientMessage
+	| LobbyClientLeftMessage
+	| LobbyNewHostMessage;
 
 export interface LobbyRequest {
 	type: "infoRequest"
