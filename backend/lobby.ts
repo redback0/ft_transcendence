@@ -88,12 +88,10 @@ class Lobby {
 	}
 
 	wsOnClose = (ws: TournamentWebSocket, code: number, reason: Buffer<ArrayBufferLike>) => {
+		this.sendToAll({ type: "client_left", msg: { client: ws.uuid } });
 		if (ws == this.host) {
 			this.chooseNewHost();
 		}
-		this.wss.clients.forEach((client) => {
-			client.send(JSON.stringify({ type: "client_left", msg: ws.uuid }), { binary: false });
-		});
 		// if there are no sockets connected just kill this game
 		if (this.wss.clients.size === 0)
 		{
@@ -126,7 +124,7 @@ class Lobby {
 	chooseNewHost = () => {
 		console.log("lobby host left !!!");
 		if (this.wss.clients.size > 0) {
-			// gross, i just one thing from the list of clients
+			// gross, i just want one thing from the list of clients
 			for (let c of this.wss.clients) {
 				this.host = c;
 				break;
@@ -134,6 +132,7 @@ class Lobby {
 		} else {
 			this.host = undefined;
 		}
+		this.sendToAll({ type: "new_host", msg: { client: this.host?.uuid }});
 	}
 
 	sendToAll = (message: LobbyMessage) => {

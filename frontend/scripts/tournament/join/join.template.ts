@@ -13,16 +13,13 @@ export class LobbyJoinPage extends HTMLElement {
         createCopyLinkBtn.textContent = "Copy Link to clipboard";
         createCopyLinkBtn.onclick = () => { navigator.clipboard.writeText(document.location.href) };
 
-        var canvas = document.createElement('canvas');
-        canvas.width = window.outerWidth * 3 / 4;
-        canvas.height = canvas.width / 2.2;
-        canvas.tabIndex = 0;
-        this.lobby = new LobbyJoinArea(room_code, canvas);
-
-
+        var div = document.createElement("div");
+        div.tabIndex = 0;
+        div.style = "margin: auto;";
+        this.lobby = new LobbyJoinArea(room_code, div);
 
         this.appendChild(createCopyLinkBtn);
-        this.appendChild(canvas);
+        this.appendChild(div);
     }
 }
 
