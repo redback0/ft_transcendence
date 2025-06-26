@@ -32,6 +32,7 @@ const start = async () =>
     }
 }
 
+// TODO: display error page when client request a lobby that does not exist (this issue probably affects games too)
 fastify.server.on("upgrade", function (req, socket, head)
 {
     // if (!req.url)

@@ -15,7 +15,7 @@ export class LobbyJoinArea {
 		let ws = this.ws;
 		window.addEventListener("popstate", function disconnectGame(e) {
             ws.close();
-            this.removeEventListener("popstate", disconnectGame);
+            window.removeEventListener("popstate", disconnectGame);
         });
 		this.ws.onopen = this.wsConnect;
 		this.ws.onmessage = this.wsMessage;
