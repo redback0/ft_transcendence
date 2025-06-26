@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS tournament (
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY,
+  id INTEGER AUTO_INCREMENT PRIMARY KEY,
   username TEXT NOT NULL,
   user_password TEXT,
   longest_rally INTEGER,
@@ -46,3 +46,5 @@ CREATE TABLE IF NOT EXISTS users_has_tournament (
   FOREIGN KEY (users_id) REFERENCES users(id),
   FOREIGN KEY (tournament_tourId) REFERENCES tournament(tourId)
 );
+
+PRAGMA foreign_keys = ON;
