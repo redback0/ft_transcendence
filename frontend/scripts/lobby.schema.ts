@@ -1,3 +1,4 @@
+export type RoomCode = string;
 export type ClientUUID = string | undefined;
 
 export interface LobbyInfoMessage {
@@ -30,12 +31,20 @@ export interface LobbyNewHostMessage {
 	}
 }
 
+
 export type LobbyMessage = 
 	LobbyInfoMessage
 	| LobbyNewClientMessage
 	| LobbyClientLeftMessage
 	| LobbyNewHostMessage;
 
-export interface LobbyRequest {
-	type: "infoRequest"
+export interface LobbyInfoRequest {
+	type: "infoRequest",
 }
+
+export interface LobbyStartRequest {
+	type: "startRequest",
+}
+
+export type LobbyRequest = LobbyInfoRequest
+	| LobbyStartRequest;

@@ -2,11 +2,11 @@
 import { WebSocketServer, WebSocket, Server, RawData } from 'ws';
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
-import { LobbyMessage, ClientUUID, LobbyRequest } from './lobby.schema';
+import { LobbyMessage, ClientUUID, LobbyRequest, RoomCode } from './lobby.schema';
 import { server } from 'typescript';
 import { IncomingMessage } from "http";
+import { Tournament, TournamentWebSocket } from './tournament';
 
-export type RoomCode = string;
 export const lobbyWebSocketServers = new Map<RoomCode, Lobby>;
 
 export function makeNewLobby(room_code: RoomCode): void {
@@ -27,14 +27,8 @@ export function lobbyInit(fastify: FastifyInstance, opts: RegisterOptions, done:
 	done();
 }
 
-class TournamentWebSocket extends WebSocket {
-	isAlive: boolean = true;
-	uuid: ClientUUID;
-	wins: number = 0;
-}
-
 // FIXME: if no one connects to lobby it will never get deleteed i thinkers
-class Lobby {
+export class Lobby {
 	room_code: RoomCode;
 	wss: Server<typeof TournamentWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
 	timeout: NodeJS.Timeout | undefined;
@@ -75,12 +69,23 @@ class Lobby {
 		this.setPingInterval(1000);
 	} //end contructor
 
+	intoTournament = () => {
+		new Tournament(this);
+		lobbyWebSocketServers.delete(this.room_code);
+	}
+
 	wsOnMessage = (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
 		console.log(`msg from client in lobby: (${isBinary}, ${data})`);
 		const request: LobbyRequest = JSON.parse(data.toString());
 		switch (request.type) {
 			case "infoRequest":
 				this.sendInfoResponse(ws);
+				break;
+			case "startRequest":
+				console.log(`lobby (${this.room_code}) start request receieved`);
+				// deletes lobby !!!
+				this.intoTournament();
+				console.log(`Lobby deleted (${this.room_code}), turned into tournament`);
 				break;
 			default:
 				console.warn("unknown lobby request from client");

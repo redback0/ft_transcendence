@@ -1,16 +1,26 @@
-import { LobbyRequest, LobbyMessage, ClientUUID } from "../../lobby.schema";
+import { LobbyRequest, LobbyMessage, ClientUUID, LobbyStartRequest } from "../../lobby.schema.js";
+import { LobbyJoinPage } from "./lobby.template.js";
+import { TournamentStartMessage } from '../../tournament.schema.js';
+import { currPage, newPage } from "../../index.js";
+import { BracketPage } from "../bracket/bracket.template.js";
+import { setCurrentPage } from '../../index.js';
 
 const htmlClientNamePrefix = "name-of-client-";
 const hostPrefix = "👑 ";
 const meSuffix = " (You)";
 
 export class LobbyJoinArea {
-	div: HTMLDivElement;
+	parent: LobbyJoinPage;
     ws: WebSocket;
 	lobby_host: ClientUUID;
 	me: ClientUUID;
+	start_button: HTMLButtonElement;
+	names: HTMLElement[]; // TODO: use this
+	players: ClientUUID[];
 
-	constructor(room_code: string, div: HTMLDivElement) {
+	constructor(room_code: string, parent: LobbyJoinPage) {
+		this.parent = parent;
+		console.log("heelo from new lobby join area");
 		this.ws = new WebSocket("/wss/lobby/" + room_code);
 		let ws = this.ws;
 		window.addEventListener("popstate", function disconnectGame(e) {
@@ -20,7 +30,19 @@ export class LobbyJoinArea {
 		this.ws.onopen = this.wsConnect;
 		this.ws.onmessage = this.wsMessage;
 		this.ws.onclose = (ev: CloseEvent) => { console.log("disconnected from lobby"); };
-		this.div = div;
+
+        this.start_button = document.createElement('button');
+        this.start_button.textContent = "Start!";
+        this.start_button.disabled = true;
+        this.start_button.onclick = () => {
+			const req: LobbyStartRequest = { type: "startRequest" };
+			this.ws.send(JSON.stringify(req));
+        };
+
+		this.names = [];
+		this.players = []
+
+		this.parent.appendChild(this.start_button);
 	}
 
     wsConnect = () => {
@@ -37,7 +59,7 @@ export class LobbyJoinArea {
         }
 		
 		// TODO: need a safer way to parse json, this would be bad if data is not a LobbyMessage
-		const data: LobbyMessage = JSON.parse(ev.data);
+		const data: LobbyMessage | TournamentStartMessage = JSON.parse(ev.data);
 		switch (data.type) {
 			case "info":
 				console.log(`whoami: ${data.msg.whoami}, host: ${data.msg.host}, clients: ${data.msg.clients}`);
@@ -59,14 +81,20 @@ export class LobbyJoinArea {
 				console.log(`new host: ${data.msg.client}`);
 				this.updateHost(data.msg.client);
 				break;
+			case "tournament_starting":
+				console.log("tournament is starting !!!");
+				history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.room_code);
+				setCurrentPage(new BracketPage(this.parent));
+				break;
 			default:
 				console.warn("unrecognised message from lobby !!!");
 		}
     }
 
 	addClient = (client: ClientUUID) => {
-		if (!client || document.getElementById(htmlClientNamePrefix + client) !== null)
+		if (!client || this.players.includes(client))
 			return;
+		this.players.push(client);
 	
 		var text = document.createElement("b");
 		text.innerText = client;
@@ -78,16 +106,17 @@ export class LobbyJoinArea {
 		textdiv.style = "text-align: center;padding: 10px;border: black;";
 		textdiv.appendChild(text);
 
-		this.div.appendChild(textdiv);
+		this.parent.div.appendChild(textdiv);
 	}
 
 	removeClient = (client: ClientUUID) => {
 		if (!client)
 			return;
+		this.players = this.players.filter(c => c !== client);
 		var textdiv = document.getElementById(htmlClientNamePrefix + client);
 		if (!textdiv)
 			return;
-		this.div.removeChild(textdiv);
+		this.parent.div.removeChild(textdiv);
 	}
 
 	updateHost = (new_host: ClientUUID) => {
@@ -96,6 +125,7 @@ export class LobbyJoinArea {
 			old_host_b.innerText.slice(hostPrefix.length);
 		
 		this.lobby_host = new_host;
+		this.start_button.disabled = this.lobby_host != this.me;
 		var new_host_b = document.getElementById(htmlClientNamePrefix + new_host)?.getElementsByTagName("b")[0];
 		if (!new_host_b)
 			return;

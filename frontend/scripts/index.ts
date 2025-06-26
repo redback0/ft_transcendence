@@ -8,7 +8,8 @@ import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { AddNavigation } from './navigation.js'
-import { LobbyJoinPage } from './tournament/join/join.template.js'
+import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
+import { BracketPage } from './tournament/bracket/bracket.template.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],
@@ -20,7 +21,17 @@ const pages = new Map<string, any>([
     ['/lobby/join', LobbyJoinPage],
 ])
 
-let currPage : HTMLElement
+export let currPage : HTMLElement
+
+// prefer newPage over setCurrentPage
+export function setCurrentPage(page: HTMLElement) {
+    document.title = "page is changing!";
+    try {
+		document.body.removeChild(currPage);
+    } catch (e) {}
+	currPage = page;
+	document.body.appendChild(currPage);
+}
 
 document.body.onload = () => {
     document.title = "Code defined title!";
@@ -44,9 +55,19 @@ export function newPage()
     if (currPage)
         document.body.removeChild(currPage);
     let pageBuilder = pages.get(document.location.pathname);
-    if (pageBuilder?.prototype instanceof HTMLElement)
-        currPage = new pageBuilder;
-    else
+    try {
+        if (pageBuilder?.prototype instanceof HTMLElement)
+            currPage = new pageBuilder;
+        else
+            currPage = new ErrorPage;
+    } catch (e) {
+        console.error("Exception thrown while building page");
+        if (e instanceof Error) {
+            console.error(e.name);
+            console.error(e.message);
+            console.error(e.stack);
+        }
         currPage = new ErrorPage;
+    }
     document.body.appendChild(currPage);
 }
