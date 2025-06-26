@@ -7,6 +7,8 @@ import { GameArea, GameWinFunc } from "./game.logic";
 
 let testGameWinner: "Player 1" | "Player 2" | "No winner yet";
 
+type UserID = string;
+
 class GameWebSocket extends WebSocket
 {
     isAlive: boolean = true;
@@ -65,7 +67,7 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
 
 export const gameWebSocketServers = new Map<string, Game>;
 
-export function AddNewGame(id: string, gameComplete: GameWinFunc | undefined = undefined)
+export function AddNewGame(id: string, gameComplete: GameWinFunc | undefined = undefined, uid1?: UserID, uid2?: UserID)
 {
     gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2", p1Score: number, p2Score: number) =>
     {
@@ -79,14 +81,14 @@ class Game extends GameArea
 {
     timeout: NodeJS.Timeout | undefined;
 
-    constructor(id: string, winFunction: GameWinFunc)
+    constructor(id: string, winFunction: GameWinFunc, uid1?: UserID, uid2?: UserID)
     {
         const wss = new WebSocketServer({
             WebSocket: GameWebSocket,
             noServer: true,
         });
 
-        super(wss, winFunction);
+        super(wss, winFunction, 100, 200, uid1, uid2);
         this.id = id;
 
         const game = this;
