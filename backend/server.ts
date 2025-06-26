@@ -3,7 +3,6 @@ import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
 import * as Game from './game.js';
 import Database from 'better-sqlite3';
-import { Md5 } from 'ts-md5';
 
 
 const db = new Database('/database/pong.db');
@@ -22,11 +21,13 @@ const start = async () => {
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
         //New User (insert)
-        const data = {username: "the tickly prickly pickleman", user_password: Md5.hashStr("PICKOL!")}; 
+        const data = {username: "the tickly prickly pickleman", user_password: "PICKOL!"};
+        
         const CheckData = db.prepare("SELECT COUNT(*) FROM users WHERE username = ?").run(data.username);
         
         if (!CheckData)
         {
+            //insert data
             const insertData = db.prepare("INSERT INTO users (username, user_password) VALUES ( ?, ?)"); // This is safer than concatanation. 
             insertData.run(data.username, data.user_password);
         }
