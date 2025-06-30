@@ -18,7 +18,7 @@ export class GameArea
     p2Score: number = 0;
     p1DisconnectTimeout: NodeJS.Timeout | undefined;
     p2DisconnectTimeout: NodeJS.Timeout | undefined;
-    winScore: number = 11;
+    winScore: number = 3;
     running: boolean = false;
     framerate: number = 60;
     interval: NodeJS.Timeout | undefined;

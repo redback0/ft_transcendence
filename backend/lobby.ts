@@ -44,6 +44,11 @@ export class Lobby {
 
 		this.wss.on("connection", (ws: TournamentWebSocket) => {
             console.log("new client in lobby !!1!!! yay");
+			if (this.timeout) {
+                clearTimeout(this.timeout);
+                this.timeout = undefined;
+            }
+
 			// TODO: get an actual UUID lmao
 			ws.uuid = NewID(8);
 			console.log(`client id: ${ws.uuid}`);
@@ -53,11 +58,6 @@ export class Lobby {
 			
 			this.sendToAll({ type: "new_client", msg: { client: ws.uuid } });
             
-			if (this.timeout) {
-                clearTimeout(this.timeout);
-                this.timeout = undefined;
-            }
-
             ws.on("message", (data, isBinary) => { this.wsOnMessage(ws, data, isBinary) });
             ws.on("close", (code, reason) => { this.wsOnClose(ws, code, reason) });
             ws.on("pong", () => {

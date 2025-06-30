@@ -82,7 +82,7 @@ export class LobbyJoinArea {
 				this.updateHost(data.msg.client);
 				break;
 			case "tournament_starting":
-				console.log("tournament is starting !!!");
+				console.log(`tournament is starting !!! rom code ${data.msg.room_code}`);
 				history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.room_code);
 				setCurrentPage(new BracketPage(this.parent));
 				break;

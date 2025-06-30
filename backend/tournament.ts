@@ -1,8 +1,13 @@
 import { RawData, WebSocketServer, WebSocket, Server } from "ws";
 import { ClientUUID, LobbyMessage, LobbyRequest, RoomCode } from "./lobby.schema";
-import { NewID } from "./game";
+import { AddNewGame, gameWebSocketServers, NewID } from "./game";
 import { Lobby } from "./lobby";
 import { TournamentMessage } from "./tournament.schema";
+
+type Pair<T> = {
+	first: T,
+	second: T,
+}
 
 export const tournamentWebSocketServers = new Map<RoomCode, Tournament>;
 export type TournamentSocketState = "inLobby";
@@ -40,6 +45,38 @@ export class Tournament {
 		});
 		this.sendToAll({ type: "tournament_starting", msg: { room_code: this.room_code } });
 		tournamentWebSocketServers.set(this.room_code, this);
+		
+		const pairs = this.matchmakeClients();
+		for (let { first: p1, second: p2 } of pairs) {
+			console.log(`making game: ${p1.uuid} vs. ${p2.uuid}`);
+			const game_id = NewID(8);
+			AddNewGame(game_id, (winner: "player1" | "player2", p1Score: number, p2Score: number) => {
+				console.log("game finished!!!");
+				this.sendToAll({ 
+					type: "game_finished",
+					msg: {
+						p1: {
+							uuid: p1.uuid, // TODO: figure this out
+							points: p1Score,
+						},
+						p2: {
+							uuid: p2.uuid,
+							points: p2Score,
+						},
+					}
+				});
+				this.sendTo(p1, { type: "go_to_bracket", msg: { bracket_id: this.room_code } });
+				this.sendTo(p2, { type: "go_to_bracket", msg: { bracket_id: this.room_code } });
+
+				gameWebSocketServers.get(game_id)?.kill(); // TODO: need a better way to disconnect players on game end i thnkkkk
+			});
+
+			if (p1 && p2) {
+				this.sendTo(p1, { type: "go_to_game", msg: { game_id: game_id } });
+				this.sendTo(p2, { type: "go_to_game", msg: { game_id: game_id } });
+			}
+		}
+
 	} //end contructor
 
 	wsOnMessage = (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
@@ -71,8 +108,12 @@ export class Tournament {
 
 	sendToAll = (message: TournamentMessage) => {
 		this.wss.clients.forEach((client) => {
-			client.send(JSON.stringify(message), { binary: false });
+			this.sendTo(client, message);
 		});
+	}
+
+	sendTo = (client: TournamentWebSocket, message: TournamentMessage) => {
+		client.send(JSON.stringify(message), { binary: false });
 	}
 
 	setPingInterval = (interval: number) => {
@@ -87,5 +128,24 @@ export class Tournament {
                 ws.ping();
             });
         }, interval);
+	}
+
+	matchmakeClients = (): Array<Pair<TournamentWebSocket>> => {
+		var pairs: Array<Pair<TournamentWebSocket>> = [];
+		
+		var i = 0;
+		var prev: TournamentWebSocket;
+		this.wss.clients.forEach((client) => {
+			if (i % 2 == 1) {
+				pairs.push({
+					first: prev,
+					second: client,
+				});
+			} else {
+				prev = client;
+			}
+			++i;
+		})
+		return pairs;
 	}
 }
