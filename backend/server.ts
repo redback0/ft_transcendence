@@ -20,21 +20,20 @@ const start = async () => {
         initChat();
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
+
         //New User (insert)
-        const data = {username: "the tickly prickly pickleman", user_password: "PICKOL!"};
+        // const data = {username: "the tickly prickly pickleman", user_password: "PICKOL!"};
         
-        const CheckData = db.prepare("SELECT COUNT(*) FROM users WHERE username = ?").run(data.username);
+        // const CheckData = db.prepare("SELECT COUNT(*) FROM users WHERE username = ?").run(data.username);
         
-        if (!CheckData)
-        {
-            //insert data
-            const insertData = db.prepare("INSERT INTO users (username, user_password) VALUES ( ?, ?)"); // This is safer than concatanation. 
-            insertData.run(data.username, data.user_password);
-        }
+        // if (!CheckData)
+        // {
+        //     //insert data
+        //     const insertData = db.prepare("INSERT INTO users (username, user_password) VALUES ( ?, ?)"); // This is safer than concatanation. 
+        //     insertData.run(data.username, data.user_password);
+        // }
         // else
         //     throw new Error(`Username "${data.username}" is taken`);
-        
-
     }
     catch (err) {
         fastify.log.error(err);

@@ -2,7 +2,7 @@
 
 //TO DO:
 //
-//	- USERNOEXIST() : CHECK THE INPUTTED USER DOES NOT ALREADY EXIST ON THE DB
+//	- USEREXIST() : CHECK THE INPUTTED USER DOES NOT ALREADY EXIST ON THE DB
 //  - PWNOTPREVFOURHASH() : COMPARE TO PREVIOUS 3 PASSWORDS (NOT CURRENT)
 //  - AUTHENTICATEPW () : LINK SQL STUFF FOR COMPARISON
 //  - AUTHENTICATEPW() : ERROR HANDLING
@@ -17,6 +17,7 @@ import Database from 'better-sqlite3';
 import { BooleanLiteral } from "typescript";
 import * as bcrypt from 'bcrypt';
 
+const db = new Database('/database/pong.db');
 //POST
 
 interface LoginChecks {
@@ -29,7 +30,7 @@ interface LoginChecks {
 	userCheck():		boolean;
 
 	userHasNoWhite():	boolean;
-	userNoExist():		boolean;
+	userExist():		boolean;
 
 	pwCheck():			boolean;
 
@@ -39,7 +40,7 @@ interface LoginChecks {
 	pwHasLower():		boolean;
 	pwHasNb():			boolean;
 	pwHasSymbol():		boolean;
-	pwNotHashPrevFour():boolean;
+	checkPrevPw():boolean;
 
 	authenticatePw(enteredUser: string): boolean
 
@@ -69,7 +70,7 @@ class ILoginChecks implements LoginChecks {
 	}
 
 	userCheck(): boolean {
-		return (this.userNoExist()
+		return (!this.userExist()
 			&& this.userInputNoWhite()
 		);
 	}
@@ -79,8 +80,21 @@ class ILoginChecks implements LoginChecks {
 		return (!/\s/.test(this.enteredUser))
 	}
 
-	userNoExist(): boolean
+	userExist(): boolean
 	{
+        const getUser = db.prepare('SELECT COUNT (*) FROM users WHERE username = ?').get(this.enteredUser);
+		if (getUser == 0)
+			return false;
+		else
+			return true;
+
+        // if (!CheckData) // if 0, user doesn't exist
+        // {
+        //     //insert data
+        //     const insertData = db.prepare("INSERT INTO users (username, user_password) VALUES ( ?, ?)"); // This is safer than concatanation. 
+        //     insertData.run(data.username, data.user_password);
+
+
 		// ADD : CHECK THE INPUTTED USER DOES NOT ALREADY EXIST ON THE DB
 		//check the value thing from database
 		//something like this?:
