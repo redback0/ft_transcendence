@@ -15,7 +15,7 @@ export class LobbyJoinArea {
 	lobby_host: ClientUUID;
 	me: ClientUUID;
 	start_button: HTMLButtonElement;
-	names: HTMLElement[]; // TODO: use this
+	names: HTMLElement[];
 	players: ClientUUID[];
 
 	constructor(room_code: string, parent: LobbyJoinPage) {
@@ -107,26 +107,31 @@ export class LobbyJoinArea {
 		textdiv.appendChild(text);
 
 		this.parent.div.appendChild(textdiv);
+		this.names.push(text);
 	}
 
 	removeClient = (client: ClientUUID) => {
 		if (!client)
 			return;
 		this.players = this.players.filter(c => c !== client);
-		var textdiv = document.getElementById(htmlClientNamePrefix + client);
-		if (!textdiv)
+		var idx = this.names.findIndex(name => name.innerText === htmlClientNamePrefix + client);
+		if (idx === -1)
 			return;
-		this.parent.div.removeChild(textdiv);
+		var textparent = this.names[idx].parentElement;
+		if (textparent === null)
+			return;
+		this.parent.div.removeChild(textparent);
+		this.names.splice(idx, 1);
 	}
 
 	updateHost = (new_host: ClientUUID) => {
-		var old_host_b = document.getElementById(htmlClientNamePrefix + this.lobby_host)?.getElementsByTagName("b")[0];
-		if (old_host_b && old_host_b.innerText.startsWith(hostPrefix))
+		var old_host_b = this.names.find(name => name.innerText.startsWith(hostPrefix));
+		if (old_host_b)
 			old_host_b.innerText.slice(hostPrefix.length);
 		
 		this.lobby_host = new_host;
 		this.start_button.disabled = this.lobby_host != this.me;
-		var new_host_b = document.getElementById(htmlClientNamePrefix + new_host)?.getElementsByTagName("b")[0];
+		var new_host_b = this.names.find(name => name.innerText === new_host);
 		if (!new_host_b)
 			return;
 		new_host_b.innerText = hostPrefix + new_host_b.innerText;

@@ -2,7 +2,7 @@ import { RawData, WebSocketServer, WebSocket, Server } from "ws";
 import { ClientUUID, LobbyMessage, LobbyRequest, RoomCode } from "./lobby.schema";
 import { AddNewGame, gameWebSocketServers, NewID } from "./game";
 import { Lobby } from "./lobby";
-import { TournamentMessage } from "./tournament.schema";
+import { GameID, TournamentMessage } from "./tournament.schema";
 
 type Pair<T> = {
 	first: T,
@@ -24,8 +24,12 @@ export class Tournament {
 	wss: Server<typeof TournamentWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
 	timeout: NodeJS.Timeout | undefined;
 	host: TournamentWebSocket | undefined;
+	game_ids: Array<GameID>;
+	round_number: number;
 
 	constructor(lobby: Lobby) {
+		this.round_number = 0;
+		this.game_ids = [];
 		this.host = lobby.host;
 		this.wss = lobby.wss;
 		// TODO: do not accept any more connections (temporary thing)
@@ -46,10 +50,16 @@ export class Tournament {
 		this.sendToAll({ type: "tournament_starting", msg: { room_code: this.room_code } });
 		tournamentWebSocketServers.set(this.room_code, this);
 		
+		this.startNextRound();
+	} //end contructor
+
+	startNextRound = () => {
+		++this.round_number;
 		const pairs = this.matchmakeClients();
 		for (let { first: p1, second: p2 } of pairs) {
 			console.log(`making game: ${p1.uuid} vs. ${p2.uuid}`);
 			const game_id = NewID(8);
+			this.game_ids.push(game_id);
 			AddNewGame(game_id, (winner: "player1" | "player2", p1Score: number, p2Score: number) => {
 				console.log("game finished!!!");
 				this.sendToAll({ 
@@ -68,7 +78,11 @@ export class Tournament {
 				this.sendTo(p1, { type: "go_to_bracket", msg: { bracket_id: this.room_code } });
 				this.sendTo(p2, { type: "go_to_bracket", msg: { bracket_id: this.room_code } });
 
+				this.game_ids = this.game_ids.filter(id => id !== game_id);
 				gameWebSocketServers.get(game_id)?.kill(); // TODO: need a better way to disconnect players on game end i thnkkkk
+				if (this.game_ids.length === 0) {
+					this.startNextRound();
+				}
 			});
 
 			if (p1 && p2) {
@@ -76,8 +90,7 @@ export class Tournament {
 				this.sendTo(p2, { type: "go_to_game", msg: { game_id: game_id } });
 			}
 		}
-
-	} //end contructor
+	}
 
 	wsOnMessage = (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
 		console.log(`msg from client in tournament: (${isBinary}, ${data})`);

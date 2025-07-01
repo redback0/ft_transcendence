@@ -26,6 +26,7 @@ export class BracketArea {
             throw new Error("Unknown data recieved on WebSocket");
 		
 		// TODO: need a safer way to parse json, this would be bad if data is not a LobbyMessage
+        // TODO: handle new_host message
 		const data: TournamentMessage = JSON.parse(ev.data);
         const { type, msg } = data;
         switch (type) {
