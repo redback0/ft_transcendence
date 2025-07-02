@@ -26,8 +26,6 @@ services:
       - database:/database
 
   sqlitebrowser:
-    profiles:
-      - dbcontrol
     container_name: sqlitebrowser
     build: containers/sqlitebrowser
     ports:
@@ -36,6 +34,8 @@ services:
       - nodejs
     volumes:
       - database:/database
+    profiles:
+      - dbcontrol
 
   volume-fix:
     image: alpine
