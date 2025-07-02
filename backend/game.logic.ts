@@ -4,6 +4,8 @@ import { WebSocketServer, WebSocket, RawData } from "ws";
 import { gameWebSocketServers } from "./game";
 import { db } from "./database"
 
+type UserID = string;
+
 export type GameWinFunc = (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => void;
 
 export class GameArea
@@ -35,13 +37,13 @@ export class GameArea
     winFunction: GameWinFunc
     id: string = "";
 
-    constructor(wss: WebSocketServer, winFunction: GameWinFunc | undefined, h = 100, w = 200)
+    constructor(wss: WebSocketServer, winFunction: GameWinFunc | undefined, h = 100, w = 200, uid1?: UserID, uid2?: UserID)
     {
         this.wss = wss;
         this.h = h;
         this.w = w;
-        this.p1 = new Player(0, h / 2);
-        this.p2 = new Player(w, h / 2);
+        this.p1 = new Player(0, h / 2, 10, uid1);
+        this.p2 = new Player(w, h / 2, 10, uid2);
         this.ball = new Ball(w / 2, h / 2);
         const game = this;
         if (winFunction)
@@ -291,11 +293,12 @@ export class Player
     userId: number | null | undefined; // null is unregistered user, undefined
                                        // is unset
 
-    constructor(x: number, y: number, h = 10)
+    constructor(x: number, y: number, h = 10, uid?: UserID)
     {
         this.x = x;
         this.y = y;
         this.h = h;
+        uid = uid;
     }
 
     wsMessage = (ws: WebSocket, data: RawData, isBinary: boolean) =>
