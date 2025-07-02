@@ -6,7 +6,8 @@ import { db } from "./database"
 
 type UserID = string;
 
-export type GameWinFunc = (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => void;
+// TODO: remove unnecessary p1/p2Score parameters
+export type GameWinFunc = (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number, game: GameArea) => void;
 
 export class GameArea
 {
@@ -215,7 +216,7 @@ export class GameArea
         else if (winner === this.p2)
             player = "player2";
 
-        this.winFunction(player, this.p1Score, this.p2Score);
+        this.winFunction(player, this.p1Score, this.p2Score, this);
 
         let win: GameSchema.GameWinData = {
             type: "win",
@@ -290,15 +291,15 @@ export class Player
     moveUp: boolean = false;
     moveDown: boolean = false;
     moveSpeed: number = 1;
-    userId: number | null | undefined; // null is unregistered user, undefined
-                                       // is unset
+    userId: UserID | null | undefined; // null is unregistered user, undefined
+                                       // is unset -- SUBJECT TO CHANGE
 
-    constructor(x: number, y: number, h = 10, uid?: UserID)
+    constructor(x: number, y: number, h = 10, userId?: UserID)
     {
         this.x = x;
         this.y = y;
         this.h = h;
-        uid = uid;
+        this.userId = userId;
     }
 
     wsMessage = (ws: WebSocket, data: RawData, isBinary: boolean) =>

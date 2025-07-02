@@ -4,6 +4,7 @@ import { FastifyInstance, RegisterOptions } from "fastify";
 
 import * as GameSchema from "./game.schema";
 import { GameArea, GameWinFunc } from "./game.logic";
+import { db } from "./database";
 
 let testGameWinner: "Player 1" | "Player 2" | "No winner yet";
 
@@ -27,6 +28,7 @@ function NewID(length: number)
 
 export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: Function)
 {
+    // TODO: change the game creating gets to ?posts
     fastify.get('/api/game/create/casual', function (request, reply)
     {
         let id = NewID(5);
@@ -46,13 +48,21 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
         {
             id = NewID(5);
         }
-        AddNewGame(id, (winner) =>
+        AddNewGame(id, (winner, p1Score, p2Score, game) =>
         {
             if (winner === "player1")
                 testGameWinner = "Player 1";
             else
                 testGameWinner = "Player 2";
-        });
+            // db.saveGame.run({
+            //     id: game.id,
+            //     leftId: game.p1.userId,
+            //     rightId: game.p2.userId,
+            //     tournId: null,
+            //     leftScore: game.p1Score,
+            //     rightScore: game.p2Score
+            // });
+        }, "1234", "4321");
 
         reply.send({ success: true, id: id });
     });
@@ -67,9 +77,9 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
 
 export const gameWebSocketServers = new Map<string, Game>;
 
-export function AddNewGame(id: string, gameComplete: GameWinFunc | undefined = undefined, uid1?: UserID, uid2?: UserID)
+export function AddNewGame(id: string, gameComplete?: GameWinFunc, uid1?: UserID, uid2?: UserID)
 {
-    gameWebSocketServers.set(id, new Game(id, gameComplete))
+    gameWebSocketServers.set(id, new Game(id, gameComplete, uid1, uid2))
 
     // gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) =>
     // {
@@ -89,7 +99,7 @@ class Game extends GameArea
 {
     timeout: NodeJS.Timeout | undefined;
 
-    constructor(id: string, winFunction: GameWinFunc | undefined, uid1?: UserID, uid2?: UserID)
+    constructor(id: string, winFunction?: GameWinFunc, uid1?: UserID, uid2?: UserID)
     {
         const wss = new WebSocketServer({
             WebSocket: GameWebSocket,
