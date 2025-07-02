@@ -9,7 +9,7 @@ import { ChatPage } from './chat/chat.template.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { AddNavigation } from './navigation.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
-import { BracketPage } from './tournament/bracket/bracket.template.js'
+import { TournamentPage } from './tournament/tournament/tournament.template.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],

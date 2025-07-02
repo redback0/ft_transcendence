@@ -1,12 +1,12 @@
-import { ClientUUID, RoomCode, LobbyClientLeftMessage } from './lobby.schema';
+import { ClientUUID, LobbyID, LobbyClientLeftMessage } from './lobby.schema';
 
 export type GameID = string;
-export type BracketId = string;
+export type TournamentID = string;
 
 export interface TournamentStartMessage {
 	type: "tournament_starting",
 	msg: {
-		room_code: RoomCode,
+		room_code: LobbyID,
 	},
 }
 
@@ -15,6 +15,15 @@ export interface TournamentGoToGameMessage {
 	msg: {
 		game_id: GameID,
 	},
+}
+
+export interface TournamentGameStartingMessage {
+	type: "game_starting",
+	msg: {
+		p1: ClientUUID,
+		p2: ClientUUID,
+		game_id: GameID,
+	}
 }
 
 export interface TournamentGameFinishedMessage {
@@ -34,7 +43,14 @@ export interface TournamentGameFinishedMessage {
 export interface TournamentGoToBracketMessage {
 	type: "go_to_bracket",
 	msg: {
-		bracket_id: BracketId, // TODO: this is tem
+		tourney_id: TournamentID, // TODO: this is tem
+	}
+}
+
+export interface TournamentFinishedMessage {
+	type: "tournament_finished",
+	msg: {
+		rankings: Array<{ name: ClientUUID, score: number }>,
 	}
 }
 

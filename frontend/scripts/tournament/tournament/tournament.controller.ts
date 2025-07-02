@@ -1,17 +1,17 @@
 import { ClientUUID } from "../../lobby.schema.js";
 import { TournamentMessage } from "../../tournament.schema.js";
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
-import { BracketPage } from "./bracket.template.js";
+import { TournamentPage } from "./tournament.template.js";
 import { newPage, setCurrentPage } from "../../index.js";
 
-export class BracketArea {
-    page: BracketPage;
+export class TournamentArea {
+    page: TournamentPage;
     ws: WebSocket;
 	tournament_host: ClientUUID;
 	me: ClientUUID;
 	players: ClientUUID[];
 
-	constructor(page: BracketPage, lobby_page: LobbyJoinPage) {
+	constructor(page: TournamentPage, lobby_page: LobbyJoinPage) {
         this.page = page;
         this.ws = lobby_page.lobby.ws;
 		this.ws.onmessage = this.wsMessage;
@@ -40,7 +40,7 @@ export class BracketArea {
                 this.log(`game finished (${msg.p1.uuid} vs. ${msg.p2.uuid}): ${msg.p1.points} ${msg.p2.points}`);
             break;
             case "go_to_bracket":
-                history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.bracket_id);
+                history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.tourney_id);
 				setCurrentPage(this.page);
             break;
             case "client_left":

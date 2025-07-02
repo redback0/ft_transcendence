@@ -1,7 +1,7 @@
 import { ClientUUID, LobbyClientLeftMessage, RoomCode } from "./lobby.schema";
 
 export type GameID = string;
-export type BracketId = string;
+export type TournamentId = string;
 
 export interface TournamentStartMessage {
 	type: "tournament_starting",
@@ -34,7 +34,7 @@ export interface TournamentGameFinishedMessage {
 export interface TournamentGoToBracketMessage {
 	type: "go_to_bracket",
 	msg: {
-		bracket_id: BracketId, // TODO: this is tem
+		tourney_id: TournamentId, // TODO: this is tem
 	}
 }
 

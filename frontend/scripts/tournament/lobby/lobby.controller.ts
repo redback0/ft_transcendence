@@ -2,7 +2,7 @@ import { LobbyRequest, LobbyMessage, ClientUUID, LobbyStartRequest } from "../..
 import { LobbyJoinPage } from "./lobby.template.js";
 import { TournamentStartMessage } from '../../tournament.schema.js';
 import { currPage, newPage } from "../../index.js";
-import { BracketPage } from "../bracket/bracket.template.js";
+import { TournamentPage } from "../tournament/tournament.template.js";
 import { setCurrentPage } from '../../index.js';
 
 const htmlClientNamePrefix = "name-of-client-";
@@ -84,7 +84,7 @@ export class LobbyJoinArea {
 			case "tournament_starting":
 				console.log(`tournament is starting !!! rom code ${data.msg.room_code}`);
 				history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.room_code);
-				setCurrentPage(new BracketPage(this.parent));
+				setCurrentPage(new TournamentPage(this.parent));
 				break;
 			default:
 				console.warn("unrecognised message from lobby !!!");
@@ -114,7 +114,12 @@ export class LobbyJoinArea {
 		if (!client)
 			return;
 		this.players = this.players.filter(c => c !== client);
-		var idx = this.names.findIndex(name => name.innerText === htmlClientNamePrefix + client);
+		var idx = this.names.findIndex(name => {
+			if (client === this.lobby_host) {
+				return name.innerText.slice(hostPrefix.length) === client;
+			}
+			return name.innerText === client;
+		});
 		if (idx === -1)
 			return;
 		var textparent = this.names[idx].parentElement;
@@ -125,13 +130,22 @@ export class LobbyJoinArea {
 	}
 
 	updateHost = (new_host: ClientUUID) => {
-		var old_host_b = this.names.find(name => name.innerText.startsWith(hostPrefix));
+		console.log("updateing host");
+		console.log(this.names.length);
+		var old_host_b = this.names.find(name => {
+			console.log(name.innerText);
+			return (name.innerText.startsWith(hostPrefix));
+		});
 		if (old_host_b)
-			old_host_b.innerText.slice(hostPrefix.length);
+			old_host_b.innerText = old_host_b.innerText.slice(hostPrefix.length);
 		
 		this.lobby_host = new_host;
 		this.start_button.disabled = this.lobby_host != this.me;
-		var new_host_b = this.names.find(name => name.innerText === new_host);
+		var new_host_b = this.names.find(name => {
+			if (new_host === this.me)
+				return name.innerText.slice(0, -meSuffix.length) === new_host;
+			return name.innerText === new_host;
+		});
 		if (!new_host_b)
 			return;
 		new_host_b.innerText = hostPrefix + new_host_b.innerText;

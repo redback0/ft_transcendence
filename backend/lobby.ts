@@ -2,14 +2,14 @@
 import { WebSocketServer, WebSocket, Server, RawData } from 'ws';
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
-import { LobbyMessage, ClientUUID, LobbyRequest, RoomCode } from './lobby.schema';
+import { LobbyMessage, ClientUUID, LobbyRequest, LobbyID } from './lobby.schema';
 import { server } from 'typescript';
 import { IncomingMessage } from "http";
 import { Tournament, TournamentWebSocket } from './tournament';
 
-export const lobbyWebSocketServers = new Map<RoomCode, Lobby>;
+export const lobbyWebSocketServers = new Map<LobbyID, Lobby>;
 
-export function makeNewLobby(room_code: RoomCode): void {
+export function makeNewLobby(room_code: LobbyID): void {
 	lobbyWebSocketServers.set(room_code, new Lobby(room_code));
 }
 
@@ -29,12 +29,12 @@ export function lobbyInit(fastify: FastifyInstance, opts: RegisterOptions, done:
 
 // FIXME: if no one connects to lobby it will never get deleteed i thinkers
 export class Lobby {
-	room_code: RoomCode;
+	room_code: LobbyID;
 	wss: Server<typeof TournamentWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
 	timeout: NodeJS.Timeout | undefined;
 	host: TournamentWebSocket | undefined;
 
-	constructor(room_code: RoomCode) {
+	constructor(room_code: LobbyID) {
 		this.host = undefined;
 		this.wss = new WebSocketServer({
             WebSocket: TournamentWebSocket,
@@ -70,7 +70,8 @@ export class Lobby {
 	} //end contructor
 
 	intoTournament = () => {
-		new Tournament(this);
+		// tells lobby websockets to go to tournament in constructor
+		new Tournament(this, NewID(8));
 		lobbyWebSocketServers.delete(this.room_code);
 	}
 
@@ -82,6 +83,8 @@ export class Lobby {
 				this.sendInfoResponse(ws);
 				break;
 			case "startRequest":
+				if (ws !== this.host)
+					return;
 				console.log(`lobby (${this.room_code}) start request receieved`);
 				// deletes lobby !!!
 				this.intoTournament();
