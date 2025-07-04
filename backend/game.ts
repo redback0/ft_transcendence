@@ -127,7 +127,9 @@ class Game extends GameArea
             {
                 const parsed : GameSchema.GameInterface = JSON.parse(data.toString());
 
-                if (parsed.type === "identify")
+                switch (parsed.type)
+                {
+                case ("identify"):
                 {
                     const identify = parsed as GameSchema.GameIdentify;
 
@@ -149,8 +151,9 @@ class Game extends GameArea
                         player2: game.p2.canJoin(ws.uid)
                     }
                     this.send(JSON.stringify(canRegister), { binary: false});
+                    break;
                 }
-                else if (parsed.type === "register")
+                case "register":
                 {
                     const response: GameSchema.GameRegisterResponse = {
                         type: "registerSuccess",
@@ -195,14 +198,13 @@ class Game extends GameArea
                             game.start();
                     }
                     this.send(JSON.stringify(response), { binary: false });
+                    break;
                 }
-                else if (parsed.type === "infoRequest")
+                case "infoRequest":
                 {
                     this.send(game.getInfo(), { binary: false });
+                    break;
                 }
-                else
-                {
-                    return;
                 }
             });
 
