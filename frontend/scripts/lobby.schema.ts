@@ -1,4 +1,4 @@
-export type RoomCode = string;
+export type LobbyID = string;
 export type ClientUUID = string | undefined;
 
 export interface LobbyInfoMessage {

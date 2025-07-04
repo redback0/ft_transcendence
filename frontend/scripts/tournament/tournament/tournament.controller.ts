@@ -1,5 +1,5 @@
 import { ClientUUID } from "../../lobby.schema.js";
-import { TournamentMessage } from "../../tournament.schema.js";
+import { GameID, TournamentMessage } from "../../tournament.schema.js";
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
 import { TournamentPage } from "./tournament.template.js";
 import { newPage, setCurrentPage } from "../../index.js";
@@ -15,6 +15,7 @@ export class TournamentArea {
         this.page = page;
         this.ws = lobby_page.lobby.ws;
 		this.ws.onmessage = this.wsMessage;
+        window.removeEventListener("popstate", lobby_page.lobby.disconnectOnPop);
         this.tournament_host = lobby_page.lobby.lobby_host;
         this.me = lobby_page.lobby.me;
         this.players = lobby_page.lobby.players;
@@ -32,29 +33,56 @@ export class TournamentArea {
         switch (type) {
             case "go_to_game":
                 this.log(`going to game: ${msg.game_id}`);
-                const newURL = "/game/online?id=" + msg.game_id;
-                history.pushState({}, "", newURL);
-                newPage();
+                this.goToGame(msg.game_id);
+            break;
+            case "game_starting":
+                this.log(`game starting: ${msg.game_id}; (${msg.p1}) vs. (${msg.p2})`);
             break;
             case "game_finished":
                 this.log(`game finished (${msg.p1.uuid} vs. ${msg.p2.uuid}): ${msg.p1.points} ${msg.p2.points}`);
             break;
             case "go_to_bracket":
-                history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.tourney_id);
-				setCurrentPage(this.page);
+                setTimeout(() => {
+                    history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.tourney_id);
+                    setCurrentPage(this.page);
+                }, 3000);
             break;
             case "client_left":
                 this.log(`client left: ${msg.client}`);
+            break;
+            case "tournament_finished":
+                this.log(`tournament finished`);
+                for (let ranking of msg.rankings) {
+                    this.log(`${ranking.name} (${ranking.score})`);
+                }
+            break;
+            case "byed":
+                this.log(`${msg.player} has been byed`);
             break;
             default:
                 this.log("Unrecognised message from server");
         }
     }
 
+    goToGame = (game_id: GameID) => {
+        let seconds_passed = 0;
+        this.log(3);
+        let interval = setInterval(() => {
+            seconds_passed++;
+            if (seconds_passed == 3) {
+                clearInterval(interval);
+                const newURL = "/game/online?id=" + game_id;
+                history.pushState({}, "", newURL);
+                newPage();
+            }
+            this.log(3 - seconds_passed);
+        }, 1000)
+    }
+
     log = (msg: any) => {
         console.log(msg);
         var p = document.createElement("p");
-        p.innerText = JSON.stringify(msg);
+        p.innerText = msg;
         this.page.appendChild(p);
     }
 }

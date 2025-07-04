@@ -48,7 +48,7 @@ export class Tournament {
 			ws.close();
 		});
 		// TODO: make tournament code or something
-		this.id = lobby.room_code;
+		this.id = tourney_id;
 		this.timeout = lobby.timeout;
 		this.wss.clients.forEach(client => {
 			client.on("message", (data, isBinary) => { this.wsOnMessage(client, data, isBinary) });
@@ -93,6 +93,7 @@ export class Tournament {
 							uuid: p2.uuid,
 							points: p2Score,
 						},
+						game_id: game_id,
 					}
 				});
 				this.sendTo(p1, { type: "go_to_bracket", msg: { tourney_id: this.id } });
@@ -106,14 +107,25 @@ export class Tournament {
 						var tmp: Array<TournamentWebSocket> = [];
 						this.wss.clients.forEach(c => tmp.push(c));
 						tmp.sort((a, b) => b.wins - a.wins);
-						for (let client of tmp) {
-							console.log(`${client.uuid} (${client.wins})`);
+						var rankings = tmp.map(client => {
+							return { name: client.uuid, score: client.wins };
+						});
+						for (let client of rankings) {
+							console.log(`${client.name} (${client.score})`);
 						}
+						this.sendToAll({ type: "tournament_finished", msg: { rankings: rankings } });
 					} else
 						this.startNextRound();
 				}
+			}); // end AddNewGame
+			this.sendToAll({
+				type: "game_starting",
+				msg: {
+					p1: p1.uuid,
+					p2: p2.uuid,
+					game_id: game_id,
+				}
 			});
-
 			if (p1 && p2) {
 				this.sendTo(p1, { type: "go_to_game", msg: { game_id: game_id } });
 				this.sendTo(p2, { type: "go_to_game", msg: { game_id: game_id } });
@@ -183,6 +195,7 @@ export class Tournament {
 			for (let client of this.wss.clients.values()) {
 				if (!client.been_byed) {
 					console.log(`${client.uuid} has been byed!`);
+					this.sendToAll({ type: "byed", msg: { player: client.uuid } });
 					client.wins++;
 					client.been_byed = true;
 					break;

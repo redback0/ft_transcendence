@@ -9,6 +9,8 @@ const htmlClientNamePrefix = "name-of-client-";
 const hostPrefix = "👑 ";
 const meSuffix = " (You)";
 
+
+
 export class LobbyJoinArea {
 	parent: LobbyJoinPage;
     ws: WebSocket;
@@ -22,11 +24,7 @@ export class LobbyJoinArea {
 		this.parent = parent;
 		console.log("heelo from new lobby join area");
 		this.ws = new WebSocket("/wss/lobby/" + room_code);
-		let ws = this.ws;
-		window.addEventListener("popstate", function disconnectGame(e) {
-            ws.close();
-            window.removeEventListener("popstate", disconnectGame);
-        });
+		window.addEventListener("popstate", this.disconnectOnPop);
 		this.ws.onopen = this.wsConnect;
 		this.ws.onmessage = this.wsMessage;
 		this.ws.onclose = (ev: CloseEvent) => { console.log("disconnected from lobby"); };
@@ -149,5 +147,10 @@ export class LobbyJoinArea {
 		if (!new_host_b)
 			return;
 		new_host_b.innerText = hostPrefix + new_host_b.innerText;
+	}
+
+	disconnectOnPop = (e: PopStateEvent) => {
+		this.ws.close();
+		window.removeEventListener("popstate", this.disconnectOnPop);
 	}
 }

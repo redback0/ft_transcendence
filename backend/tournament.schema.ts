@@ -3,6 +3,13 @@ import { ClientUUID, LobbyID, LobbyClientLeftMessage } from './lobby.schema';
 export type GameID = string;
 export type TournamentID = string;
 
+export interface TournamentByedMessage {
+	type: "byed",
+	msg: {
+		player: ClientUUID,
+	}
+}
+
 export interface TournamentStartMessage {
 	type: "tournament_starting",
 	msg: {
@@ -37,6 +44,7 @@ export interface TournamentGameFinishedMessage {
 			uuid: ClientUUID,
 			points: number,
 		}
+		game_id: GameID,
 	}
 }
 
@@ -58,6 +66,9 @@ export type TournamentMessage = TournamentStartMessage
 	| TournamentGameFinishedMessage
 	| TournamentGoToBracketMessage
 	| TournamentGoToGameMessage
+	| TournamentGameStartingMessage
+	| TournamentFinishedMessage
+	| TournamentByedMessage
 	| LobbyClientLeftMessage;
 
 
