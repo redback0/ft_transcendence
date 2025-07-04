@@ -1,7 +1,43 @@
 
+type UserID = string;
+
 export interface GameInterface
 {
 	type: string
+}
+
+// if players not both taken
+// Server >> GameIdentifyRequest
+// Client >> GameIdentify
+// Server >> GameCanRegister
+// ?Client >> GameRegister
+// ...
+
+// if players both taken
+// Server >> GameCanRegister (both false)
+// Client >> GameInfoRequest
+// ...
+
+// Server >> Client
+export interface GameIdentifyRequest extends GameInterface
+{
+	type: "identifyRequest"
+}
+
+// Client >> Server
+export interface GameIdentify extends GameInterface
+{
+	type: "identify",
+	uid: UserID | null,
+	sessionToken: string | null // SUBJECT TO CHANGE
+}
+
+// Server >> Client
+export interface GameCanRegister extends GameInterface
+{
+	type: "canRegister",
+	player1: boolean,
+	player2: boolean
 }
 
 // Client >> Server

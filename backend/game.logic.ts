@@ -15,13 +15,7 @@ export class GameArea
     w: number;
     p1: Player;
     p2: Player;
-    p1WebSocket: WebSocket | undefined;
-    p2WebSocket: WebSocket | undefined;
     ball: Ball;
-    p1Score: number = 0;
-    p2Score: number = 0;
-    p1DisconnectTimeout: NodeJS.Timeout | undefined;
-    p2DisconnectTimeout: NodeJS.Timeout | undefined;
     winScore: number = 11;
     running: boolean = false;
     framerate: number = 60;
@@ -53,14 +47,17 @@ export class GameArea
             this.winFunction = (winner, p1Score, p2Score) =>
             {
                 // TODO: game.id IS NOT GARANTEED TO BE UNIQUE CURRENTLY
-                db.saveGame.run({
-                    id: game.id,
-                    leftId: game.p1.userId,
-                    rightId: game.p2.userId,
-                    tournId: null,
-                    leftScore: game.p1Score,
-                    rightScore: game.p2Score
-                })
+                if (game.p1.uid && game.p2.uid)
+                {
+                    db.saveGame.run({
+                        id: game.id,
+                        leftId: game.p1.uid,
+                        rightId: game.p2.uid,
+                        tournId: null,
+                        leftScore: game.p1.score,
+                        rightScore: game.p2.score
+                    });
+                }
             };
     }
 
@@ -132,14 +129,14 @@ export class GameArea
         this.ball.y = this.h / 2;
         this.p1.y = this.h / 2;
         this.p1.y = this.h / 2;
-        this.p1Score = 0;
-        this.p2Score = 0;
+        this.p1.score = 0;
+        this.p2.score = 0;
 
         // probably send sockets a message saying the game has reset (temporary)
-        this.p1WebSocket?.removeListener("message", this.p1.wsMessage);
-        this.p1WebSocket = undefined;
-        this.p2WebSocket?.removeListener("message", this.p2.wsMessage);
-        this.p2WebSocket = undefined;
+        this.p1.ws?.removeListener("message", this.p1.wsMessage);
+        this.p1.ws = undefined;
+        this.p2.ws?.removeListener("message", this.p2.wsMessage);
+        this.p2.ws = undefined;
     }
 
     update = () =>
@@ -168,8 +165,8 @@ export class GameArea
         clearInterval(this.interval);
         if (scorer === this.p1)
         {
-            this.p1Score++;
-            if (this.p1Score >= this.winScore)
+            this.p1.score++;
+            if (this.p1.score >= this.winScore)
             {
                 this.win(this.p1);
                 return;
@@ -178,8 +175,8 @@ export class GameArea
         }
         else
         {
-            this.p2Score++;
-            if (this.p2Score >= this.winScore)
+            this.p2.score++;
+            if (this.p2.score >= this.winScore)
             {
                 this.win(this.p2);
                 return;
@@ -190,8 +187,8 @@ export class GameArea
         let scoreData: GameSchema.GameScoreData = {
             type: "score",
             scorer: player,
-            p1Score: this.p1Score,
-            p2Score: this.p2Score,
+            p1Score: this.p1.score,
+            p2Score: this.p2.score,
             ballX: this.ball.x,
             ballY: this.ball.y,
             player1Y: this.p1.y,
@@ -216,13 +213,13 @@ export class GameArea
         else if (winner === this.p2)
             player = "player2";
 
-        this.winFunction(player, this.p1Score, this.p2Score, this);
+        this.winFunction(player, this.p1.score, this.p2.score, this);
 
         let win: GameSchema.GameWinData = {
             type: "win",
             winner: player,
-            p1Score: this.p1Score,
-            p2Score: this.p2Score,
+            p1Score: this.p1.score,
+            p2Score: this.p2.score,
             ballX: this.ball.x,
             ballY: this.ball.y,
             player1Y: this.p1.y,
@@ -251,30 +248,30 @@ export class GameArea
 
         if (player === this.p1)
         {
-            this.p1WebSocket = undefined;
-            this.p1DisconnectTimeout = setTimeout(function ()
+            this.p1.ws = undefined;
+            this.p1.dcTimeout = setTimeout(function ()
             {
-                game.p1DisconnectTimeout = undefined;
+                game.p1.dcTimeout = undefined;
                 clearInterval(game.interval);
-                if (game.p2DisconnectTimeout)
+                if (game.p2.dcTimeout)
                 {
-                    clearTimeout(game.p2DisconnectTimeout);
-                    game.p2DisconnectTimeout = undefined;
+                    clearTimeout(game.p2.dcTimeout);
+                    game.p2.dcTimeout = undefined;
                 }
                 game.win(game.p2);
             }, 10000);
         }
         else
         {
-            this.p2WebSocket = undefined
-            this.p2DisconnectTimeout = setTimeout(function ()
+            this.p2.ws = undefined
+            this.p2.dcTimeout = setTimeout(function ()
             {
-                game.p2DisconnectTimeout = undefined;
+                game.p2.dcTimeout = undefined;
                 clearInterval(game.interval);
-                if (game.p1DisconnectTimeout)
+                if (game.p1.dcTimeout)
                 {
-                    clearTimeout(game.p1DisconnectTimeout);
-                    game.p1DisconnectTimeout = undefined;
+                    clearTimeout(game.p1.dcTimeout);
+                    game.p1.dcTimeout = undefined;
                 }
                 game.win(game.p1);
             }, 10000);
@@ -291,15 +288,28 @@ export class Player
     moveUp: boolean = false;
     moveDown: boolean = false;
     moveSpeed: number = 1;
-    userId: UserID | null | undefined; // null is unregistered user, undefined
-                                       // is unset -- SUBJECT TO CHANGE
-
-    constructor(x: number, y: number, h = 10, userId?: UserID)
+    score: number = 0;
+    dcTimeout: NodeJS.Timeout | undefined;
+    ws: WebSocket | undefined;
+    uid: UserID | undefined; // undefined is either unset or unregestered.
+                             // currently unregistered users can have anyone
+                             // rejoin for them
+    constructor(x: number, y: number, h = 10, uid?: UserID)
     {
         this.x = x;
         this.y = y;
         this.h = h;
-        this.userId = userId;
+        this.uid = uid;
+    }
+
+    canJoin(uid: UserID | undefined)
+    {
+        if (this.ws)
+            return false;
+        else if (this.uid)
+            return this.uid === uid;
+        else
+            return true;
     }
 
     wsMessage = (ws: WebSocket, data: RawData, isBinary: boolean) =>
@@ -360,7 +370,7 @@ export class Ball
 
     start(game: GameArea)
     {
-        if ((game.p1Score + game.p2Score) % 2)
+        if ((game.p1.score + game.p2.score) % 2)
             this.xVel = -this.moveSpeed;
         else
             this.xVel = this.moveSpeed;

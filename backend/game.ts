@@ -13,6 +13,7 @@ type UserID = string;
 class GameWebSocket extends WebSocket
 {
     isAlive: boolean = true;
+    uid: UserID | undefined
 }
 
 function NewID(length: number)
@@ -41,6 +42,7 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
         reply.send({ success: true, id: id });
     });
 
+    // TODO: remove this
     fastify.get('/api/game/create/test', function (request, reply)
     {
         let id = NewID(5);
@@ -123,20 +125,48 @@ class Game extends GameArea
 
             ws.on("message", function onMessage(data, isBinary)
             {
-                let parsed : GameSchema.GameInterface = JSON.parse(data.toString());
+                const parsed : GameSchema.GameInterface = JSON.parse(data.toString());
 
-                if (parsed.type === "register")
+                if (parsed.type === "identify")
                 {
-                    let response: GameSchema.GameRegisterResponse = {
+                    const identify = parsed as GameSchema.GameIdentify;
+
+                    if (identify.uid && identify.sessionToken)
+                    {
+                        // TODO: check that the user is not lying
+                        if (true)
+                        {
+                            ws.uid = identify.uid;
+                        }
+                        else
+                        {
+                            this.close(); // user lied, fuck them
+                        }
+                    }
+                    const canRegister: GameSchema.GameCanRegister = {
+                        type: "canRegister",
+                        player1: game.p1.canJoin(ws.uid),
+                        player2: game.p2.canJoin(ws.uid)
+                    }
+                    this.send(JSON.stringify(canRegister), { binary: false});
+                }
+                else if (parsed.type === "register")
+                {
+                    const response: GameSchema.GameRegisterResponse = {
                         type: "registerSuccess",
                         success: false,
                         position: undefined
                     }
 
-                    if (!game.p1WebSocket)
+                    // NOTE: if p1 is unregestered and p2 is registered, if
+                    // both disconnect, then p2 attempts to rejoin then both
+                    // players will technically be the same user.
+                    // I will ignore this problem
+                    if (game.p1.canJoin(ws.uid))
                     {
-                        game.p1WebSocket = this;
-                        
+                        game.p1.ws = this;
+                        game.p1.uid = ws.uid;
+
                         this.removeListener('message', onMessage)
                         this.on("message", function (data, isBinary)
                                 { game.p1.wsMessage(this, data, isBinary) });
@@ -145,12 +175,13 @@ class Game extends GameArea
                         response.success = true;
                         response.position = "player1";
 
-                        if (game.p1WebSocket && game.p2WebSocket)
+                        if (game.p1.ws && game.p2.ws)
                             game.start();
                     }
-                    else if (!game.p2WebSocket)
+                    else if (game.p2.canJoin(ws.uid))
                     {
-                        game.p2WebSocket = this;
+                        game.p2.ws = this;
+                        game.p2.uid = ws.uid;
 
                         this.removeListener('message', onMessage)
                         this.on("message", function (data, isBinary)
@@ -160,7 +191,7 @@ class Game extends GameArea
                         response.success = true;
                         response.position = "player2";
 
-                        if (game.p1WebSocket && game.p2WebSocket)
+                        if (game.p1.ws && game.p2.ws)
                             game.start();
                     }
                     this.send(JSON.stringify(response), { binary: false });
@@ -198,6 +229,24 @@ class Game extends GameArea
             {
                 ws.isAlive = true;
             });
+
+
+            // if game slots available, ask the client to identify
+            if (!game.p1.ws || !game.p2.ws)
+            {
+                const identifyRequest: GameSchema.GameIdentifyRequest = {
+                    type: "identifyRequest"
+                };
+                ws.send(JSON.stringify(identifyRequest), { binary: false});
+            }
+            else
+            {
+                const canRegister: GameSchema.GameCanRegister = {
+                    type: "canRegister",
+                    player1: false,
+                    player2: false
+                }
+            }
         });
 
 

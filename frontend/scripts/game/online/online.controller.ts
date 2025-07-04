@@ -40,6 +40,7 @@ export class GameArea
         let ws = this.ws;
         window.addEventListener("popstate", function disconnectGame(e)
         {
+            // TODO: make this happen when page is changed via nav menu
             ws.close();
             this.removeEventListener("popstate", disconnectGame);
         });
@@ -56,8 +57,9 @@ export class GameArea
         this.ball = new Ball(w / 2, h / 2);
         this.framerate = 60;
         this.registerButton = new Button(w / 2, h * 3 / 4, w / 3.5, h / 12,
-            this.register, canvas, this, "Click here to register!");
+            this.register, canvas, this, "Click to register!");
         this.registerButton.enabled = false;
+        this.registerButton.hidden = true;
 
         this.drawBackground();
         this.p1.draw(this);
@@ -69,8 +71,8 @@ export class GameArea
     wsConnect = () =>
     {
         console.log("Game WebSocket connected");
-        this.registerButton.enabled = true;
-        this.registerButton.draw(this);
+        // this.registerButton.enabled = true;
+        // this.registerButton.draw(this);
         this.ws.send(JSON.stringify({
             type: "infoRequest"
         } as GameSchema.GameInfoRequest));
@@ -86,11 +88,51 @@ export class GameArea
 
         switch (data.type)
         {
+        case "identifyRequest":
+        {
+            // TODO: make this actually send identity
+            const identify: GameSchema.GameIdentify = {
+                type: "identify",
+                uid: null,
+                sessionToken: null
+            }
+
+            this.ws.send(JSON.stringify(identify));
+            break;
+        }
+        case "canRegister":
+        {
+            const info = (data as GameSchema.GameCanRegister);
+            if (info.player1 || info.player2)
+            {
+                this.registerButton.enabled = true;
+                this.registerButton.hidden = false;
+                this.registerButton.draw(this);
+            }
+            else
+            {
+                this.registerButton.enabled = false;
+                this.registerButton.hidden = true;
+            }
+            break;
+        }
         case "registerSuccess":
         {
+            this.registerButton.enabled = false;
             const info = (data as GameSchema.GameRegisterResponse);
             if (info.success)
+            {
+                this.registerButton.hidden = true;
                 this.player = info.position;
+            }
+            else
+            {
+                const ctx = this.context;
+                ctx.font = "24px sans";
+                ctx.fillStyle = TEXT_COLOR;
+                ctx.textAlign = "center";
+                ctx.fillText(this.p1Score.toString(), 0, 0)
+            }
             break;
         }
         case "info":
@@ -114,6 +156,8 @@ export class GameArea
             break;
         }
         case "start":
+            this.registerButton.hidden = true;
+            this.registerButton.enabled = false;
             this.start();
             break;
         case "frame":
@@ -190,7 +234,7 @@ export class GameArea
 
         clearInterval(this.interval);
         this.draw();
-        ctx.font = "36px serif";
+        ctx.font = "36px sans";
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (scorer == this.p1)
@@ -209,7 +253,7 @@ export class GameArea
 
         clearInterval(this.interval);
         this.draw();
-        ctx.font = "48px serif";
+        ctx.font = "48px sans";
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (winner == this.p1)
@@ -247,6 +291,7 @@ export class GameArea
         this.p1.draw(this);
         this.p2.draw(this);
         this.ball.draw(this);
+        this.registerButton.draw(this);
         this.drawScore();
     }
 
@@ -273,7 +318,7 @@ export class GameArea
     {
         let ctx = this.context;
 
-        ctx.font = "24px serif";
+        ctx.font = "24px sans";
         ctx.fillStyle = TEXT_COLOR;
         ctx.textAlign = "right";
         ctx.fillText(this.p1Score.toString(), (this.canvas.width / 2) - 50, 80)
@@ -297,6 +342,7 @@ class Button
     borderColor: string;
     textColor: string;
     enabled: boolean = true;
+    hidden: boolean = false;
 
     constructor(x: number,
         y: number,
@@ -306,7 +352,7 @@ class Button
         element: HTMLElement,
         game: GameArea,
         text: string = "button",
-        font: string = "36px serif",
+        font: string = "36px sans",
         baseColor: string = BUTTON_COLOR,
         borderColor: string = BUTTON_BORDER_COLOR,
         textColor: string = TEXT_COLOR)
@@ -329,7 +375,10 @@ class Button
 
     draw(game: GameArea)
     {
+        if (this.hidden)
+            return;
         let ctx = game.context;
+        // TODO: change color when disabled
         ctx.fillStyle = this.baseColor;
         let rectX = ((this.x - (this.w / 2)) * game.ratio) + this.sidePadding;
         let rectY = (this.y - (this.h / 2)) * game.ratio;
@@ -345,7 +394,7 @@ class Button
 
     onClickHandler = (e: MouseEvent) =>
     {
-        if (this.enabled &&
+        if (this.enabled && !this.hidden &&
             e.offsetX > ((this.x * this.ratio) + this.sidePadding) - (this.w / 2 * this.ratio) &&
             e.offsetX < ((this.x * this.ratio) + this.sidePadding) + (this.w / 2 * this.ratio) &&
             e.offsetY > (this.y * this.ratio) - (this.h / 2 * this.ratio) &&
