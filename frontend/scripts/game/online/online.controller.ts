@@ -6,7 +6,8 @@ var TEXT_COLOR = window.getComputedStyle(document.body).getPropertyValue("--colo
 var BUTTON_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-500");
 var BUTTON_BORDER_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-600")
 
-import * as GameSchema from "./../../game.schema"
+import * as GameSchema from "./../../game.schema.js"
+import { onPageChange } from "../../index.js";
 
 export class GameArea
 {
@@ -33,17 +34,12 @@ export class GameArea
 
     constructor(gameID: string, canvas: HTMLCanvasElement, h = 100, w = 200)
     {
-        let temp = canvas.getContext("2d");
-        if (temp) this.context = temp;
+        const ctx = canvas.getContext("2d");
+        if (ctx) this.context = ctx;
         else throw new Error("Failed to get context from canvas");
         this.ws = new WebSocket("/wss/game/" + gameID);
-        let ws = this.ws;
-        window.addEventListener("popstate", function disconnectGame(e)
-        {
-            // TODO: make this happen when page is changed via nav menu
-            ws.close();
-            this.removeEventListener("popstate", disconnectGame);
-        });
+        const ws = this.ws;
+        onPageChange(() => {ws.close()});
         this.ws.onopen = this.wsConnect;
         this.ws.onmessage = this.wsMessage;
         this.canvas = canvas;
