@@ -88,8 +88,11 @@ export interface GameFrameData extends GameInterface
 {
 	type: "frame",
 	frameCount: number,
+	frameTime: EpochTimeStamp,
 	ballX: number,
+	ballXVel: number,
 	ballY: number,
+	ballYVel: number,
 	player1Y: number,
 	player2Y: number
 }
@@ -99,6 +102,7 @@ export interface GameUserInput extends GameInterface
 {
 	type: "input",
 	frameCount: number,
+	frameTime: EpochTimeStamp,
 	moveUp: boolean,
 	moveDown: boolean
 }

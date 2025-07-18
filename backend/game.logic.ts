@@ -24,10 +24,15 @@ export class GameArea
     frame: GameSchema.GameFrameData = {
         type: "frame",
         frameCount: 0,
+        frameTime: 0,
         ballX: 0,
+        ballXVel: 0,
         ballY: 0,
+        ballYVel: 0,
         player1Y: 0,
-        player2Y: 0
+        player1MoveDir: 0,
+        player2Y: 0,
+        player2MoveDir: 0
     };
     winFunction: GameWinFunc
     id: string = "";
@@ -96,11 +101,17 @@ export class GameArea
         this.ball.start(this);
 
         this.frame.ballX = this.ball.x;
+        this.frame.ballXVel = this.ball.xVel;
         this.frame.ballY = this.ball.y;
+        this.frame.ballYVel = this.ball.yVel;
         this.frame.frameCount = 0;
+        this.frame.frameTime = Date.now();
         this.frame.player1Y = this.p1.y;
+        this.frame.player1MoveDir =
+            ((this.p1.moveUp ? -1 : 0) + (this.p1.moveDown ? 1 : 0)) as -1 | 0 | 1
         this.frame.player2Y = this.p2.y;
-
+        this.frame.player2MoveDir =
+            ((this.p2.moveUp ? -1 : 0) + (this.p2.moveDown ? 1 : 0)) as -1 | 0 | 1
         const message = JSON.stringify(this.frame);
         this.wss.clients.forEach(function(ws)
         {
@@ -146,8 +157,11 @@ export class GameArea
         this.ball.update(this);
 
         this.frame.ballX = this.ball.x;
+        this.frame.ballXVel = this.ball.xVel;
         this.frame.ballY = this.ball.y;
+        this.frame.ballYVel = this.ball.yVel;
         this.frame.frameCount++;
+        this.frame.frameTime = Date.now();
         this.frame.player1Y = this.p1.y;
         this.frame.player2Y = this.p2.y;
 

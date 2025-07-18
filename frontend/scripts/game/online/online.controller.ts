@@ -25,9 +25,10 @@ export class GameArea
     ball: Ball;
     p1Score: number = 0;
     p2Score: number = 0;
-    winScore: number = 11;
+    batSpeed: number = 0;
     framerate: number;
     lastRecFrame: number = -1;
+    lastFrameTime: EpochTimeStamp = 0;
     frameNo: number = 0;
     interval: number | undefined;
     registerButton: Button;
@@ -57,11 +58,10 @@ export class GameArea
         this.registerButton.enabled = false;
         this.registerButton.hidden = true;
 
-        this.drawBackground();
-        this.p1.draw(this);
-        this.p2.draw(this);
-        this.ball.draw(this);
-
+        this.p1.update(this, 0);
+        this.p2.update(this, 0);
+        this.ball.update(this, 0);
+        this.draw();
     }
 
     wsConnect = () =>
@@ -141,7 +141,7 @@ export class GameArea
             this.framerate = info.framerate;
             this.p1.h = info.batHeight;
             this.p2.h = info.batHeight;
-            //bat speed
+            this.batSpeed = info.batSpeed;
             if (info.p1Color)
                 this.p1.color = info.p1Color;
             if (info.p2Color)
@@ -164,8 +164,11 @@ export class GameArea
             else if (info.frameCount > this.lastRecFrame + 1)
                 console.warn("Frame was late");
             this.lastRecFrame = info.frameCount;
+            this.lastFrameTime = info.frameTime;
             this.ball.x = info.ballX;
+            this.ball.xVel = info.ballXVel;
             this.ball.y = info.ballY;
+            this.ball.yVel = info.ballYVel;
             this.p1.y = info.player1Y;
             this.p2.y = info.player2Y;
             break;
@@ -264,19 +267,22 @@ export class GameArea
 
     update = () =>
     {
+        const frameTime = Date.now();
+        const frameDiff = (frameTime - this.lastFrameTime) / this.framerate;
         if (this.player)
         {
             this.ws.send(JSON.stringify({
                 type: "input",
                 frameCount: this.frameNo++,
+                frameTime: frameTime,
                 moveUp: this.pController.moveUp,
                 moveDown: this.pController.moveDown
             } as GameSchema.GameUserInput));
         }
 
-        this.p1.update(this);
-        this.p2.update(this);
-        this.ball.update(this);
+        this.p1.update(this, frameDiff);
+        this.p2.update(this, frameDiff);
+        this.ball.update(this, frameDiff);
         this.draw();
     }
 
@@ -405,7 +411,9 @@ class Button
 class Component
 {
     x: number;
+    xRend: number = 0;
     y: number;
+    yRend: number = 0;
     h: number;
     w: number;
     color: string;
@@ -420,12 +428,19 @@ class Component
         this.color = color
     }
 
+    update(game: GameArea, framesSince: number)
+    {
+        this.xRend = this.x;
+        this.yRend = this.y;
+    }
+
     draw(game: GameArea)
     {
-        let ctx = game.context;
+        const ctx = game.context;
+
         ctx.fillStyle = this.color;
-        ctx.fillRect((this.x * game.ratio) + game.sidePadding,
-            (this.y - this.h / 2) * game.ratio,
+        ctx.fillRect((this.xRend * game.ratio) + game.sidePadding,
+            (this.yRend - this.h / 2) * game.ratio,
             this.w * game.ratio,
             this.h * game.ratio);
     }
@@ -508,6 +523,9 @@ class PlayerController
 
 class Player extends Component
 {
+    moveUp: boolean = false;
+    moveDown: boolean = false;
+
     constructor(x : number, y : number,
                 h : number = 12, w : number = 2)
     {
@@ -516,14 +534,20 @@ class Player extends Component
         super(x, y, h, w, PLAYER_COLOR)
     }
 
-    update(game: GameArea)
+    update(game: GameArea, framesSince: number)
     {
+        this.xRend = this.x;
+        this.yRend = this.y +
+            (((this.moveUp ? -game.batSpeed : 0) +
+            (this.moveDown ? game.batSpeed : 0)) * framesSince);
     }
 }
 
 class Ball extends Component
 {
     r: number;
+    xVel: number = 0;
+    yVel: number = 0;
 
     constructor(x: number, y: number, r: number = 1, color: string = BALL_COLOR)
     {
@@ -544,7 +568,22 @@ class Ball extends Component
         ctx.stroke();
     }
 
-    update(game: GameArea)
+    update(game: GameArea, framesSince: number)
     {
+        let xMove = this.xVel * framesSince;
+        let yMove = this.yVel * framesSince;
+
+        if (this.x + xMove > game.w / 2 - this.r)
+        {
+            xMove -= game.w / 2 - this.r - this.x + xMove;
+        }
+
+        if (this.y + yMove > game.h / 2 - this.r)
+        {
+            yMove -= game.h / 2 - this.r - this.x + yMove;
+        }
+
+        this.xRend = this.x + this.xRend;
+        this.yRend = this.y + this.yRend;
     }
 }
