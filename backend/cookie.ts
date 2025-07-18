@@ -6,7 +6,15 @@ export const COOKIE_NAME = 'session_id';
 
 export async function createUserSession(userId: string): Promise<string>
 {
-    const uuid = uuidv4();
+    let uuid = null;
+    let result;
+    do
+    {
+        uuid = uuidv4();
+        const statement = db.prepare('SELECT COUNT(*) as count FROM users WHERE session_id = ?');
+        result = statement.get(uuid) as { count: number };
+
+    } while (result.count > 0);
     try
     {
         const statement = db.prepare('UPDATE users SET session_id = ? WHERE user_id = ?');
@@ -46,31 +54,18 @@ export async function validateSession(sessionId: string): Promise<string | null>
     }
 }
 
-export function registerCookieRoutes(fastify: FastifyInstance, userId: string)
-{
-    fastify.get('/login', async (request, reply) => {
-        return await setUUIDCookie(request, reply, userId);
-    });
-    fastify.get('/profile', getUUIDCookie);
-    fastify.get('/logout', async (request, reply) => {
-        return await clearUUIDCookie(request, reply, userId);
-    });
-}
-
 export async function setUUIDCookie(request: FastifyRequest, reply: FastifyReply, userId: string): Promise<void>
 {
     const uuid = uuidv4();
-    
     try
     {
         const statement = db.prepare('UPDATE users SET session_id = ? WHERE user_id = ?');
         const update = statement.run(uuid, userId);
-        
         reply
             .setCookie(COOKIE_NAME, uuid, {
                 path: '/',
                 httpOnly: true,
-                sameSite: 'lax', // TODO: Set to 'strict' in production
+                sameSite: 'strict',
                 secure: false, // TODO: Set to 'true' in production
                 domain: 'localhost', // TODO change to URL ttpg.xyz. Not https://ttpg.xyz
                 maxAge: 60 * 60 * 24 / 2 // 0.5 day
@@ -103,11 +98,8 @@ export async function clearUUIDCookie(request: FastifyRequest, reply: FastifyRep
 {
     try
     {
-        // Clear database session first
         const statement = db.prepare('UPDATE users SET session_id = NULL WHERE user_id = ?');
         const update = statement.run(userId);
-        
-        // Then clear cookie
         reply
             .clearCookie(COOKIE_NAME, { path: '/' })
             .send({ message: 'Logged out, cookie cleared' });
