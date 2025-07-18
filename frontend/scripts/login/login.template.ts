@@ -31,10 +31,10 @@ export class LoginPage extends HTMLElement
                     <input type="text" placeholder="Enter Username" name="new_user" required>
                     <br>
                     <label for="new_pass"><b>Password</b></label>
-                    <input type="text" placeholder="Enter Password" name="new_pass" required>
+                    <input type="password" placeholder="Enter Password" name="new_pass" required>
                     <br>
                     <label for="new_pass2"><b>Re-Enter Password</b></label>
-                    <input type="text" placeholder="Re-Enter Password" name="new_pass2" required>
+                    <input type="password" placeholder="Re-Enter Password" name="new_pass2" required>
                     <br>
                     <button type="submit">Sign Up</button>
                 </div>

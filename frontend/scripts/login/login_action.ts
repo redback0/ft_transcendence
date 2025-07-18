@@ -5,6 +5,9 @@ const Loginform = document
 const Loginerror = document
     .getElementById('error') as HTMLParagraphElement;
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 Loginform
     .addEventListener('submit', (event) => {
         event
@@ -15,5 +18,13 @@ Loginform
         const pass = (document
             .getElementById('pass') as HTMLInputElement)
             .value;
+                hashPassword(password)
+                    .then(hashedPassword => {
+                        console.log('Hashed password:', hashedPassword)
+                    })
+                    .catch(error => {
+        
+                    });
 
+        
     });

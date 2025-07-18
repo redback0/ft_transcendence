@@ -5,6 +5,21 @@ const SignUpform = document
 const SignUperror = document
     .getElementById('error') as HTMLParagraphElement;
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+export async function hashPassword(password: string) {
+    try {
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hash = await bcrypt.hash(password, salt);
+        return hash;
+    }
+    catch (error) {
+        console.error('Error hashing passwords: ', error);
+        throw error;
+    }
+}
+
 SignUpform
     .addEventListener('submit', (event) => 
     {
@@ -23,5 +38,11 @@ SignUpform
         {
             SignUperror.innerHTML = 'Password is not the same!';
         }
+        hashPassword(password)
+            .then(hashedPassword => {
+                console.log('Hashed password:', hashedPassword)
+            })
+            .catch(error => {
 
+            });
     });

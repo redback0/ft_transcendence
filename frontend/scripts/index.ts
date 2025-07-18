@@ -1,4 +1,5 @@
 
+import { Fastify } from 'fastify';
 import { api } from './api.js'
 import { IndexPage } from './index.template.js'
 import { GamePage } from './game/game.template.js'
@@ -9,6 +10,7 @@ import { ChatPage } from './chat/chat.template.js'
 import { AddNavigation } from './navigation.js'
 import { LoginPage } from './login/login.template.js'
 
+Fastify.register();
 const pages = new Map<string, any>([
     ['/', IndexPage],
     ['/game', GamePage],
@@ -17,6 +19,7 @@ const pages = new Map<string, any>([
     ['/chat', ChatPage],
     ['/login', LoginPage]
 ])
+
 
 let currPage : HTMLElement
 
