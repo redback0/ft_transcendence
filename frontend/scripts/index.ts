@@ -7,13 +7,15 @@ import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { AddNavigation } from './navigation.js'
+import { LoginPage } from './login/login.template.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],
     ['/game', GamePage],
     ['/game/local', LocalGamePage],
     ['/game/online', OnlineGamePage],
-    ['/chat', ChatPage]
+    ['/chat', ChatPage],
+    ['/login', LoginPage]
 ])
 
 let currPage : HTMLElement
