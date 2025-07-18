@@ -5,6 +5,7 @@ import { FastifyInstance, RegisterOptions } from "fastify";
 import * as GameSchema from "./game.schema";
 import { GameArea, GameWinFunc } from "./game.logic";
 import { db } from "./database";
+import { clearTimeout } from "timers";
 
 let testGameWinner: "Player 1" | "Player 2" | "No winner yet";
 
@@ -178,8 +179,10 @@ class Game extends GameArea
                         response.success = true;
                         response.position = "player1";
 
-                        if (game.p1.ws && game.p2.ws)
+                        if (game.p1.ws && game.p2.ws && !game.interval)
                             game.start();
+                        else if (game.p1.dcTimeout)
+                            clearTimeout(game.p1.dcTimeout);
                     }
                     else if (game.p2.canJoin(ws.uid))
                     {
@@ -194,8 +197,10 @@ class Game extends GameArea
                         response.success = true;
                         response.position = "player2";
 
-                        if (game.p1.ws && game.p2.ws)
+                        if (game.p1.ws && game.p2.ws && !game.interval)
                             game.start();
+                        else if (game.p2.dcTimeout)
+                            clearTimeout(game.p2.dcTimeout);
                     }
                     this.send(JSON.stringify(response), { binary: false });
                     break;

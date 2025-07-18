@@ -152,8 +152,6 @@ export class GameArea
             break;
         }
         case "start":
-            this.registerButton.hidden = true;
-            this.registerButton.enabled = false;
             this.start();
             break;
         case "frame":
