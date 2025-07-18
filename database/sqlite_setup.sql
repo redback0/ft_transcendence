@@ -54,6 +54,15 @@ CREATE TABLE IF NOT EXISTS user_has_tournament (
   FOREIGN KEY (user_tournament_tour_id) REFERENCES tournament(tour_id)
 );
 
+CREATE TABLE IF NOT EXISTS friend (
+  user_id TEXT NOT NULL,
+  friend_id TEXT NOT NULL,
+  PRIMARY KEY (user_id, friend_id),
+  FOREIGN KEY (user_id) REFERENCES users(user_id),
+  FOREIGN KEY (friend_id) REFERENCES users(user_id)
+);
+
 CREATE INDEX IF NOT EXISTS index_username ON users(username);
+CREATE INDEX IF NOT EXISTS index_session_id ON users(session_id);
 
 PRAGMA foreign_keys = ON;
