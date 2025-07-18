@@ -10,9 +10,6 @@ export class TournamentPage extends HTMLElement {
 		super();
 
 		this.bracket_area = new TournamentArea(this, lobby_page);
-		var para = document.createElement("p");
-		para.innerHTML = "helo from tournament";
-		this.appendChild(para);
 	}
 }
 
