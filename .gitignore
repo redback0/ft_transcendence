@@ -3,4 +3,5 @@ node_modules
 .vscode
 .env
 pong.db
+pong.db-journal
 /frontend/html/css/output.css
