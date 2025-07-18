@@ -10,24 +10,13 @@ export class LoginPage extends HTMLElement
             <form action="login_action.js"  method="post" >
                 <div class= "container">
                     <label for="user"><b>Username</b></label>
-                    <input type="text"
-                        placeholder="Enter Username" 
-                        name="user" 
-                        required
-                        minlength="6"
-                        maxlength="16"
-                     />
+                    <input type="text" placeholder="Enter Username" name="user" required>
                     <br>
                     <label for="pass"><b>Password </b></label>
-                    <input type="password" 
-                        placeholder="Enter Password" 
-                        name="pass" 
-                        required
-                        minlength="8"
-                        maxlength="16
-                    />
+                    <input type="password" placeholder="Enter Password" name="pass">
                     <br>
-                    <button onclick="loginbutton()">Login</button>
+                    <br>
+                    <button type="submit">Login</button>
                 </div>
                 <!-- <div class= "container" style="background-color:#dacecb">
                     <span class="pass"><a href="password">Forgot password?</a></span>
