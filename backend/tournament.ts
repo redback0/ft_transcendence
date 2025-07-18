@@ -187,34 +187,23 @@ export class Tournament {
 	matchmakeClients = (): Array<Pair<TournamentWebSocket>> => {
 		var pairs: Array<Pair<TournamentWebSocket>> = [];
 		
-		var bye_idx = -1;
 		var client_pool = [];
-		// find who gets a 'bye'
-		if (this.wss.clients.size % 2 == 1) {
-			bye_idx = 0;
-			for (let client of this.wss.clients.values()) {
-				if (!client.been_byed) {
-					console.log(`${client.uuid} has been byed!`);
-					this.sendToAll({ type: "byed", msg: { player: client.uuid } });
-					client.wins++;
-					client.been_byed = true;
-					break;
-				}
-				++bye_idx;
-			}
-		}
-		var i = 0;
 		for (let client of this.wss.clients.values()) {
-			if (i === bye_idx) {
-				++i;
-				continue;
-			}
 			client_pool.push(client);
-			++i;
 		}
 		client_pool.sort((a, b) => {
 			return (b.wins - a.wins);
 		});
+		for (var i = client_pool.length - 1; i >= 0; i--) {
+			let client = client_pool[i];
+			if (!client.been_byed) {
+				console.log(`${client.uuid} has been byed!`);
+				this.sendToAll({ type: "byed", msg: { player: client.uuid } });
+				client.wins++;
+				client.been_byed = true;
+				break;
+			}
+		}
 		while (client_pool.length > 1) {
 			for (let i = 1; i < client_pool.length; ++i) {
 				const p1: TournamentWebSocket = client_pool[0];
