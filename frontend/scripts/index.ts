@@ -8,6 +8,7 @@ import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { AddNavigation } from './navigation.js'
 import { LoginPage } from './login/login.template.js'
+import { UserPage } from './userpage/userpage.template.js'
 
 const pages = new Map<string, any>([
     ['/', IndexPage],
@@ -15,7 +16,8 @@ const pages = new Map<string, any>([
     ['/game/local', LocalGamePage],
     ['/game/online', OnlineGamePage],
     ['/chat', ChatPage],
-    ['/login', LoginPage]
+    ['/login', LoginPage],
+    ['/mypage', UserPage]
 ])
 
 let currPage : HTMLElement
