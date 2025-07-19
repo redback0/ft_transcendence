@@ -7,14 +7,22 @@ export class LoginPage extends HTMLElement
         this.innerHTML =
             `
             <p> This is the login page, Welcome!!</p>
+<<<<<<< HEAD
             <form action="login_action.js"  method="post" >
+=======
+            <form id="LoginForm">
+>>>>>>> login
                 <div class= "container">
                     <label for="user"><b>Username</b></label>
                     <input type="text" placeholder="Enter Username" name="user" required>
                     <br>
                     <label for="pass"><b>Password </b></label>
+<<<<<<< HEAD
                     <input type="password" placeholder="Enter Password" name="pass">
                     <br>
+=======
+                    <input type="password" placeholder="Enter Password" name="pass" required>
+>>>>>>> login
                     <br>
                     <button type="submit">Login</button>
                 </div>
@@ -23,6 +31,26 @@ export class LoginPage extends HTMLElement
                 </div> 
                 -->
             </form> 
+<<<<<<< HEAD
+=======
+            <br>
+            <br>
+            <p> This is the Sign Up section :)))</p>
+            <form id="SignInForm">
+                <div class= "container">
+                    <label for="new_user"><b>Username</b></label>
+                    <input type="text" placeholder="Enter Username" name="new_user" required>
+                    <br>
+                    <label for="new_pass"><b>Password</b></label>
+                    <input type="password" placeholder="Enter Password" name="new_pass" required>
+                    <br>
+                    <label for="new_pass2"><b>Re-Enter Password</b></label>
+                    <input type="password" placeholder="Re-Enter Password" name="new_pass2" required>
+                    <br>
+                    <button type="submit">Sign Up</button>
+                </div>
+            </form>
+>>>>>>> login
             `;
     }
 }

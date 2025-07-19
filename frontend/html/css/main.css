@@ -4,7 +4,16 @@ body
 {
     background-color: var(--color-pink-200);
 }
-
+container 
+{
+    width: 50%;
+    margin: auto;
+}
+label
+{
+    width: 90px;
+    display: inline-block;
+}
 button
 {
     padding: 2px;

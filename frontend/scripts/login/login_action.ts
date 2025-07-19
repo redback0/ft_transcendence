@@ -1,6 +1,37 @@
 //Authored by Bethany Milford 18/07/2025
 
+<<<<<<< HEAD
 export function loginButton(): void
 {
     //const username = user.value
 }
+=======
+const Loginform = document
+    .getElementById('LoginForm') as HTMLFormElement;
+const Loginerror = document
+    .getElementById('error') as HTMLParagraphElement;
+
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+Loginform
+    .addEventListener('submit', (event) => {
+        event
+            .preventDefault();
+        const user = (document
+            .getElementById('user') as HTMLInputElement)
+            .value;
+        const pass = (document
+            .getElementById('pass') as HTMLInputElement)
+            .value;
+                hashPassword(password)
+                    .then(hashedPassword => {
+                        console.log('Hashed password:', hashedPassword)
+                    })
+                    .catch(error => {
+        
+                    });
+
+        
+    });
+>>>>>>> login

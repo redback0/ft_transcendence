@@ -5,8 +5,12 @@ const nav = new Map<string, string>([
     ["Home", "/"],
     ["Game", "/game"],
     ["Chat", "/chat"],
+<<<<<<< HEAD
     ["Login/Sign In","/login"],
     ["My Home Page", "/mypage"],
+=======
+    ["Login/SignUp", "/login"]
+>>>>>>> login
 ]);
 
 export function AddNavigation()
