@@ -9,10 +9,7 @@ import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { AddNavigation } from './navigation.js'
 import { LoginPage } from './login/login.template.js'
-<<<<<<< HEAD
 import { UserPage } from './userpage/userpage.template.js'
-=======
->>>>>>> login
 
 Fastify.register();
 const pages = new Map<string, any>([
@@ -21,12 +18,8 @@ const pages = new Map<string, any>([
     ['/game/local', LocalGamePage],
     ['/game/online', OnlineGamePage],
     ['/chat', ChatPage],
-<<<<<<< HEAD
     ['/login', LoginPage],
     ['/mypage', UserPage]
-=======
-    ['/login', LoginPage]
->>>>>>> login
 ])
 
 

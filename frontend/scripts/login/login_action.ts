@@ -1,11 +1,6 @@
 //Authored by Bethany Milford 18/07/2025
+import { hashPassword } from "./signup_action";
 
-<<<<<<< HEAD
-export function loginButton(): void
-{
-    //const username = user.value
-}
-=======
 const Loginform = document
     .getElementById('LoginForm') as HTMLFormElement;
 const Loginerror = document
@@ -24,14 +19,14 @@ Loginform
         const pass = (document
             .getElementById('pass') as HTMLInputElement)
             .value;
-                hashPassword(password)
+                hashPassword(pass)
                     .then(hashedPassword => {
                         console.log('Hashed password:', hashedPassword)
                     })
                     .catch(error => {
+                        
         
                     });
 
         
     });
->>>>>>> login
