@@ -1,6 +1,6 @@
 //Authored by Bethany Milford 18/07/2025
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { appendFile } from "fs";
+import { appendFile } from "fs"; 
 import { createUserSession } from "./cookie";
 import { db } from "./server"; 
 import { request } from "http";
@@ -35,30 +35,62 @@ const getLogin = {
 }
 
 async function SignUpUser(request: FastifyRequest, reply: FastifyReply)
- {
-    try {
-        const { username, hashedPassword = true } = request.body;
-        //search database for existing username
-        // if yes, return error -> user already taken
-        //if no insert into database
-        const post = await db.run('INSERT INTO users(username, hashedPassword) VALUES()'); // the sql commmands
-        reply.code(200).send(post);
-        //if successfull, load new home page with index that include my profile, my chat -> done in the front end
-    }
-    catch (error) {
-        request.log.error('Error unable to creare account', error);
-        reply.send({error: 'Failed to create account'});
-    }
-}  
-// need to add the sql database commands everywhere
-async function LoginUser(request: FastifyRequest, reply: FastifyReply)
 {
     try {
-        const where = {};
-        if (request.query)
-    // search database for identical username and hashed password
-    // if yes load new home page
-    // if no return error, incorrect username or password
+        const { username, hashedPassword } = request.body as { username: string, hashedPassword: string };
+        //search database for existing username
+        const findUser = db.prepare('SELECT COUNT(*) as count FROM users WHERE user_id = ?');
+        let result = findUser.get(username) as { count: number };
+        if (result.count > 0)
+        {
+            // if yes, return error -> user already taken
+            request.log.error('Error unable to create account username already exists');
+            reply.send({error: 'Failed to create account. Username already exists.'});
+            return ;
+        }
+        //if no insert into database
+        const createDate = new Date().toISOString();
+        const insertUser = db.prepare('INSERT INTO users (username, user_password, date_account_made) VALUES (?, ?, ?)');
+        const post = insertUser.run(username, hashedPassword, createDate);      
+        reply.code(200).send(post);
+        //TODO: if successfull, load new home page with index that include my profile, my chat -> done in the front end
+        return ;
+    }
+    catch (error) {
+        request.log.error('Error unable to create account', error);
+        reply.send({ error: 'Failed to create account' });
+    }
+}  
+// need to add the sql database commands everywhere -> TODO: make a sqlite file to do this because it will be annoying otherwise
+async function LoginUser(request: FastifyRequest, reply: FastifyReply)
+{
+    try
+    {
+        const { username, hashedPassword } = request.body as { username: string, hashedPassword: string }
+        const statement = db.prepare('SELECT username, user_password FROM users WHERE username = ?');
+        const dbRecord = statement.get(username) as { username: string, user_password: string } | undefined;
+
+        if (dbRecord)
+        {
+            const dbUser = dbRecord.username;
+            const dbUserPassword = dbRecord.user_password;
+
+            if (hashedPassword === dbUserPassword) // TODO: how to hash the passwords?
+            {
+                reply.code(200).send({ message: 'Login successful', username: dbUser });
+                // TODO: load profile page or somthing here. 
+                return ;
+            }
+        }
+        else
+        {
+            reply.send({ error: 'Invalid username or password' });
+            return;
+        }        
+    }
+    catch (error)
+    {
+        request.log.error('Can not login: ', error);
+        reply.send({ error: 'Login failed.' });
     }
 }
-
