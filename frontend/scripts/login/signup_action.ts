@@ -36,13 +36,13 @@ SignUpform
             .value;
         if ( password !== repeat_password)
         {
-            SignUperror.innerHTML = 'Password is not the same!';
+            SignUperror.innerHTML = `<p> Password is not the same! </p>`;
         }
         hashPassword(password)
             .then(hashedPassword => {
                 console.log('Hashed password:', hashedPassword)
             })
             .catch(error => {
-
+                SignUperror.innerHTML = `<p> Password is not valid, please try again </p>`;
             });
     });

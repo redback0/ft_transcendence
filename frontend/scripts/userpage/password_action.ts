@@ -35,6 +35,6 @@ ChangePasswordform
             {
                 console.log('Hashed Old password: ', oldhashpass )
             }).catch(error => {
-
+                ChangePassworderror.innerHTML = ` <p> Password is not valid, please try again </p>`;
             });
     })

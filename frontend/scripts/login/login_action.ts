@@ -24,8 +24,8 @@ Loginform
                         console.log('Hashed password:', hashedPassword)
                     })
                     .catch(error => {
-                        
-        
+                        Loginerror.innerHTML = `<p> Password is not valid, please try again </p>`;
+                              
                     });
 
         
