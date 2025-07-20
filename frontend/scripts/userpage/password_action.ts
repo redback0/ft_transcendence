@@ -7,7 +7,6 @@ const ChangePasswordform = document
 const ChangePassworderror = document
     .getElementById('error') as HTMLParagraphElement;
 
-const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 ChangePasswordform

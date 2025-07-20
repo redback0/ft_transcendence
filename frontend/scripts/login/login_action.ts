@@ -6,7 +6,6 @@ const Loginform = document
 const Loginerror = document
     .getElementById('error') as HTMLParagraphElement;
 
-const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 Loginform

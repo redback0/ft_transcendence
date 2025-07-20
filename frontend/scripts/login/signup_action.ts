@@ -1,17 +1,18 @@
 //Authored by Bethany Milford 18/07/2025
 
+import { genSaltSync, hashSync} from "bcrypt-ts";
+
 const SignUpform = document
     .getElementById('SignInForm') as HTMLFormElement;
 const SignUperror = document
     .getElementById('error') as HTMLParagraphElement;
 
-const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 export async function hashPassword(password: string) {
     try {
-        const salt = await bcrypt.genSalt(saltRounds);
-        const hash = await bcrypt.hash(password, salt);
+        const salt = await genSaltSync(saltRounds);
+        const hash = await hashSync(password, salt);
         return hash;
     }
     catch (error) {

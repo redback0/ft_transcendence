@@ -9,9 +9,19 @@ container
     width: 50%;
     margin: auto;
 }
+profile-container
+{
+    width: 50%;
+    margin: auto;
+}
 label
 {
     width: 90px;
+    display: inline-block;
+}
+big-label
+{
+    width: 170px;
     display: inline-block;
 }
 button

@@ -1,5 +1,5 @@
 
-import { Fastify } from 'fastify';
+//import { Fastify } from "fastify";
 import { api } from './api.js'
 import { IndexPage } from './index.template.js'
 import { GamePage } from './game/game.template.js'
@@ -11,7 +11,7 @@ import { AddNavigation } from './navigation.js'
 import { LoginPage } from './login/login.template.js'
 import { UserPage } from './userpage/userpage.template.js'
 
-Fastify.register();
+//Fastify.register();
 const pages = new Map<string, any>([
     ['/', IndexPage],
     ['/game', GamePage],
