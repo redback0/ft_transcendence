@@ -7,7 +7,7 @@ export class LoginPage extends HTMLElement
         this.innerHTML =
             `
             <p> This is the login page, Welcome!!</p>
-            <form id="LoginForm">
+            <form method="GET" id="LoginForm">
                 <div class= "container">
                     <label for="user"><b>Username</b></label>
                     <input type="text" placeholder="Enter Username" name="user" required>
@@ -25,7 +25,7 @@ export class LoginPage extends HTMLElement
             <br>
             <br>
             <p> This is the Sign Up section :)))</p>
-            <form id="SignInForm">
+            <form method="POST" id="SignInForm">
                 <div class= "container">
                     <label for="new_user"><b>Username</b></label>
                     <input type="text" placeholder="Enter Username" name="new_user" required>
