@@ -1,6 +1,6 @@
 
 import { api } from './api.js'
-import { IndexPage } from './index.template.js'
+import { IndexPage, IndexPostLoad } from './index.template.js'
 import { GamePage } from './game/game.template.js'
 import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
@@ -8,13 +8,24 @@ import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { AddNavigation } from './navigation.js'
 
-const pages = new Map<string, any>([
-    ['/', IndexPage],
-    ['/game', GamePage],
-    ['/game/local', LocalGamePage],
-    ['/game/online', OnlineGamePage],
-    ['/chat', ChatPage]
-])
+type Page = {
+    builder: typeof HTMLElement,
+    postLoad?: ((page: HTMLElement) => any)
+}
+const pages = new Map<string, Page>([
+    ['/', {builder: IndexPage, postLoad: IndexPostLoad}],
+    ['/game', {builder: GamePage}],
+    ['/game/local', {builder: LocalGamePage}],
+    ['/game/online', {builder: OnlineGamePage}],
+    ['/chat', {builder: ChatPage}]
+]);
+
+// this is available so we don't have to change the index every time we add
+// a new page
+export function AddPage(path: string, page: Page)
+{
+    pages.set(path, page);
+}
 
 let currPage : HTMLElement
 
@@ -40,9 +51,12 @@ export function newPage()
     if (currPage)
         document.body.removeChild(currPage);
     let pageBuilder = pages.get(document.location.pathname);
-    if (pageBuilder?.prototype instanceof HTMLElement)
-        currPage = new pageBuilder;
+    if (pageBuilder)
+        currPage = new pageBuilder.builder;
     else
         currPage = new ErrorPage;
     document.body.appendChild(currPage);
+
+    if (pageBuilder?.postLoad)
+        pageBuilder.postLoad(currPage);
 }
