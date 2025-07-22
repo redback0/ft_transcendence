@@ -62,6 +62,11 @@ export interface TournamentFinishedMessage {
 	}
 }
 
+export type TournamentNextRoundStart = {
+	type: "next_round_starting",
+	msg: {},
+}
+
 export type TournamentMessage = TournamentStartMessage
 	| TournamentGameFinishedMessage
 	| TournamentGoToBracketMessage
@@ -69,7 +74,5 @@ export type TournamentMessage = TournamentStartMessage
 	| TournamentGameStartingMessage
 	| TournamentFinishedMessage
 	| TournamentByedMessage
+	| TournamentNextRoundStart
 	| LobbyClientLeftMessage;
-
-
-

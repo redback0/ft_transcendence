@@ -67,6 +67,7 @@ export class Tournament {
 	startNextRound = () => {
 		++this.current_round;
 		console.log(`starting round ${this.current_round} !!!`);
+		this.sendToAll({ type: "next_round_starting", msg: {} });
 		const pairs = this.matchmakeClients();
 		for (let { first: p1, second: p2 } of pairs) {
 			console.log(`making game: ${p1.uuid} (${p1.wins}) vs. ${p2.uuid} (${p2.wins})`);
