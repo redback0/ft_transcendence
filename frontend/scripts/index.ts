@@ -27,7 +27,23 @@ export function AddPage(path: string, page: Page)
     pages.set(path, page);
 }
 
-let currPage : HTMLElement
+type cleanupFunc = () => any;
+const cleanupFuncs = new Array<cleanupFunc>;
+
+let currPage : HTMLElement;
+
+/**
+ * 
+ * @param func Function to call on state change
+ * 
+ * This function will add a given function to a list to be run when the page
+ * changes for any reason. Once `func` is called, it will be removed from the
+ * list.
+ */
+export function onPageChange(func: cleanupFunc)
+{
+    cleanupFuncs.push(func);
+}
 
 document.body.onload = () => {
     document.title = "Code defined title!";
@@ -47,6 +63,13 @@ window.addEventListener("popstate", (e) =>
 export function newPage()
 {
     document.title = "page is changing!";
+
+    cleanupFuncs.forEach((v) =>
+    {
+        v();
+    });
+    // clear array
+    cleanupFuncs.splice(0);
 
     if (currPage)
         document.body.removeChild(currPage);

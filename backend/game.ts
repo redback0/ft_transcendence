@@ -4,12 +4,17 @@ import { FastifyInstance, RegisterOptions } from "fastify";
 
 import * as GameSchema from "./game.schema";
 import { GameArea, GameWinFunc } from "./game.logic";
+import { db } from "./database";
+import { clearTimeout } from "timers";
 
 let testGameWinner: "Player 1" | "Player 2" | "No winner yet";
+
+type UserID = string;
 
 class GameWebSocket extends WebSocket
 {
     isAlive: boolean = true;
+    uid: UserID | undefined
 }
 
 function NewID(length: number)
@@ -25,6 +30,7 @@ function NewID(length: number)
 
 export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: Function)
 {
+    // TODO: change the game creating gets to ?posts
     fastify.get('/api/game/create/casual', function (request, reply)
     {
         let id = NewID(5);
@@ -37,6 +43,7 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
         reply.send({ success: true, id: id });
     });
 
+    // TODO: remove this
     fastify.get('/api/game/create/test', function (request, reply)
     {
         let id = NewID(5);
@@ -44,13 +51,21 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
         {
             id = NewID(5);
         }
-        AddNewGame(id, (winner) =>
+        AddNewGame(id, (winner, p1Score, p2Score, game) =>
         {
             if (winner === "player1")
                 testGameWinner = "Player 1";
             else
                 testGameWinner = "Player 2";
-        });
+            // db.saveGame.run({
+            //     id: game.id,
+            //     leftId: game.p1.userId,
+            //     rightId: game.p2.userId,
+            //     tournId: null,
+            //     leftScore: game.p1Score,
+            //     rightScore: game.p2Score
+            // });
+        }, "1234", "4321");
 
         reply.send({ success: true, id: id });
     });
@@ -65,28 +80,36 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
 
 export const gameWebSocketServers = new Map<string, Game>;
 
-export function AddNewGame(id: string, gameComplete: GameWinFunc | undefined = undefined)
+export function AddNewGame(id: string, gameComplete?: GameWinFunc, uid1?: UserID, uid2?: UserID)
 {
-    gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2", p1Score: number, p2Score: number) =>
-    {
-        if (gameComplete)
-            gameComplete(winner, p1Score, p2Score);
-        gameWebSocketServers.delete(id);
-    }));AddNewGame
+    gameWebSocketServers.set(id, new Game(id, gameComplete, uid1, uid2))
+
+    // gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) =>
+    // {
+    //     // if there was a gameComplete function, call it, otherwise save to the
+    //     // database if both players were registered users.
+
+    //     // NOTE: gameComplete function will be responsible for writing to the
+    //     // database if set
+    //     if (gameComplete)
+    //         gameComplete(winner, p1Score, p2Score);
+    //     else if ()
+    //     gameWebSocketServers.delete(id);
+    // }));
 }
 
 class Game extends GameArea
 {
     timeout: NodeJS.Timeout | undefined;
 
-    constructor(id: string, winFunction: GameWinFunc)
+    constructor(id: string, winFunction?: GameWinFunc, uid1?: UserID, uid2?: UserID)
     {
         const wss = new WebSocketServer({
             WebSocket: GameWebSocket,
             noServer: true,
         });
 
-        super(wss, winFunction);
+        super(wss, winFunction, 100, 200, uid1, uid2);
         this.id = id;
 
         const game = this;
@@ -103,20 +126,51 @@ class Game extends GameArea
 
             ws.on("message", function onMessage(data, isBinary)
             {
-                let parsed : GameSchema.GameInterface = JSON.parse(data.toString());
+                const parsed : GameSchema.GameInterface = JSON.parse(data.toString());
 
-                if (parsed.type === "register")
+                switch (parsed.type)
                 {
-                    let response: GameSchema.GameRegisterResponse = {
+                case ("identify"):
+                {
+                    const identify = parsed as GameSchema.GameIdentify;
+
+                    if (identify.uid && identify.sessionToken)
+                    {
+                        // TODO: check that the user is not lying
+                        if (true)
+                        {
+                            ws.uid = identify.uid;
+                        }
+                        else
+                        {
+                            this.close(); // user lied, fuck them
+                        }
+                    }
+                    const canRegister: GameSchema.GameCanRegister = {
+                        type: "canRegister",
+                        player1: game.p1.canJoin(ws.uid),
+                        player2: game.p2.canJoin(ws.uid)
+                    }
+                    this.send(JSON.stringify(canRegister), { binary: false});
+                    break;
+                }
+                case "register":
+                {
+                    const response: GameSchema.GameRegisterResponse = {
                         type: "registerSuccess",
                         success: false,
                         position: undefined
                     }
 
-                    if (!game.p1WebSocket)
+                    // NOTE: if p1 is unregestered and p2 is registered, if
+                    // both disconnect, then p2 attempts to rejoin then both
+                    // players will technically be the same user.
+                    // I will ignore this problem
+                    if (game.p1.canJoin(ws.uid))
                     {
-                        game.p1WebSocket = this;
-                        
+                        game.p1.ws = this;
+                        game.p1.uid = ws.uid;
+
                         this.removeListener('message', onMessage)
                         this.on("message", function (data, isBinary)
                                 { game.p1.wsMessage(this, data, isBinary) });
@@ -125,12 +179,15 @@ class Game extends GameArea
                         response.success = true;
                         response.position = "player1";
 
-                        if (game.p1WebSocket && game.p2WebSocket)
+                        if (game.p1.ws && game.p2.ws && !game.interval)
                             game.start();
+                        else if (game.p1.dcTimeout)
+                            clearTimeout(game.p1.dcTimeout);
                     }
-                    else if (!game.p2WebSocket)
+                    else if (game.p2.canJoin(ws.uid))
                     {
-                        game.p2WebSocket = this;
+                        game.p2.ws = this;
+                        game.p2.uid = ws.uid;
 
                         this.removeListener('message', onMessage)
                         this.on("message", function (data, isBinary)
@@ -140,18 +197,19 @@ class Game extends GameArea
                         response.success = true;
                         response.position = "player2";
 
-                        if (game.p1WebSocket && game.p2WebSocket)
+                        if (game.p1.ws && game.p2.ws && !game.interval)
                             game.start();
+                        else if (game.p2.dcTimeout)
+                            clearTimeout(game.p2.dcTimeout);
                     }
                     this.send(JSON.stringify(response), { binary: false });
+                    break;
                 }
-                else if (parsed.type === "infoRequest")
+                case "infoRequest":
                 {
                     this.send(game.getInfo(), { binary: false });
+                    break;
                 }
-                else
-                {
-                    return;
                 }
             });
 
@@ -159,6 +217,10 @@ class Game extends GameArea
             {
                 // if there are no sockets connected, and there's no winFunction
                 // just kill this game
+                // the game should only get deleted when it never started in
+                // in the first place, so normally, even if both players leave,
+                // the winFunction will be called, making the player that stayed
+                // longer win
                 if (wss.clients.size === 0)
                 {
                     console.log(`Game (${game.id}) empty, remove in 10 seconds`);
@@ -174,6 +236,24 @@ class Game extends GameArea
             {
                 ws.isAlive = true;
             });
+
+
+            // if game slots available, ask the client to identify
+            if (!game.p1.ws || !game.p2.ws)
+            {
+                const identifyRequest: GameSchema.GameIdentifyRequest = {
+                    type: "identifyRequest"
+                };
+                ws.send(JSON.stringify(identifyRequest), { binary: false});
+            }
+            else
+            {
+                const canRegister: GameSchema.GameCanRegister = {
+                    type: "canRegister",
+                    player1: false,
+                    player2: false
+                }
+            }
         });
 
 

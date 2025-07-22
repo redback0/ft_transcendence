@@ -6,7 +6,8 @@ var TEXT_COLOR = window.getComputedStyle(document.body).getPropertyValue("--colo
 var BUTTON_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-500");
 var BUTTON_BORDER_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-600")
 
-import * as GameSchema from "./../../game.schema"
+import * as GameSchema from "./../../game.schema.js"
+import { onPageChange } from "../../index.js";
 
 export class GameArea
 {
@@ -24,25 +25,22 @@ export class GameArea
     ball: Ball;
     p1Score: number = 0;
     p2Score: number = 0;
-    winScore: number = 11;
+    batSpeed: number = 0;
     framerate: number;
     lastRecFrame: number = -1;
+    lastFrameTime: EpochTimeStamp = 0;
     frameNo: number = 0;
     interval: number | undefined;
     registerButton: Button;
 
     constructor(gameID: string, canvas: HTMLCanvasElement, h = 100, w = 200)
     {
-        let temp = canvas.getContext("2d");
-        if (temp) this.context = temp;
+        const ctx = canvas.getContext("2d");
+        if (ctx) this.context = ctx;
         else throw new Error("Failed to get context from canvas");
         this.ws = new WebSocket("/wss/game/" + gameID);
-        let ws = this.ws;
-        window.addEventListener("popstate", function disconnectGame(e)
-        {
-            ws.close();
-            this.removeEventListener("popstate", disconnectGame);
-        });
+        const ws = this.ws;
+        onPageChange(() => {ws.close()});
         this.ws.onopen = this.wsConnect;
         this.ws.onmessage = this.wsMessage;
         this.canvas = canvas;
@@ -56,21 +54,21 @@ export class GameArea
         this.ball = new Ball(w / 2, h / 2);
         this.framerate = 60;
         this.registerButton = new Button(w / 2, h * 3 / 4, w / 3.5, h / 12,
-            this.register, canvas, this, "Click here to register!");
+            this.register, canvas, this, "Click to register!");
         this.registerButton.enabled = false;
+        this.registerButton.hidden = true;
 
-        this.drawBackground();
-        this.p1.draw(this);
-        this.p2.draw(this);
-        this.ball.draw(this);
-
+        this.p1.update(this, 0);
+        this.p2.update(this, 0);
+        this.ball.update(this, 0);
+        this.draw();
     }
 
     wsConnect = () =>
     {
         console.log("Game WebSocket connected");
-        this.registerButton.enabled = true;
-        this.registerButton.draw(this);
+        // this.registerButton.enabled = true;
+        // this.registerButton.draw(this);
         this.ws.send(JSON.stringify({
             type: "infoRequest"
         } as GameSchema.GameInfoRequest));
@@ -86,11 +84,51 @@ export class GameArea
 
         switch (data.type)
         {
+        case "identifyRequest":
+        {
+            // TODO: make this actually send identity
+            const identify: GameSchema.GameIdentify = {
+                type: "identify",
+                uid: null,
+                sessionToken: null
+            }
+
+            this.ws.send(JSON.stringify(identify));
+            break;
+        }
+        case "canRegister":
+        {
+            const info = (data as GameSchema.GameCanRegister);
+            if (info.player1 || info.player2)
+            {
+                this.registerButton.enabled = true;
+                this.registerButton.hidden = false;
+                this.registerButton.draw(this);
+            }
+            else
+            {
+                this.registerButton.enabled = false;
+                this.registerButton.hidden = true;
+            }
+            break;
+        }
         case "registerSuccess":
         {
+            this.registerButton.enabled = false;
             const info = (data as GameSchema.GameRegisterResponse);
             if (info.success)
+            {
+                this.registerButton.hidden = true;
                 this.player = info.position;
+            }
+            else
+            {
+                const ctx = this.context;
+                ctx.font = "24px sans";
+                ctx.fillStyle = TEXT_COLOR;
+                ctx.textAlign = "center";
+                ctx.fillText(this.p1Score.toString(), 0, 0)
+            }
             break;
         }
         case "info":
@@ -103,7 +141,7 @@ export class GameArea
             this.framerate = info.framerate;
             this.p1.h = info.batHeight;
             this.p2.h = info.batHeight;
-            //bat speed
+            this.batSpeed = info.batSpeed;
             if (info.p1Color)
                 this.p1.color = info.p1Color;
             if (info.p2Color)
@@ -124,8 +162,11 @@ export class GameArea
             else if (info.frameCount > this.lastRecFrame + 1)
                 console.warn("Frame was late");
             this.lastRecFrame = info.frameCount;
+            this.lastFrameTime = info.frameTime;
             this.ball.x = info.ballX;
+            this.ball.xVel = info.ballXVel;
             this.ball.y = info.ballY;
+            this.ball.yVel = info.ballYVel;
             this.p1.y = info.player1Y;
             this.p2.y = info.player2Y;
             break;
@@ -190,7 +231,7 @@ export class GameArea
 
         clearInterval(this.interval);
         this.draw();
-        ctx.font = "36px serif";
+        ctx.font = "36px sans";
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (scorer == this.p1)
@@ -209,7 +250,7 @@ export class GameArea
 
         clearInterval(this.interval);
         this.draw();
-        ctx.font = "48px serif";
+        ctx.font = "48px sans";
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (winner == this.p1)
@@ -224,19 +265,22 @@ export class GameArea
 
     update = () =>
     {
+        const frameTime = Date.now();
+        const frameDiff = (frameTime - this.lastFrameTime) / this.framerate;
         if (this.player)
         {
             this.ws.send(JSON.stringify({
                 type: "input",
                 frameCount: this.frameNo++,
+                frameTime: frameTime,
                 moveUp: this.pController.moveUp,
                 moveDown: this.pController.moveDown
             } as GameSchema.GameUserInput));
         }
 
-        this.p1.update(this);
-        this.p2.update(this);
-        this.ball.update(this);
+        this.p1.update(this, frameDiff);
+        this.p2.update(this, frameDiff);
+        this.ball.update(this, frameDiff);
         this.draw();
     }
 
@@ -247,6 +291,7 @@ export class GameArea
         this.p1.draw(this);
         this.p2.draw(this);
         this.ball.draw(this);
+        this.registerButton.draw(this);
         this.drawScore();
     }
 
@@ -273,7 +318,7 @@ export class GameArea
     {
         let ctx = this.context;
 
-        ctx.font = "24px serif";
+        ctx.font = "24px sans";
         ctx.fillStyle = TEXT_COLOR;
         ctx.textAlign = "right";
         ctx.fillText(this.p1Score.toString(), (this.canvas.width / 2) - 50, 80)
@@ -297,6 +342,7 @@ class Button
     borderColor: string;
     textColor: string;
     enabled: boolean = true;
+    hidden: boolean = false;
 
     constructor(x: number,
         y: number,
@@ -306,7 +352,7 @@ class Button
         element: HTMLElement,
         game: GameArea,
         text: string = "button",
-        font: string = "36px serif",
+        font: string = "36px sans",
         baseColor: string = BUTTON_COLOR,
         borderColor: string = BUTTON_BORDER_COLOR,
         textColor: string = TEXT_COLOR)
@@ -329,7 +375,10 @@ class Button
 
     draw(game: GameArea)
     {
+        if (this.hidden)
+            return;
         let ctx = game.context;
+        // TODO: change color when disabled
         ctx.fillStyle = this.baseColor;
         let rectX = ((this.x - (this.w / 2)) * game.ratio) + this.sidePadding;
         let rectY = (this.y - (this.h / 2)) * game.ratio;
@@ -345,7 +394,7 @@ class Button
 
     onClickHandler = (e: MouseEvent) =>
     {
-        if (this.enabled &&
+        if (this.enabled && !this.hidden &&
             e.offsetX > ((this.x * this.ratio) + this.sidePadding) - (this.w / 2 * this.ratio) &&
             e.offsetX < ((this.x * this.ratio) + this.sidePadding) + (this.w / 2 * this.ratio) &&
             e.offsetY > (this.y * this.ratio) - (this.h / 2 * this.ratio) &&
@@ -360,7 +409,9 @@ class Button
 class Component
 {
     x: number;
+    xRend: number = 0;
     y: number;
+    yRend: number = 0;
     h: number;
     w: number;
     color: string;
@@ -375,12 +426,19 @@ class Component
         this.color = color
     }
 
+    update(game: GameArea, framesSince: number)
+    {
+        this.xRend = this.x;
+        this.yRend = this.y;
+    }
+
     draw(game: GameArea)
     {
-        let ctx = game.context;
+        const ctx = game.context;
+
         ctx.fillStyle = this.color;
-        ctx.fillRect((this.x * game.ratio) + game.sidePadding,
-            (this.y - this.h / 2) * game.ratio,
+        ctx.fillRect((this.xRend * game.ratio) + game.sidePadding,
+            (this.yRend - this.h / 2) * game.ratio,
             this.w * game.ratio,
             this.h * game.ratio);
     }
@@ -463,6 +521,9 @@ class PlayerController
 
 class Player extends Component
 {
+    moveUp: boolean = false;
+    moveDown: boolean = false;
+
     constructor(x : number, y : number,
                 h : number = 12, w : number = 2)
     {
@@ -471,14 +532,20 @@ class Player extends Component
         super(x, y, h, w, PLAYER_COLOR)
     }
 
-    update(game: GameArea)
+    update(game: GameArea, framesSince: number)
     {
+        this.xRend = this.x;
+        this.yRend = this.y +
+            (((this.moveUp ? -game.batSpeed : 0) +
+            (this.moveDown ? game.batSpeed : 0)) * framesSince);
     }
 }
 
 class Ball extends Component
 {
     r: number;
+    xVel: number = 0;
+    yVel: number = 0;
 
     constructor(x: number, y: number, r: number = 1, color: string = BALL_COLOR)
     {
@@ -499,7 +566,22 @@ class Ball extends Component
         ctx.stroke();
     }
 
-    update(game: GameArea)
+    update(game: GameArea, framesSince: number)
     {
+        let xMove = this.xVel * framesSince;
+        let yMove = this.yVel * framesSince;
+
+        if (this.x + xMove > game.w / 2 - this.r)
+        {
+            xMove -= game.w / 2 - this.r - this.x + xMove;
+        }
+
+        if (this.y + yMove > game.h / 2 - this.r)
+        {
+            yMove -= game.h / 2 - this.r - this.x + yMove;
+        }
+
+        this.xRend = this.x + this.xRend;
+        this.yRend = this.y + this.yRend;
     }
 }

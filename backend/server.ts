@@ -3,9 +3,9 @@ import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
 import cookie from '@fastify/cookie';
 import * as Game from './game.js';
-import Database from 'better-sqlite3';
+import { db } from './database.js';
 
-export const db = new Database('/database/pong.db');
+// export const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({ logger: true });
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
