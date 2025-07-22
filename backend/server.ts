@@ -1,10 +1,12 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
+import cookie from '@fastify/cookie';
 import * as Game from './game.js';
 import { db } from './database.js';
 
-export const fastify: FastifyInstance = Fastify({});
+export const db = new Database('/database/pong.db');
+export const fastify: FastifyInstance = Fastify({ logger: true });
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
 {
@@ -19,6 +21,7 @@ const start = async () =>
     try
     {
         initChat();
+        fastify.register(cookie);
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
