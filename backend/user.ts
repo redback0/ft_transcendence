@@ -1,4 +1,14 @@
 //Authored by Bethany Milford 18/07/2025
+//Authored by Nicole Lehmeyer 23/07/2025
+//Authored by Jack Church 23/07/2025
+
+//TO DO: 
+//  - Check inputted pw is not the same as the previous four passwords
+//  - Hash passwords
+//  - integrate bcrypt.compare() function in LoginUser
+//  ** All existing code from use branch commented at file end
+
+
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
 import { createUserSession } from "./cookie";
@@ -94,3 +104,44 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
         reply.send({ error: 'Login failed.' });
     }
 }
+
+/*
+	pwNotPrevFourHash(): boolean
+	{
+		this.enteredUser;
+
+		// ADD: COMPARE TO PREVIOUS 3 PASSWORDS (NOT CURRENT)
+
+		bcrypt.compare() //compare plaintext pw with hashed counterpart
+
+	}
+
+	authenticatePw(enteredUser: string): boolean
+	{
+		const dbHashedPw =  ; //ADD: SQL CHECKING STUFF 
+		const inputtedPw = this.enteredPw;
+
+		bcrypt.compare(inputtedPw, dbHashedPw, (err: undefined, result: boolean) => {
+			if (err)
+				//HANDLE ERROR
+			return result;
+		})
+	}
+
+	hashPw(): void
+	{
+		
+		bcrypt.genSalt(this.saltRounds, (err: undefined, salt: string) => {
+			if (err)
+				//HANDLE ERROR
+			this.salt = salt;
+			return;
+			})
+
+		bcrypt.hash(this.enteredPw, this.salt, (err: undefined, hashedPw: string) => {
+			if (err)
+				//HANDLE ERROR
+			this.hashedPw = hashedPw;
+
+		})
+	}
