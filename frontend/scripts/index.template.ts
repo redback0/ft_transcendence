@@ -9,9 +9,17 @@ export class IndexPage extends HTMLElement {
             <button id="api-test-button">this is a button</button>
             <p id="api-response"></p>
             `
-        let apiButton = this.querySelector("#api-test-button")
-        if (apiButton instanceof HTMLElement) apiButton.onclick = apiTestOnClick
+        // let apiButton = this.querySelector("#api-test-button")
+        // if (apiButton instanceof HTMLElement) apiButton.onclick = apiTestOnClick
     }
+}
+
+export function IndexPostLoad(page: HTMLElement)
+{
+    console.log("running postload");
+    const apiButton = document.getElementById("api-test-button");
+
+    if (apiButton) apiButton.onclick = apiTestOnClick;
 }
 
 const apiTestOnClick = async (event: Event) => {

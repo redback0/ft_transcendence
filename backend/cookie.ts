@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
-import { db } from './server';
+import { db } from './database';
 
 export const COOKIE_NAME = 'session_id';
 
