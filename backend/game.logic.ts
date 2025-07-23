@@ -17,7 +17,8 @@ export class GameArea
     p2: Player;
     ball: Ball;
     winScore: number = 3;
-    running: boolean = false;
+    started: boolean = false;
+    finished: boolean = false;
     framerate: number = 60;
     interval: NodeJS.Timeout | undefined;
     wss: WebSocketServer;
@@ -68,12 +69,9 @@ export class GameArea
 
     getInfo = (): string =>
     {
-        let started = false
-        if (this.interval)
-            started = true;
         let info: GameSchema.GameInfo = {
             type: "info",
-            started: started,
+            started: this.started,
             gameWidth: this.w,
             gameHeight: this.h,
             framerate: this.framerate,
@@ -96,7 +94,6 @@ export class GameArea
         {
             ws.send(JSON.stringify({type: "start"} as GameSchema.GameStart), { binary: false });
         });
-        this.running = true;
 
         this.ball.start(this);
 
@@ -121,7 +118,8 @@ export class GameArea
         const game = this;
         setTimeout(function()
         {
-            game.interval = setInterval(game.update, 1000 / game.framerate);
+            if (game.started)
+                game.interval = setInterval(game.update, 1000 / game.framerate);
         }, 1000);
     }
 
@@ -215,12 +213,14 @@ export class GameArea
             ws.send(message, { binary: false });
         });
 
-        setTimeout(this.restart, 2000);
+        const game = this;
+        setTimeout(() => {if (game.started) game.restart()}, 2000);
     }
 
     win = (winner: Player | undefined) =>
     {
-        this.running = false;
+        this.finished = true;
+        this.started = false;
         let player: "player1" | "player2" | undefined = undefined;
         if (winner === this.p1)
             player = "player1";
@@ -259,37 +259,20 @@ export class GameArea
         // the remaining player win after 10 seconds
 
         const game = this;
+        const other = player === this.p1 ? this.p2 : this.p1;
 
-        if (player === this.p1)
+        player.ws = undefined;
+        if (game.started) player.dcTimeout = setTimeout(() =>
         {
-            this.p1.ws = undefined;
-            this.p1.dcTimeout = setTimeout(function ()
+            player.dcTimeout = undefined;
+            clearInterval(game.interval);
+            if (other.dcTimeout)
             {
-                game.p1.dcTimeout = undefined;
-                clearInterval(game.interval);
-                if (game.p2.dcTimeout)
-                {
-                    clearTimeout(game.p2.dcTimeout);
-                    game.p2.dcTimeout = undefined;
-                }
-                game.win(game.p2);
-            }, 10000);
-        }
-        else
-        {
-            this.p2.ws = undefined
-            this.p2.dcTimeout = setTimeout(function ()
-            {
-                game.p2.dcTimeout = undefined;
-                clearInterval(game.interval);
-                if (game.p1.dcTimeout)
-                {
-                    clearTimeout(game.p1.dcTimeout);
-                    game.p1.dcTimeout = undefined;
-                }
-                game.win(game.p1);
-            }, 10000);
-        }
+                clearTimeout(other.dcTimeout);
+                other.dcTimeout = undefined;
+            }
+            game.win(other);
+        }, 10000);
     }
 }
 
@@ -305,9 +288,7 @@ export class Player
     score: number = 0;
     dcTimeout: NodeJS.Timeout | undefined;
     ws: WebSocket | undefined;
-    uid: UserID | undefined; // undefined is either unset or unregestered.
-                             // currently unregistered users can have anyone
-                             // rejoin for them
+    uid: UserID | undefined;
     constructor(x: number, y: number, h = 10, uid?: UserID)
     {
         this.x = x;
@@ -345,8 +326,7 @@ export class Player
     {
         console.log("Player disconnected");
 
-        if (game.running)
-            game.playerDisconnected(this);
+        game.playerDisconnected(this);
     }
 
     update(game: GameArea)

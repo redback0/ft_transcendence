@@ -103,13 +103,13 @@ export class GameArea
             {
                 this.registerButton.enabled = true;
                 this.registerButton.hidden = false;
-                this.registerButton.draw(this);
             }
             else
             {
                 this.registerButton.enabled = false;
                 this.registerButton.hidden = true;
             }
+            this.draw();
             break;
         }
         case "registerSuccess":
@@ -121,21 +121,16 @@ export class GameArea
                 this.registerButton.hidden = true;
                 this.player = info.position;
             }
-            else
-            {
-                const ctx = this.context;
-                ctx.font = "24px sans";
-                ctx.fillStyle = TEXT_COLOR;
-                ctx.textAlign = "center";
-                ctx.fillText(this.p1Score.toString(), 0, 0)
-            }
+            this.draw();
             break;
         }
         case "info":
         {
             const info = (data as GameSchema.GameInfo);
             if (info.started)
+            {
                 this.start();
+            }
             this.w = info.gameWidth;
             this.h = info.gameHeight;
             this.framerate = info.framerate;
@@ -149,6 +144,7 @@ export class GameArea
             this.ball.r = info.ballRadius;
             //ball speed
             //ball acel
+            this.draw();
             break;
         }
         case "start":
@@ -232,6 +228,7 @@ export class GameArea
         clearInterval(this.interval);
         this.draw();
         ctx.font = "36px sans";
+        ctx.textBaseline = "middle"
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (scorer == this.p1)
@@ -251,6 +248,7 @@ export class GameArea
         clearInterval(this.interval);
         this.draw();
         ctx.font = "48px sans";
+        ctx.textBaseline = "middle"
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (winner == this.p1)
@@ -293,6 +291,8 @@ export class GameArea
         this.ball.draw(this);
         this.registerButton.draw(this);
         this.drawScore();
+        if (!this.player)
+            this.drawSpectate();
     }
 
     drawBackground()
@@ -320,10 +320,22 @@ export class GameArea
 
         ctx.font = "24px sans";
         ctx.fillStyle = TEXT_COLOR;
+        ctx.textBaseline = "middle"
         ctx.textAlign = "right";
         ctx.fillText(this.p1Score.toString(), (this.canvas.width / 2) - 50, 80)
         ctx.textAlign = "left";
         ctx.fillText(this.p2Score.toString(), (this.canvas.width / 2) + 50, 80)
+    }
+
+    drawSpectate()
+    {
+        let ctx = this.context;
+
+        ctx.font = "24px sans";
+        ctx.fillStyle = TEXT_COLOR;
+        ctx.textBaseline = "middle"
+        ctx.textAlign = "center";
+        ctx.fillText("Spectating", this.canvas.width / 2, 160);
     }
 }
 
@@ -343,6 +355,7 @@ class Button
     textColor: string;
     enabled: boolean = true;
     hidden: boolean = false;
+    game: GameArea;
 
     constructor(x: number,
         y: number,
@@ -369,6 +382,7 @@ class Button
         this.baseColor = baseColor;
         this.borderColor = borderColor;
         this.textColor = textColor;
+        this.game = game;
 
         element.addEventListener("click", this.onClickHandler)
     }
@@ -387,8 +401,8 @@ class Button
         ctx.strokeRect(rectX, rectY, this.w * game.ratio, this.h * game.ratio);
         ctx.fillStyle = this.textColor;
         ctx.font = this.font;
-        ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
         ctx.fillText(this.text, (this.x * game.ratio) + this.sidePadding, this.y * game.ratio, this.w * game.ratio);
     }
 
