@@ -5,7 +5,6 @@ import { FastifyInstance, RegisterOptions } from "fastify";
 import * as GameSchema from "./game.schema";
 import { GameArea, GameWinFunc } from "./game.logic";
 import { db } from "./database";
-import { clearTimeout } from "timers";
 
 let testGameWinner: "Player 1" | "Player 2" | "No winner yet";
 
@@ -166,41 +165,43 @@ class Game extends GameArea
                     // both disconnect, then p2 attempts to rejoin then both
                     // players will technically be the same user.
                     // I will ignore this problem
-                    if (game.p1.canJoin(ws.uid))
+
+                    const player = game.p1.canJoin(ws.uid) ? game.p1 :
+                                    game.p2.canJoin(ws.uid) ? game.p2 : undefined;
+
+                    if (player)
                     {
-                        game.p1.ws = this;
-                        game.p1.uid = ws.uid;
+                        player.ws = this;
+                        player.uid = ws.uid;
 
                         this.removeListener('message', onMessage)
                         this.on("message", function (data, isBinary)
-                                { game.p1.wsMessage(this, data, isBinary) });
+                                { player.wsMessage(this, data, isBinary) });
                         this.on("close", function (code, reason)
-                                { game.p1.wsClose(game, code, reason) });
+                                { player.wsClose(game, code, reason) });
                         response.success = true;
-                        response.position = "player1";
+                        response.position = player === game.p1 ? "player1" : "player2";
 
-                        if (game.p1.ws && game.p2.ws && !game.interval)
+                        if (game.p1.ws && game.p2.ws && !game.started && !game.finished)
+                        {
+                            game.started = true;
                             game.start();
-                        else if (game.p1.dcTimeout)
-                            clearTimeout(game.p1.dcTimeout);
-                    }
-                    else if (game.p2.canJoin(ws.uid))
-                    {
-                        game.p2.ws = this;
-                        game.p2.uid = ws.uid;
+                            const canRegister: GameSchema.GameCanRegister = {
+                                type: "canRegister",
+                                player1: false,
+                                player2: false
+                            }
+                            game.wss.clients.forEach(ws =>
+                            {
+                                if (ws !== player.ws)
+                                {
+                                    ws.send(JSON.stringify(canRegister), { binary: false})
+                                }
+                            });
+                        }
+                        else if (player.dcTimeout)
+                            clearTimeout(player.dcTimeout);
 
-                        this.removeListener('message', onMessage)
-                        this.on("message", function (data, isBinary)
-                                { game.p2.wsMessage(this, data, isBinary) });
-                        this.on("close", function (code, reason)
-                                { game.p2.wsClose(game, code, reason) });
-                        response.success = true;
-                        response.position = "player2";
-
-                        if (game.p1.ws && game.p2.ws && !game.interval)
-                            game.start();
-                        else if (game.p2.dcTimeout)
-                            clearTimeout(game.p2.dcTimeout);
                     }
                     this.send(JSON.stringify(response), { binary: false });
                     break;
@@ -253,6 +254,7 @@ class Game extends GameArea
                     player1: false,
                     player2: false
                 }
+                ws.send(JSON.stringify(canRegister), { binary: false })
             }
         });
 
