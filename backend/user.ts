@@ -8,7 +8,6 @@
 //  - integrate bcrypt.compare() function in LoginUser
 //  ** All existing code from use branch commented at file end
 
-
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
 import { createUserSession } from "./cookie";
@@ -111,8 +110,6 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
         reply.send({ error: 'Login failed.' });
     }
 }
-
-
 
 
 // CHANGE PASSWORD
@@ -344,4 +341,29 @@ class ILoginChecks implements LoginChecks {
             return false;
         }
     }
+
+
+// NICOLE: CREATE USER CHECK ON DATABASE FUNCTION
+
+// NICOLE: WHEN DELETING USERS:
+/*
+CREATE TABLE IF NOT EXISTS users (
+  user_id TEXT PRIMARY KEY UNIQUE,      // LEAVE IT
+  username TEXT NOT NULL,               // Account deactivated
+  user_password TEXT,                   // DELETE SQL
+  longest_rally INTEGER,                // DELETE SQL
+  session_id TEXT,                      // DELETE SQL
+  num_of_loss INTEGER,                  // DELETE SQL
+  num_of_win INTEGER,                   // DELETE SQL
+  date_account_made TEXT,               // LEAVE IT
+  date_last_login TEXT,                 // LEAVE IT
+  user_password_prev1 TEXT,             // DELETE
+  user_password_prev2 TEXT,             // DELETE SQL
+  user_password_prev3 TEXT,             // DELETE SQL
+  avatar TEXT UNIQUE,                   // DELETE SQL
+  account_is_closed INTEGER             // 1
+);
+*/
+
+
 }
