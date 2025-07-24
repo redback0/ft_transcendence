@@ -158,7 +158,7 @@ async function ChangePw(request: FastifyRequest, reply: FastifyReply)
 
 	userHasNoWhite():	boolean;
 
-	pwCheck():			boolean;
+	pwCheck(enteredPw: string):			boolean;
 
 	pwHasNoWhite():		boolean;
 	pwHasMinTwelveChar():		boolean;
@@ -169,7 +169,7 @@ async function ChangePw(request: FastifyRequest, reply: FastifyReply)
 
     pwNotPrevFourHash(enteredUser: string, enteredPw: string):boolean;
 	authenticatePw(enteredUser: string, enteredPw: string): boolean;
-	setPw(enteredUser: string, enteredPw: string): boolean;
+	setPw(enteredUser: string, oldEnteredPw: string, newEnteredPw: string): boolean;
 };
 
 class ILoginChecks implements LoginChecks {
@@ -190,7 +190,7 @@ class ILoginChecks implements LoginChecks {
 	
 	userHasNoWhite(): boolean {return (!/\s/.test(this.enteredUser))}
 
-	pwCheck(): boolean {
+	pwCheck(enteredPw: string): boolean {
 		return (this.pwHasMinTwelveChar()
 			&& this.pwHasNoWhite()
 			&& this.pwHasUpper()
@@ -282,33 +282,66 @@ class ILoginChecks implements LoginChecks {
 
     setPw(enteredUser: string, enteredPw: string): boolean
     {
-        //authenticatePw function call. If true, cont.
-        //Pw passes syntax checks? If true, cont.
-        //NotPrevFourPwHash function call. If true, cont.
-        //Hash password. If it works, cont.
-        //Move db passwords over by one.
-        //Store hashed password in db - user_password.
-        //If all this works, return true
-        
+
+        try {
+            // 1. Does enteredPw pass syntax checks?
+            if (!this.pwCheck(enteredPw))
+            {
+                console.log('New password does not pass syntax checks.');
+                return false;
+            }
+            // 2. Is enteredPw same as previous 4 passwords?
+            if (!this.pwNotPrevFourHash(enteredUser, enteredPw))
+            {
+                console.log('New password is the same as one of the previous stored passwords.');
+                return false;
+            }
+            // 3. Hash password
+            const salt = bcrypt.genSaltSync(this.saltRounds);
+            const hashedNewPassword = bcrypt.hashSync(enteredPw, salt);
+
+            //4. Move db passwords over by one & add new password to db
+            //   Prepare a transaction, if any errors - ensure to ROLLBACK, else COMMIT and return true
+            try {
+                interface db_pw_struct {
+                user_password: string;
+                user_password_prev1: string | null;
+                user_password_prev2: string | null;
+                user_password_prev3: string | null;
+                }
+
+                db.prepare('BEGIN TRANSACTION').run();
+                const statement_db_pw = db.prepare('SELECT user_password, user_password_prev1, user_password_prev2, user_password_prev3 FROM users WHERE username = ?');
+                const dbPasswords = statement_db_pw.get(enteredUser) as db_pw_struct | undefined;
+                if (!dbPasswords)
+                {
+                    console.log(`User ${enteredUser} not found in database.`);
+                    db.prepare('ROLLBACK').run();
+                    return false;
+                }
+
+                const update_statement_db_pw = db.prepare(`
+                    UPDATE users
+                    SET
+                        user_password_prev3 = user_password_prev2,
+                        user_password_prev2 = user_password_prev1,
+                        user_password_prev1 = user_password,
+                        user_password = ?
+                    WHERE username = ?
+                    `);
+                update_statement_db_pw.run(hashedNewPassword, enteredUser);
+
+                db.prepare('COMMIT').run();
+                console.log(`Password updated sucessfully for user: ${enteredUser}`);
+                return true;
+            } catch(dbError) {
+                db.prepare('ROLLBACK').run();
+                console.error('Database error in attempt to update password.');
+                return false;
+            }
+        } catch(error) {
+            console.log('Error in setPw.', error);
+            return false;
+        }
     }
-
-
-
-	hashPw(enteredPw: string): void
-	{
-		
-		bcrypt.genSalt(this.saltRounds, (err: undefined, salt: string) => {
-			if (err)
-				//HANDLE ERROR
-			this.salt = salt;
-			return;
-			})
-
-		bcrypt.hash(this.enteredPw, this.salt, (err: undefined, hashedPw: string) => {
-			if (err)
-				//HANDLE ERROR
-			this.hashedPw = hashedPw;
-
-		})
-	}
 }
