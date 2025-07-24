@@ -53,7 +53,7 @@ ChangePasswordform
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ user_id: data.user_id, old_password, new_password })
+				body: JSON.stringify({ username: data.username, old_password, new_password })
 			})
 			.then(response => response.json())
 			.then(result => {
