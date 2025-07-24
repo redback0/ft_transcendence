@@ -154,6 +154,7 @@ async function ChangePw(request: FastifyRequest, reply: FastifyReply)
 	saltRounds:	number;
 
 	userHasNoWhite():	boolean;
+    userNoExist(enteredUser: string): boolean;
 
 	pwCheck(enteredPw: string):			boolean;
 
@@ -167,6 +168,7 @@ async function ChangePw(request: FastifyRequest, reply: FastifyReply)
     pwNotPrevFourHash(enteredUser: string, enteredPw: string):boolean;
 	authenticatePw(enteredUser: string, enteredPw: string): boolean;
 	setPw(enteredUser: string, oldEnteredPw: string, newEnteredPw: string): boolean;
+    clearUser(enteredUser: string): boolean;
 };
 
 class ILoginChecks implements LoginChecks {
@@ -186,6 +188,28 @@ class ILoginChecks implements LoginChecks {
 	}
 	
 	userHasNoWhite(): boolean {return (!/\s/.test(this.enteredUser))}
+
+    userNoExist(enteredUser: string): boolean {
+        try {
+
+            const statement_num_users = db.prepare('SELECT COUNT (*) FROM users WHERE username = ?');
+            const num_users = statement_num_users.get(enteredUser);
+            
+            if (num_users != 0)
+                {
+                    console.log(`User ${enteredUser} exists in the database.`);
+                    return false;
+                }
+                else
+                    {
+                        console.log(`User ${enteredUser} does not exist in the database.`);
+                        return true;
+                    }
+        } catch (dbError) {
+        console.error('Error checking for existing user.', dbError);
+        return false;
+        }
+    }
 
 	pwCheck(enteredPw: string): boolean {
 		return (this.pwHasMinTwelveChar()
@@ -240,7 +264,7 @@ class ILoginChecks implements LoginChecks {
                 return false;
             }
     } catch (dbError) {
-        console.error('Error checking previous passwords: ', dbError);
+        console.error('Error checking previous passwords.', dbError);
         return false;
         }
     }
@@ -329,7 +353,7 @@ class ILoginChecks implements LoginChecks {
                 update_statement_db_pw.run(hashedNewPassword, enteredUser);
 
                 db.prepare('COMMIT').run();
-                console.log(`Password updated sucessfully for user: ${enteredUser}`);
+                console.log(`Password updated sucessfully for user: ${enteredUser}.`);
                 return true;
             } catch(dbError) {
                 db.prepare('ROLLBACK').run();
@@ -342,28 +366,33 @@ class ILoginChecks implements LoginChecks {
         }
     }
 
-
-// NICOLE: CREATE USER CHECK ON DATABASE FUNCTION
-
-// NICOLE: WHEN DELETING USERS:
-/*
-CREATE TABLE IF NOT EXISTS users (
-  user_id TEXT PRIMARY KEY UNIQUE,      // LEAVE IT
-  username TEXT NOT NULL,               // Account deactivated
-  user_password TEXT,                   // DELETE SQL
-  longest_rally INTEGER,                // DELETE SQL
-  session_id TEXT,                      // DELETE SQL
-  num_of_loss INTEGER,                  // DELETE SQL
-  num_of_win INTEGER,                   // DELETE SQL
-  date_account_made TEXT,               // LEAVE IT
-  date_last_login TEXT,                 // LEAVE IT
-  user_password_prev1 TEXT,             // DELETE
-  user_password_prev2 TEXT,             // DELETE SQL
-  user_password_prev3 TEXT,             // DELETE SQL
-  avatar TEXT UNIQUE,                   // DELETE SQL
-  account_is_closed INTEGER             // 1
-);
-*/
-
-
+    clearUser(enteredUser: string): boolean {
+        try {
+            db.prepare('BEGIN TRANSATION').run();
+            const statement_clr_usr = db.prepare(`
+                UPDATE users
+                SET
+                    username = 'Account Deactivated',
+                    account_is_closed = 1
+                DELETE
+                    user_password,
+                    longest_rally,
+                    session_id,
+                    num_of_loss,
+                    num_of_win,
+                    user_password_prev1,
+                    user_password_prev2,
+                    user_password_prev3,
+                    avatar
+                WHERE username = ?
+                `);
+            statement_clr_usr.run(enteredUser);
+            db.prepare('COMMIT').run();
+            console.log(`User data cleared successfully for user: ${enteredUser}.`);
+            return true;
+        } catch(dbError) {
+            console.log(`Error in clearing user data for user: ${enteredUser}.`);
+            return false;
+        }
+    }
 }
