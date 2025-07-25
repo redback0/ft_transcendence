@@ -1,17 +1,14 @@
 //Authored by Bethany Milford 19/07/2025
 //Authored by Nicole Lehmeyer 24/07/2025
 
-//import { hashPassword } from "../login/signup_action";
+//import { hashPassword } from "../login/signup_action";   <- Beth's input 19/7
 
-const ChangePasswordform = document
-    .getElementById('ChangePasswordForm') as HTMLFormElement;
-const ChangePassworderror = document
-    .getElementById('error') as HTMLParagraphElement;
+const ChangePasswordform = document.getElementById('ChangePasswordForm') as HTMLFormElement;
+const ChangePassworderror = document.getElementById('error') as HTMLParagraphElement;
 
-ChangePasswordform
-    .addEventListener('submit', (event) => {
-        event
-            .preventDefault();
+ChangePasswordform.addEventListener('submit', (event) =>
+	{
+        event.preventDefault();
         const old_password = (document
             .getElementById('old_password') as HTMLInputElement)
             .value;
@@ -32,14 +29,13 @@ ChangePasswordform
 			return;
         }
 
-		//PW SYNTAX CHECK:
-		const passwordChecker = new ILoginChecks('', new_password);
-		if (passwordChecker.pwCheck()) {
+		const passwordChecker = new IFrontendLoginChecks('', new_password);
+		if (passwordChecker.pwCheck(new_password)) {
 			console.log('Password validation successful');
 			//export async function routeCheckUserSession(request: FastifyRequest, reply: FastifyReply);
 		
-
-
+		// JACK: Can remove first fetch, move 'credentials' into second fetch.
+		// We need to send the session ID, not just the username. Use cookie functions - Nicole
 		fetch('/api/cookieProfile', {
 			method: 'GET',
 			credentials: 'include'
@@ -77,80 +73,62 @@ ChangePasswordform
 			// Will catch 401 errors if not logged in
 			console.error('Error:', error);
 		});
-
-			
-
-			//BACKEND CHECK & 'POST' NEW PASSWORD TO DB
-			// - Check old pw matches the user's pw in db (cookie business)
-			// - Ensure new pw not the same as previous 4 passwords
-			// - Hash and post new pw for user in db
-			//TAKE USER TO NEXT PAGE - PASSWORD CHANGED SUCCESSFULLY
-
-
-
-
 		}
 		else {
 			//BETH: Could you pls add something in the HTML to display the following error msgs xx Nicole :) 
 			let errorMessage = '<p>Password requires: </p><ul>';
-			if (!(passwordChecker.pwHasMinTwelveChar))
+			if (!(passwordChecker.pwHasMinTwelveChar()))
 				errorMessage += '<li>Minium 12 characters.</li>';
-			if (!(passwordChecker.pwHasNoWhite))
+			if (!(passwordChecker.pwHasNoWhite()))
 				errorMessage += '<li>No Whitespace.</li>';
-			if (!(passwordChecker.pwHasLower))
+			if (!(passwordChecker.pwHasLower()))
 				errorMessage += '<li>At least 1 lowercase character.</li>';
-			if (!(passwordChecker.pwHasUpper))
+			if (!(passwordChecker.pwHasUpper()))
 				errorMessage += '<li>At least 1 uppercase character.</li>';
-			if (!(passwordChecker.pwHasNb))
+			if (!(passwordChecker.pwHasNb()))
 				errorMessage += '<li>At least 1 number.</li>';
-			if (!(passwordChecker.pwHasSymbol))
+			if (!(passwordChecker.pwHasSymbol()))
 				errorMessage += '<li>At least 1 special character: !"#$%&\'()*+,-./:;<=>?@[\]^_`{|}~ </li>';
 			errorMessage += '</ul>';
+			ChangePassworderror.innerHTML = errorMessage;
 			return;
 		}
-		}
-		
+	}
 )
 
-//SYNTAX CHECK FUNCTIONS:
-interface LoginChecks {
-	enteredUser:string;
-	enteredPw:	string;
-	hashedPw:	string;
-	salt:		string;
-	saltRounds:	number;
+interface FrontendLoginChecks {
+enteredUser:string;
+enteredPw:	string;
+saltRounds:	number;
 
-	userHasNoWhite():	boolean;
+userHasNoWhite():	boolean;
 
-	pwCheck():			boolean;
+pwCheck(enteredPw: string):			boolean;
 
-	pwHasNoWhite():		boolean;
-	pwHasMinTwelveChar():		boolean;
-	pwHasUpper():		boolean;
-	pwHasLower():		boolean;
-	pwHasNb():			boolean;
-	pwHasSymbol():		boolean;
+pwHasNoWhite():		boolean;
+pwHasMinTwelveChar():		boolean;
+pwHasUpper():		boolean;
+pwHasLower():		boolean;
+pwHasNb():			boolean;
+pwHasSymbol():		boolean;
+
 };
 
-class ILoginChecks implements LoginChecks {
+class IFrontendLoginChecks implements FrontendLoginChecks {
 	enteredUser:string;
 	enteredPw:	string;
-	hashedPw:	string; //Probs don't need this - Nicole
-	salt:		string; //Probs don't need this - Nicole
 	saltRounds: number;
 
 	constructor(enteredUser: string, enteredPw: string, saltRounds: number = 10)
 	{
 		this.enteredUser = enteredUser;
 		this.enteredPw = enteredPw;
-		this.hashedPw = '';
-		this.salt = '';
 		this.saltRounds = saltRounds;
 	}
 	
-	userHasNoWhite(): boolean {return (!/\s/.test(this.enteredUser));}
+	userHasNoWhite(): boolean {return (!/\s/.test(this.enteredUser))}
 
-	pwCheck(): boolean {
+	pwCheck(enteredPw: string): boolean {
 		return (this.pwHasMinTwelveChar()
 			&& this.pwHasNoWhite()
 			&& this.pwHasUpper()
@@ -164,7 +142,6 @@ class ILoginChecks implements LoginChecks {
 	pwHasNoWhite(): boolean {return (!/\s/.test(this.enteredPw));}
 	pwHasUpper(): boolean {return /[A-Z]/.test(this.enteredPw);}
 	pwHasLower(): boolean {return /[a-z]/.test(this.enteredPw);}
-	pwHasNb(): boolean {return /[0-9]/.test(this.enteredPw);}
+	pwHasNb(): boolean {return /[0-9]/.test(this.enteredPw)}
 	pwHasSymbol(): boolean {return /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/.test(this.enteredPw);}
-
 }

@@ -17,17 +17,18 @@ CREATE TABLE IF NOT EXISTS tournament (
 CREATE TABLE IF NOT EXISTS users (
   user_id TEXT PRIMARY KEY UNIQUE,
   username TEXT NOT NULL,
-  user_password TEXT,
-  longest_rally INTEGER,
-  session_id TEXT,
-  num_of_loss INTEGER,
-  num_of_win INTEGER,
-  date_account_made TEXT,
-  date_last_login TEXT,
-  user_password_prev1 TEXT,
-  user_password_prev2 TEXT,
-  user_password_prev3 TEXT,
-  avatar TEXT UNIQUE
+  user_password TEXT NOT NULL,
+  longest_rally INTEGER DEFAULT 0,
+  session_id TEXT DEFAULT NULL,
+  num_of_loss INTEGER DEFAULT 0,
+  num_of_win INTEGER DEFAULT 0,
+  date_account_made TEXT NOT NULL,
+  date_last_login TEXT DEFAULT NULL,
+  user_password_prev1 TEXT DEFAULT NULL,
+  user_password_prev2 TEXT DEFAULT NULL,
+  user_password_prev3 TEXT DEFAULT NULL,
+  avatar TEXT UNIQUE,
+  account_is_closed INTEGER DEFAULT 0
 );
 
 -- Create game table
