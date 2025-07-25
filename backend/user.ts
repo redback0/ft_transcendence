@@ -1,8 +1,9 @@
 //Authored by Bethany Milford 18/07/2025
-//Authored by Nicole Lehmeyer 23/07/2025
+//Authored by Nicole Lehmeyer 25/07/2025
 //Authored by Jack Church 23/07/2025
 
 // TO DO: JACK - Differentiate use of username vs user_id based on session information (in SQL statements)
+// TO DO: JACK - Implement cookie stuff
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
