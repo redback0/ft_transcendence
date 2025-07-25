@@ -17,6 +17,11 @@ class SiteDatabase extends Database
         @id, @leftId, @rightId, @tournId, @leftScore, @rightScore
         );
     `);
+
+    getUserIdFromUsername = this.prepare(`
+        SELECT user_id FROM users WHERE username = ?`
+    );
+
 }
 
 export const db = new SiteDatabase('/database/pong.db');

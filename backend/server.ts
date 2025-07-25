@@ -3,7 +3,6 @@ import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
 import cookie from '@fastify/cookie';
 import * as Game from './game.js';
-import { db } from './database.js';
 
 // export const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({ logger: true });
@@ -14,6 +13,7 @@ fastify.get('/api/buttonpressed', function handler(request, reply)
 });
 
 fastify.register(Game.gameInit);
+fastify.register(cookie);
 
 // Run the fastify!
 const start = async () =>
@@ -21,7 +21,6 @@ const start = async () =>
     try
     {
         initChat();
-        fastify.register(cookie);
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
