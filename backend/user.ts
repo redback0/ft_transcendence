@@ -2,6 +2,8 @@
 //Authored by Nicole Lehmeyer 23/07/2025
 //Authored by Jack Church 23/07/2025
 
+// TO DO: JACK - Differentiate use of username vs user_id based on session information (in SQL statements)
+
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
 import { createUserSession } from "./cookie";
@@ -12,7 +14,7 @@ import { escapeLeadingUnderscores } from "typescript";
 
 async function registerRoutes(fastify: FastifyInstance)
 {
-    fastify.post('/api/signup', { schema: postCreateUser }, CreateUser);
+    fastify.post('/api/createuser', { schema: postCreateUser }, CreateUser);
     fastify.get('/api/login', { schema: getLogin },  LoginUser);
     fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
     fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
@@ -412,7 +414,7 @@ class IUserActions implements UserActions {
             const statement_clr_usr = db.prepare(`
                 UPDATE users
                 SET
-                    username = 'Account Deactivated',
+                    username = NULL,
                     user_password = NULL,
                     longest_rally = NULL,
                     session_id = NULL,
@@ -422,7 +424,6 @@ class IUserActions implements UserActions {
                     user_password_prev2 = NULL,
                     user_password_prev3 = NULL,
                     avatar = NULL,
-                    account_is_closed = 1
                 WHERE username = ?
                 `);
             statement_clr_usr.run(enteredUser);

@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS tournament (
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
   user_id TEXT PRIMARY KEY UNIQUE,
-  username TEXT NOT NULL,
+  username TEXT,
   user_password TEXT NOT NULL,
   longest_rally INTEGER DEFAULT 0,
   session_id TEXT DEFAULT NULL,
@@ -27,8 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
   user_password_prev1 TEXT DEFAULT NULL,
   user_password_prev2 TEXT DEFAULT NULL,
   user_password_prev3 TEXT DEFAULT NULL,
-  avatar TEXT UNIQUE,
-  account_is_closed INTEGER DEFAULT 0
+  avatar TEXT UNIQUE DEFAULT NULL
 );
 
 -- Create game table
