@@ -2,12 +2,6 @@
 //Authored by Nicole Lehmeyer 23/07/2025
 //Authored by Jack Church 23/07/2025
 
-//TO DO: 
-//  - Check inputted pw is not the same as the previous four passwords
-//  - Hash passwords
-//  - integrate bcrypt.compare() function in LoginUser
-//  ** All existing code from use branch commented at file end
-
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
 import { createUserSession } from "./cookie";
@@ -54,6 +48,8 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
             reply.code(422).send({ error: 'Insufficient data for user creation.' });
             return;
         }
+        reply.code(200).send({ message: 'User created successfully.'});
+        //Take user to profile page.
     } catch (error) {
         request.log.error('Failed to create user.', error);
         reply.code(500).send({ error: 'Server error in processing create user request.' });
