@@ -1,7 +1,7 @@
 
 //import { Fastify } from "fastify";
 import { api } from './api.js'
-import { IndexPage } from './index.template.js'
+import { IndexPage, IndexPostLoad } from './index.template.js'
 import { GamePage } from './game/game.template.js'
 import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
@@ -11,19 +11,44 @@ import { AddNavigation } from './navigation.js'
 import { LoginPage } from './login/login.template.js'
 import { UserPage } from './userpage/userpage.template.js'
 
-//Fastify.register();
-const pages = new Map<string, any>([
-    ['/', IndexPage],
-    ['/game', GamePage],
-    ['/game/local', LocalGamePage],
-    ['/game/online', OnlineGamePage],
-    ['/chat', ChatPage],
-    ['/login', LoginPage],
-    ['/mypage', UserPage]
-])
+type Page = {
+    builder: typeof HTMLElement,
+    postLoad?: ((page: HTMLElement) => any)
+}
+const pages = new Map<string, Page>([
+    ['/', {builder: IndexPage, postLoad: IndexPostLoad}],
+    ['/game', {builder: GamePage}],
+    ['/game/local', {builder: LocalGamePage}],
+    ['/game/online', {builder: OnlineGamePage}],
+    ['/chat', {builder: ChatPage}],
+    ['/login', {builder: LoginPage}],
+    ['/mypage', {builder: UserPage}]
+]);
 
+// this is available so we don't have to change the index every time we add
+// a new page
+export function AddPage(path: string, page: Page)
+{
+    pages.set(path, page);
+}
 
-let currPage : HTMLElement
+type cleanupFunc = () => any;
+const cleanupFuncs = new Array<cleanupFunc>;
+
+let currPage : HTMLElement;
+
+/**
+ * 
+ * @param func Function to call on state change
+ * 
+ * This function will add a given function to a list to be run when the page
+ * changes for any reason. Once `func` is called, it will be removed from the
+ * list.
+ */
+export function onPageChange(func: cleanupFunc)
+{
+    cleanupFuncs.push(func);
+}
 
 document.body.onload = () => {
     document.title = "Code defined title!";
@@ -44,12 +69,22 @@ export function newPage()
 {
     document.title = "page is changing!";
 
+    cleanupFuncs.forEach((v) =>
+    {
+        v();
+    });
+    // clear array
+    cleanupFuncs.splice(0);
+
     if (currPage)
         document.body.removeChild(currPage);
     let pageBuilder = pages.get(document.location.pathname);
-    if (pageBuilder?.prototype instanceof HTMLElement)
-        currPage = new pageBuilder;
+    if (pageBuilder)
+        currPage = new pageBuilder.builder;
     else
         currPage = new ErrorPage;
     document.body.appendChild(currPage);
+
+    if (pageBuilder?.postLoad)
+        pageBuilder.postLoad(currPage);
 }
