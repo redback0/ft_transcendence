@@ -5,9 +5,9 @@ export class LoginPage extends HTMLElement
     {
         super();
         this.innerHTML =
-            `
+        /*    `
             <p> This is the login page, Welcome!!</p>
-            <form method="GET" id="LoginForm">
+            <form method="GET" name="LoginForm">
                 <div class= "container">
                     <label for="user"><b>Username</b></label>
                     <input type="text" placeholder="Enter Username" name="user" required>
@@ -38,6 +38,15 @@ export class LoginPage extends HTMLElement
                     <br>
                     <button type="submit">Sign Up</button>
                 </div>
+            </form>
+            `; */
+            `
+            <form action="" method="POST" name="loginform">
+                <div class="container">
+                    <label for="user">Username</label>
+                    <input type="text" name="user">
+                    <button type="submit">Login</button>
+                </div>s
             </form>
             `;
     }
