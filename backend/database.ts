@@ -22,6 +22,10 @@ class SiteDatabase extends Database
         SELECT user_id FROM users WHERE username = ?`
     );
 
+    getUsernameFromUserId = this.prepare(`
+        SELECT username FROM users WHERE user_id = ?
+    `);
+
 }
 
 export const db = new SiteDatabase('/database/pong.db');

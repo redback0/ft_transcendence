@@ -30,26 +30,20 @@ ChangePasswordform.addEventListener('submit', (event) =>
         }
 
 		const passwordChecker = new IFrontendLoginChecks('', new_password);
-		if (passwordChecker.pwCheck(new_password)) {
+		if (passwordChecker.pwCheck(new_password))
+		{
 			console.log('Password validation successful');
 			//export async function routeCheckUserSession(request: FastifyRequest, reply: FastifyReply);
-		
-		// JACK: Can remove first fetch, move 'credentials' into second fetch.
-		// We need to send the session ID, not just the username. Use cookie functions - Nicole
-		fetch('/api/cookieProfile', {
-			method: 'GET',
-			credentials: 'include'
-		})
-		.then(response => response.json())
-		.then(data => {
-			console.log('Profile data:', data);
 
+			// We need to send the session ID, not just the username. Use cookie functions - Nicole. 
+			// TODO: Nicole: Done? See line user.ts:109. 
 			fetch('/api/changepw', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ username: data.username, old_password, new_password })
+				credentials: 'include', 
+				body: JSON.stringify({ old_password, new_password })
 			})
 			.then(response => response.json())
 			.then(result => {
@@ -60,22 +54,21 @@ ChangePasswordform.addEventListener('submit', (event) =>
 				}
 				else
 				{
-					ChangePassworderror.innerHTML = '<p> class="success">Password changed successfully.</p>';
+					ChangePassworderror.innerHTML = '<p class="success">Password changed successfully.</p>';
 					//I believe this function takes the user back to a page.. but I'm not sure about the page or specifically how this works - Nicole
+					// TODO: Nate help regarding the comment above. 
 					setTimeout(() => {
 						window.location.href = '/profile.html';
 					}, 1500);
 				}
 			})
-			.catch(error => { console.error('Password change error: ', error); });
-		})
-		.catch(error => {
-			// Will catch 401 errors if not logged in
-			console.error('Error:', error);
-		});
+			.catch( error => { console.error('Password change error: ', error);
+					ChangePassworderror.innerHTML = '<p class="error">Error: Cannot change password.</p>'; // TODO: Nicole is this correct? I put it here but dont know if it will work. What css class should it be?, where should it return to?  - Jack
+			});
 		}
-		else {
-			//BETH: Could you pls add something in the HTML to display the following error msgs xx Nicole :) 
+		else
+		{
+			//TODO: BETH: Could you pls add something in the HTML to display the following error msgs xx Nicole :) 
 			let errorMessage = '<p>Password requires: </p><ul>';
 			if (!(passwordChecker.pwHasMinTwelveChar()))
 				errorMessage += '<li>Minium 12 characters.</li>';

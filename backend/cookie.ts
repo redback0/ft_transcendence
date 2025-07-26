@@ -100,7 +100,7 @@ export async function routeCheckUserSession(request: FastifyRequest, reply: Fast
 
     if (!sessionId)
     {
-        reply.code(403).send({ error: 'Not logged in' });
+        reply.code(403).send({ error: 'Failed to read cookie.' });
         return ;
     }
     else
@@ -118,7 +118,8 @@ export async function routeCheckUserSession(request: FastifyRequest, reply: Fast
 
 /**
  * @param sessionId The users temporary UUID from their cookie. 
- * @returns The users userId if the session exists in the database or null on error or if it does not exist. 
+ * @returns Success: The users userId if the session exists in the database.
+ * @returns Failure: Null if the userId doesn't exist in the database; on error; or if the database request fails for any reason. 
  * @description See returns. 
  */
 export async function validateSession(sessionId: string): Promise<string | null>

@@ -7,7 +7,7 @@
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
-import { createUserSession } from "./cookie";
+import { createUserSession, COOKIE_NAME, validateSession } from "./cookie";
 import { db } from "./server";
 import { request } from "http";
 import * as bcrypt from 'bcrypt';
@@ -104,13 +104,39 @@ const postChangePw = {
 
 export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
 {
-    try {
-        const { username, old_password, new_password } = request.body as { username: string, old_password: string, new_password: string }
+    try
+    {
+        const sessionId = request.cookies[COOKIE_NAME];
+        if (!sessionId)
+        {
+            reply.code(403).send({ error: 'Failed to read cookie.' })
+            return ;
+        }
+
+        const userId = await validateSession(sessionId);
+        if (!userId)
+        {
+            reply.code(401).send({ error: 'Unknown session.' });
+            return ;
+        }
+        
+        const userResult = db.getUsernameFromUserId.get(userId) as { username: string } | undefined;
+        if (!userResult)
+            {
+                reply.code(401).send({ error: 'Database lookup failure.' });
+                return ;
+            }
+
+        const username = userResult?.username;
+
+        const { old_password, new_password } = request.body as { old_password: string, new_password: string }
         const changePwUserActions = new IUserActions(username, old_password, new_password);
+
         if (!changePwUserActions.authenticatePw(username, old_password)) {
             reply.code(401).send({ error: 'Username or password is incorrect.' });
             return;
-            }
+        }
+        
         if (changePwUserActions.setPw(username, new_password)) {
             reply.code(200).send({ message: 'Password changed successfully.' });
             //Take user to profile page

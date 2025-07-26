@@ -3,7 +3,7 @@ import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 import { initChat, chatWebSocketServer } from './chat.js';
 import cookie from '@fastify/cookie';
 import * as Game from './game.js';
-
+import { registerCookieRoutes } from './cookie.js';
 // export const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({ logger: true });
 // all the requests to the backend should go through /api
@@ -14,6 +14,7 @@ fastify.get('/api/buttonpressed', function handler(request, reply)
 
 fastify.register(Game.gameInit);
 fastify.register(cookie);
+fastify.register(registerCookieRoutes);
 
 // Run the fastify!
 const start = async () =>
