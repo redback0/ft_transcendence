@@ -5,50 +5,59 @@ export class LoginPage extends HTMLElement
     {
         super();
         this.innerHTML =
-        /*    `
+        `
             <p> This is the login page, Welcome!!</p>
-            <form method="GET" name="LoginForm">
-                <div class= "container">
+            <form method="POST" id="LoginForm">
+                <div class="container">
                     <label for="user"><b>Username</b></label>
-                    <input type="text" placeholder="Enter Username" name="user" required>
+                    <input type="text" placeholder="Enter Username" id="user" name="user" required>
+                </div>
                     <br>
-                    <label for="pass"><b>Password </b></label>
-                    <input type="password" placeholder="Enter Password" name="pass" required>
+                <div> 
+                    <label for="pass"><b>Password</b></label>
+                    <input type="password" placeholder="Enter Password" id="pass" name="pass" required>
+                </div>
                     <br>
+                <div>
                     <button type="submit">Login</button>
                 </div>
-                <!-- <div class= "container" style="background-color:#dacecb">
-                    <span class="pass"><a href="password">Forgot password?</a></span>
-                </div> 
-                -->
             </form> 
             <br>
             <br>
             <p> This is the Sign Up section :)))</p>
             <form method="POST" id="SignInForm">
-                <div class= "container">
+                <div class="container">
                     <label for="new_user"><b>Username</b></label>
-                    <input type="text" placeholder="Enter Username" name="new_user" required>
+                    <input type="text" placeholder="Enter Username" id="new_user" name="new_user" required>
+                </div
                     <br>
+                <div>
                     <label for="new_pass"><b>Password</b></label>
-                    <input type="password" placeholder="Enter Password" name="new_pass" required>
+                    <input type="password" placeholder="Enter Password" id="new_pass" name="new_pass" required>
+                </div>
                     <br>
+                <div>
                     <label for="new_pass2"><b>Re-Enter Password</b></label>
-                    <input type="password" placeholder="Re-Enter Password" name="new_pass2" required>
+                    <input type="password" placeholder="Re-Enter Password" id="new_pass2" name="new_pass2" required>
+                </div>
                     <br>
+                <div>
                     <button type="submit">Sign Up</button>
                 </div>
             </form>
-            `; */
-            `
-            <form action="" method="POST" name="loginform">
+            `;
+          /*  `
+           <form method="POST" name="loginform" >
                 <div class="container">
                     <label for="user">Username</label>
-                    <input type="text" name="user">
+                    <input type="text" id="user" name="user">
+                </div>
+                <div>
                     <button type="submit">Login</button>
-                </div>s
+                </div>
+
             </form>
-            `;
+            `; */
     }
 }
 customElements.define('login-page', LoginPage);

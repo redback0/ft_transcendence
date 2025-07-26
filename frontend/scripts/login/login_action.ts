@@ -14,9 +14,9 @@ Loginform.addEventListener('submit', (event) =>
           .getElementById('user') as HTMLInputElement)
           .value; 
         Loginform.innerHTML = `<p> Yay stuff </p>`;
-        /*const pass = (document
+        const pass = (document
             .getElementById('pass') as HTMLInputElement)
-            .value; */
+            .value;
        //hashPassword(pass).then(hashedPassword => 
          //   {
            //     console.log('Hashed password:', hashedPassword)
@@ -26,9 +26,3 @@ Loginform.addEventListener('submit', (event) =>
             //});      
    });
 
-function loginaction(form)
-{
-  const user = form.user.value;
-  const password = form.pass.value;
-
-}
