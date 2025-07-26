@@ -5,23 +5,17 @@
 // TO DO: JACK - Differentiate use of username vs user_id based on session information (in SQL statements)
 // TO DO: JACK - Implement cookie stuff
 
-import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+//import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
 import { createUserSession, COOKIE_NAME, validateSession } from "./cookie";
 import { db } from "./server";
 import { request } from "http";
 import * as bcrypt from 'bcrypt';
 import { escapeLeadingUnderscores } from "typescript";
+import { FastifyReply, FastifyRequest } from "fastify";
 
-async function registerRoutes(fastify: FastifyInstance)
-{
-    fastify.post('/api/createuser', { schema: postCreateUser }, CreateUser);
-    fastify.get('/api/login', { schema: getLogin },  LoginUser);
-    fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
-    fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
-} 
-
-export default registerRoutes;
+const fastify = require('fastify')();
+fastify.register(require('fastify-allow'));
 
 const postCreateUser = {
     body: {
@@ -34,8 +28,49 @@ const postCreateUser = {
     },
 };
 
-async function CreateUser(request: FastifyRequest, reply: FastifyReply)
+const postLogin = {
+    body: {
+        type: 'object',
+        required: ['username', 'password'],
+        properties: {
+            username: { type: 'string'},
+            password: { type: 'string'},
+        },
+        additionalProperties: false
+    },
+};
+
+const postChangePw = {
+    body: {
+        type: 'object',
+        required: ['old_password', 'new_password'],
+        properties: {
+            username: { type: 'string' },
+            old_password: { type: 'string' },
+            new_password: { type: 'string' }, 
+        },
+    },
+}
+
+const postDeleteUser = {
+    body: {
+        type: 'object',
+        required: ['username', 'password'],
+        properties: {
+            username: { type: 'string' },
+            password: { type: 'string' }, 
+        },
+    },
+}
+
+fastify.post('/api/login', { schema: postLogin },  LoginUser);
+fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
+fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
+
+
+fastify.post('/api/signup', { schema: postCreateUser }, async (request: FastifyRequest, reply: FastifyReply) => 
 {
+    reply.header('Allow','POST');
     try {
         const { username, password } = request.body as { username: string, password: string };
         const createUserActions = new IUserActions(username, password);
@@ -57,20 +92,7 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
         request.log.error('Failed to create user.', error);
         reply.code(500).send({ error: 'Server error in processing create user request.' });
     }
-} 
-
-
-const getLogin = {
-    body: {
-        type: 'object',
-        required: ['username', 'password'],
-        properties: {
-            username: { type: 'string'},
-            password: { type: 'string'},
-        },
-        additionalProperties: false
-    },
-};
+});
 
 async function LoginUser(request: FastifyRequest, reply: FastifyReply)
 {
@@ -88,18 +110,6 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });
     }
-}
-
-const postChangePw = {
-    body: {
-        type: 'object',
-        required: ['old_password', 'new_password'],
-        properties: {
-            username: { type: 'string' },
-            old_password: { type: 'string' },
-            new_password: { type: 'string' }, 
-        },
-    },
 }
 
 export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
@@ -149,17 +159,6 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });
     }
-}
-
-const postDeleteUser = {
-    body: {
-        type: 'object',
-        required: ['username', 'password'],
-        properties: {
-            username: { type: 'string' },
-            password: { type: 'string' }, 
-        },
-    },
 }
 
 export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)

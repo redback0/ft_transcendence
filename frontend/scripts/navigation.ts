@@ -5,7 +5,8 @@ const nav = new Map<string, string>([
     ["Home", "/"],
     ["Game", "/game"],
     ["Chat", "/chat"],
-    ["Login/Sign In","/login"],
+    ["Login","/login"],
+    ["SignUp", "/signup"],
     ["My Home Page", "/mypage"],
 ]);
 

@@ -4,7 +4,8 @@ import { initChat, chatWebSocketServer } from './chat.js';
 import cookie from '@fastify/cookie';
 import * as Game from './game.js';
 import { registerCookieRoutes } from './cookie.js';
-// export const db = new Database('/database/pong.db');
+import * as User from './user.js';
+export const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({ logger: true });
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
@@ -12,9 +13,11 @@ fastify.get('/api/buttonpressed', function handler(request, reply)
     reply.send({ text: "server response!!" });
 });
 
+fastify.register(require('fastify-allow'));
 fastify.register(Game.gameInit);
 fastify.register(cookie);
 fastify.register(registerCookieRoutes);
+fastify.register(User.default);
 
 // Run the fastify!
 const start = async () =>
@@ -62,7 +65,20 @@ fastify.server.on("upgrade", function (req, socket, head)
     else
     {
         socket.destroy();
+    }const saltRounds = 10;
+    
+
+export async function hashPassword(password: string) {
+    try {
+        const salt = await genSaltSync(saltRounds);
+        const hash = await hashSync(password, salt);
+        return hash;
     }
+    catch (error) {
+        console.error('Error hashing passwords: ', error);
+        throw error;
+    }
+}
 })
 
 // these 2 functions are so the server will close nicely with docker
