@@ -28,4 +28,4 @@ class SiteDatabase extends Database
 
 }
 
-export const db = new SiteDatabase('/database/pong.db');
+export const db = new SiteDatabase('../database/pong.db');

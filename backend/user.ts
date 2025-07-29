@@ -7,8 +7,8 @@
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { appendFile } from "fs"; 
-import { createUserSession, COOKIE_NAME, validateSession } from "./cookie";
-import { db } from "./server";
+import { COOKIE_NAME, setUuid, validateSession } from "./cookie";
+import { db } from "./database";
 import { request } from "http";
 import * as bcrypt from 'bcrypt';
 import { escapeLeadingUnderscores } from "typescript";
@@ -16,7 +16,7 @@ import { escapeLeadingUnderscores } from "typescript";
 async function registerRoutes(fastify: FastifyInstance)
 {
     fastify.post('/api/createuser', { schema: postCreateUser }, CreateUser);
-    fastify.get('/api/login', { schema: getLogin },  LoginUser);
+    fastify.post('/api/login', { schema: postLogin }, LoginUser);
     fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
     fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
 } 
@@ -60,7 +60,7 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
 } 
 
 
-const getLogin = {
+const postLogin = {
     body: {
         type: 'object',
         required: ['username', 'password'],
@@ -172,7 +172,7 @@ export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)
                 reply.code(401).send({ error: 'Username or password is incorrect.' });
                 return;
             }
-            if (deleteUserActions.clearUser(username)) {
+            if (await deleteUserActions.clearUser(username)) {
                 reply.code(200).send({ message: 'User deleted successfully.' });
                 //Take user to a page?
                 return;
@@ -198,18 +198,18 @@ userNoExist(enteredUser: string): boolean;
 
 pwCheck(pw: string):			boolean;
 
-pwHasNoWhite():		boolean;
-pwHasMinTwelveChar():		boolean;
-pwHasUpper():		boolean;
-pwHasLower():		boolean;
-pwHasNb():			boolean;
-pwHasSymbol():		boolean;
+pwHasNoWhite(pw: string):		boolean;
+pwHasMinTwelveChar(pw: string):		boolean;
+pwHasUpper(pw: string):		boolean;
+pwHasLower(pw: string):		boolean;
+pwHasNb(pw: string):			boolean;
+pwHasSymbol(pw: string):		boolean;
 
 pwNotPrevFourHash(enteredUser: string, newPw: string):boolean;
 authenticatePw(enteredUser: string, currentPw: string): boolean;
 setPw(enteredUser: string, newPw: string): boolean;
 createUser(enteredUser: string, newPw: string): boolean;
-clearUser(enteredUser: string): boolean;
+clearUser(enteredUser: string): Promise<boolean>;
 };
 
 class IUserActions implements UserActions {
@@ -231,8 +231,9 @@ class IUserActions implements UserActions {
     userNoExist(enteredUser: string): boolean {
         try {
 
-            const statement_num_users = db.prepare('SELECT COUNT (*) FROM users WHERE username = ?');
-            const num_users = statement_num_users.get(enteredUser);
+            const statement_num_users = db.prepare('SELECT COUNT(*) as count FROM users WHERE username = ?');
+            const result = statement_num_users.get(enteredUser) as { count: number } | undefined;
+            const num_users = result?.count || 0;
             
             if (num_users != 0)
                 {
@@ -251,21 +252,21 @@ class IUserActions implements UserActions {
     }
 
 	pwCheck(newPw: string): boolean {
-		return (this.pwHasMinTwelveChar()
-			&& this.pwHasNoWhite()
-			&& this.pwHasUpper()
-			&& this.pwHasLower()
-			&& this.pwHasNb()
-			&& this.pwHasSymbol()
+		return (this.pwHasMinTwelveChar(newPw)
+			&& this.pwHasNoWhite(newPw)
+			&& this.pwHasUpper(newPw)
+			&& this.pwHasLower(newPw)
+			&& this.pwHasNb(newPw)
+			&& this.pwHasSymbol(newPw)
 		);
 	}
 
-	pwHasMinTwelveChar(): boolean {return (this.newPw.length >= 12);}
-	pwHasNoWhite(): boolean {return (!/\s/.test(this.newPw));}
-	pwHasUpper(): boolean {return /[A-Z]/.test(this.newPw);}
-	pwHasLower(): boolean {return /[a-z]/.test(this.newPw);}
-	pwHasNb(): boolean {return /[0-9]/.test(this.newPw)}
-	pwHasSymbol(): boolean {return /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/.test(this.newPw);}
+	pwHasMinTwelveChar(pw: string): boolean {return (pw.length >= 12);}
+	pwHasNoWhite(pw: string): boolean {return (!/\s/.test(pw));}
+	pwHasUpper(pw: string): boolean {return /[A-Z]/.test(pw);}
+	pwHasLower(pw: string): boolean {return /[a-z]/.test(pw);}
+	pwHasNb(pw: string): boolean {return /[0-9]/.test(pw)}
+	pwHasSymbol(pw: string): boolean {return /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/.test(pw);}
 
     pwNotPrevFourHash(enteredUser: string, newPw: string): boolean
 	{
@@ -312,18 +313,17 @@ class IUserActions implements UserActions {
 	authenticatePw(enteredUser: string, currentPw: string): boolean
 	{
 		try {
-
             const statement_db_pw = db.prepare("SELECT user_password FROM users WHERE username = ?");
-            const db_pw = statement_db_pw.get(enteredUser);
-            if (!db_pw)
+            const result = statement_db_pw.get(enteredUser) as { user_password: string } | undefined;
+            if (!result)
             {
-                console.log(`User ${enteredUser} not found in database.`);
-                return false;
+                console.log(`User not found: ${enteredUser}`);
+                return (false);
             }
             try {
-                if (!bcrypt.compareSync(currentPw, db_pw))
+                if (!bcrypt.compareSync(currentPw, result.user_password))
                 {
-                    console.log('Entered password does not match user\'s database stored password.');
+                    console.log(`Entered password does not match user's database stored password.`);
                     return false;
                 }
                 else
@@ -435,14 +435,15 @@ class IUserActions implements UserActions {
     }
 
 
-    clearUser(enteredUser: string): boolean {
+    async clearUser(enteredUser: string): Promise<boolean> {
         try {
-            db.prepare('BEGIN TRANSATION').run();
+            const uuid = await setUuid(enteredUser);
+            this.setPw(enteredUser, uuid);
+            db.prepare('BEGIN TRANSACTION').run();
             const statement_clr_usr = db.prepare(`
                 UPDATE users
                 SET
                     username = NULL,
-                    user_password = NULL,
                     longest_rally = NULL,
                     session_id = NULL,
                     num_of_loss = NULL,
@@ -450,7 +451,7 @@ class IUserActions implements UserActions {
                     user_password_prev1 = NULL,
                     user_password_prev2 = NULL,
                     user_password_prev3 = NULL,
-                    avatar = NULL,
+                    avatar = NULL
                 WHERE username = ?
                 `);
             statement_clr_usr.run(enteredUser);
