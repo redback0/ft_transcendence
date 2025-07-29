@@ -6,13 +6,9 @@
 // TO DO: JACK - Implement cookie stuff
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-//import { appendFile } from "fs"; 
 import { COOKIE_NAME, validateSession } from "./cookie";
-//import { db } from "./server";
 import { db } from "./database";
-//import { request } from "http";
 import * as bcrypt from 'bcrypt-ts';
-//import { escapeLeadingUnderscores } from "typescript";
 
 const postCreateUser = {
     body: {
