@@ -1,6 +1,6 @@
 
 import { api } from './api.js'
-import { IndexPage } from './index.template.js'
+import { IndexPage, IndexPostLoad } from './index.template.js'
 import { GamePage } from './game/game.template.js'
 import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
@@ -9,17 +9,20 @@ import { ChatPage } from './chat/chat.template.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { AddNavigation } from './navigation.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
-import { TournamentPage } from './tournament/tournament/tournament.template.js'
 
-const pages = new Map<string, any>([
-    ['/', IndexPage],
-    ['/game', GamePage],
-    ['/game/local', LocalGamePage],
-    ['/game/online', OnlineGamePage],
-    ['/chat', ChatPage],
-    ['/lobby', LobbyNavPage],
-    ['/lobby/join', LobbyJoinPage],
-])
+type Page = {
+    builder: typeof HTMLElement,
+    postLoad?: ((page: HTMLElement) => any)
+}
+const pages = new Map<string, Page>([
+    ['/', {builder: IndexPage, postLoad: IndexPostLoad}],
+    ['/game', {builder: GamePage}],
+    ['/game/local', {builder: LocalGamePage}],
+    ['/game/online', {builder: OnlineGamePage}],
+    ['/chat', {builder: ChatPage}],
+    ['/lobby', {builder: LobbyNavPage}],
+    ['/lobby/join', {builder: LobbyJoinPage}],
+]);
 
 export let currPage : HTMLElement
 
@@ -31,6 +34,29 @@ export function setCurrentPage(page: HTMLElement) {
     } catch (e) {}
 	currPage = page;
 	document.body.appendChild(currPage);
+}
+
+// this is available so we don't have to change the index every time we add
+// a new page
+export function AddPage(path: string, page: Page)
+{
+    pages.set(path, page);
+}
+
+type cleanupFunc = () => any;
+const cleanupFuncs = new Array<cleanupFunc>;
+
+/**
+ * 
+ * @param func Function to call on state change
+ * 
+ * This function will add a given function to a list to be run when the page
+ * changes for any reason. Once `func` is called, it will be removed from the
+ * list.
+ */
+export function onPageChange(func: cleanupFunc)
+{
+    cleanupFuncs.push(func);
 }
 
 document.body.onload = () => {
@@ -52,12 +78,19 @@ export function newPage()
 {
     document.title = "page is changing!";
 
+    cleanupFuncs.forEach((v) =>
+    {
+        v();
+    });
+    // clear array
+    cleanupFuncs.splice(0);
+
     if (currPage)
         document.body.removeChild(currPage);
     let pageBuilder = pages.get(document.location.pathname);
     try {
-        if (pageBuilder?.prototype instanceof HTMLElement)
-            currPage = new pageBuilder;
+        if (pageBuilder?.builder.prototype instanceof HTMLElement)
+            currPage = new pageBuilder.builder;
         else
             currPage = new ErrorPage;
     } catch (e) {
@@ -70,4 +103,7 @@ export function newPage()
         currPage = new ErrorPage;
     }
     document.body.appendChild(currPage);
+
+    if (pageBuilder?.postLoad)
+        pageBuilder.postLoad(currPage);
 }

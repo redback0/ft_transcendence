@@ -2,10 +2,12 @@
 import * as GameSchema from "./game.schema"
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import { gameWebSocketServers } from "./game";
+import { db } from "./database"
 
 type UserID = string;
 
-export type GameWinFunc = (winner: "player1" | "player2", p1Score: number, p2Score: number) => void;
+// TODO: remove unnecessary p1/p2Score parameters
+export type GameWinFunc = (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number, game: GameArea) => void;
 
 export class GameArea
 {
@@ -13,13 +15,7 @@ export class GameArea
     w: number;
     p1: Player;
     p2: Player;
-    p1WebSocket: WebSocket | undefined;
-    p2WebSocket: WebSocket | undefined;
     ball: Ball;
-    p1Score: number = 0;
-    p2Score: number = 0;
-    p1DisconnectTimeout: NodeJS.Timeout | undefined;
-    p2DisconnectTimeout: NodeJS.Timeout | undefined;
     winScore: number = 3;
     running: boolean = false;
     framerate: number = 60;
@@ -28,15 +24,20 @@ export class GameArea
     frame: GameSchema.GameFrameData = {
         type: "frame",
         frameCount: 0,
+        frameTime: 0,
         ballX: 0,
+        ballXVel: 0,
         ballY: 0,
+        ballYVel: 0,
         player1Y: 0,
-        player2Y: 0
+        player1MoveDir: 0,
+        player2Y: 0,
+        player2MoveDir: 0
     };
     winFunction: GameWinFunc
     id: string = "";
 
-    constructor(wss: WebSocketServer, winFunction: GameWinFunc, h = 100, w = 200, uid1?: UserID, uid2?: UserID)
+    constructor(wss: WebSocketServer, winFunction: GameWinFunc | undefined, h = 100, w = 200, uid1?: UserID, uid2?: UserID)
     {
         this.wss = wss;
         this.h = h;
@@ -44,7 +45,25 @@ export class GameArea
         this.p1 = new Player(0, h / 2, 10, uid1);
         this.p2 = new Player(w, h / 2, 10, uid2);
         this.ball = new Ball(w / 2, h / 2);
-        this.winFunction = winFunction;
+        const game = this;
+        if (winFunction)
+            this.winFunction = winFunction;
+        else
+            this.winFunction = (winner, p1Score, p2Score) =>
+            {
+                // TODO: game.id IS NOT GARANTEED TO BE UNIQUE CURRENTLY
+                if (game.p1.uid && game.p2.uid)
+                {
+                    db.saveGame.run({
+                        id: game.id,
+                        leftId: game.p1.uid,
+                        rightId: game.p2.uid,
+                        tournId: null,
+                        leftScore: game.p1.score,
+                        rightScore: game.p2.score
+                    });
+                }
+            };
     }
 
     getInfo = (): string =>
@@ -82,11 +101,17 @@ export class GameArea
         this.ball.start(this);
 
         this.frame.ballX = this.ball.x;
+        this.frame.ballXVel = this.ball.xVel;
         this.frame.ballY = this.ball.y;
+        this.frame.ballYVel = this.ball.yVel;
         this.frame.frameCount = 0;
+        this.frame.frameTime = Date.now();
         this.frame.player1Y = this.p1.y;
+        this.frame.player1MoveDir =
+            ((this.p1.moveUp ? -1 : 0) + (this.p1.moveDown ? 1 : 0)) as -1 | 0 | 1
         this.frame.player2Y = this.p2.y;
-
+        this.frame.player2MoveDir =
+            ((this.p2.moveUp ? -1 : 0) + (this.p2.moveDown ? 1 : 0)) as -1 | 0 | 1
         const message = JSON.stringify(this.frame);
         this.wss.clients.forEach(function(ws)
         {
@@ -115,14 +140,14 @@ export class GameArea
         this.ball.y = this.h / 2;
         this.p1.y = this.h / 2;
         this.p1.y = this.h / 2;
-        this.p1Score = 0;
-        this.p2Score = 0;
+        this.p1.score = 0;
+        this.p2.score = 0;
 
         // probably send sockets a message saying the game has reset (temporary)
-        this.p1WebSocket?.removeListener("message", this.p1.wsMessage);
-        this.p1WebSocket = undefined;
-        this.p2WebSocket?.removeListener("message", this.p2.wsMessage);
-        this.p2WebSocket = undefined;
+        this.p1.ws?.removeListener("message", this.p1.wsMessage);
+        this.p1.ws = undefined;
+        this.p2.ws?.removeListener("message", this.p2.wsMessage);
+        this.p2.ws = undefined;
     }
 
     update = () =>
@@ -132,8 +157,11 @@ export class GameArea
         this.ball.update(this);
 
         this.frame.ballX = this.ball.x;
+        this.frame.ballXVel = this.ball.xVel;
         this.frame.ballY = this.ball.y;
+        this.frame.ballYVel = this.ball.yVel;
         this.frame.frameCount++;
+        this.frame.frameTime = Date.now();
         this.frame.player1Y = this.p1.y;
         this.frame.player2Y = this.p2.y;
 
@@ -151,8 +179,8 @@ export class GameArea
         clearInterval(this.interval);
         if (scorer === this.p1)
         {
-            this.p1Score++;
-            if (this.p1Score >= this.winScore)
+            this.p1.score++;
+            if (this.p1.score >= this.winScore)
             {
                 this.win(this.p1);
                 return;
@@ -161,8 +189,8 @@ export class GameArea
         }
         else
         {
-            this.p2Score++;
-            if (this.p2Score >= this.winScore)
+            this.p2.score++;
+            if (this.p2.score >= this.winScore)
             {
                 this.win(this.p2);
                 return;
@@ -173,8 +201,8 @@ export class GameArea
         let scoreData: GameSchema.GameScoreData = {
             type: "score",
             scorer: player,
-            p1Score: this.p1Score,
-            p2Score: this.p2Score,
+            p1Score: this.p1.score,
+            p2Score: this.p2.score,
             ballX: this.ball.x,
             ballY: this.ball.y,
             player1Y: this.p1.y,
@@ -190,22 +218,22 @@ export class GameArea
         setTimeout(this.restart, 2000);
     }
 
-    win = (winner: Player) =>
+    win = (winner: Player | undefined) =>
     {
         this.running = false;
-        let player: "player1" | "player2";
+        let player: "player1" | "player2" | undefined = undefined;
         if (winner === this.p1)
             player = "player1";
-        else
+        else if (winner === this.p2)
             player = "player2";
 
-        this.winFunction(player, this.p1Score, this.p2Score);
+        this.winFunction(player, this.p1.score, this.p2.score, this);
 
         let win: GameSchema.GameWinData = {
             type: "win",
             winner: player,
-            p1Score: this.p1Score,
-            p2Score: this.p2Score,
+            p1Score: this.p1.score,
+            p2Score: this.p2.score,
             ballX: this.ball.x,
             ballY: this.ball.y,
             player1Y: this.p1.y,
@@ -219,6 +247,7 @@ export class GameArea
         });
     }
 
+    // not used currently
     kill = () =>
     {
         gameWebSocketServers.delete(this.id);
@@ -227,32 +256,38 @@ export class GameArea
     playerDisconnected = (player: Player) =>
     {
         // this will do 1 of a few things in the future, for now, it just makes
-        // the remaining player win after 10 seconds, if the player doesn't
-        // reconnect
+        // the remaining player win after 10 seconds
+
         const game = this;
 
         if (player === this.p1)
         {
-            this.p1WebSocket = undefined;
-            this.p1DisconnectTimeout = setTimeout(function ()
+            this.p1.ws = undefined;
+            this.p1.dcTimeout = setTimeout(function ()
             {
+                game.p1.dcTimeout = undefined;
                 clearInterval(game.interval);
-                if (game.p2DisconnectTimeout)
-                    game.kill();
-                else
-                    game.win(game.p2);
+                if (game.p2.dcTimeout)
+                {
+                    clearTimeout(game.p2.dcTimeout);
+                    game.p2.dcTimeout = undefined;
+                }
+                game.win(game.p2);
             }, 10000);
         }
         else
         {
-            this.p2WebSocket = undefined
-            this.p2DisconnectTimeout = setTimeout(function ()
+            this.p2.ws = undefined
+            this.p2.dcTimeout = setTimeout(function ()
             {
+                game.p2.dcTimeout = undefined;
                 clearInterval(game.interval);
-                if (game.p1DisconnectTimeout)
-                    game.kill();
-                else
-                    game.win(game.p1);
+                if (game.p1.dcTimeout)
+                {
+                    clearTimeout(game.p1.dcTimeout);
+                    game.p1.dcTimeout = undefined;
+                }
+                game.win(game.p1);
             }, 10000);
         }
     }
@@ -267,14 +302,28 @@ export class Player
     moveUp: boolean = false;
     moveDown: boolean = false;
     moveSpeed: number = 1;
-    uid: UserID | undefined;
-
+    score: number = 0;
+    dcTimeout: NodeJS.Timeout | undefined;
+    ws: WebSocket | undefined;
+    uid: UserID | undefined; // undefined is either unset or unregestered.
+                             // currently unregistered users can have anyone
+                             // rejoin for them
     constructor(x: number, y: number, h = 10, uid?: UserID)
     {
         this.x = x;
         this.y = y;
         this.h = h;
-        uid = uid;
+        this.uid = uid;
+    }
+
+    canJoin(uid: UserID | undefined)
+    {
+        if (this.ws)
+            return false;
+        else if (this.uid)
+            return this.uid === uid;
+        else
+            return true;
     }
 
     wsMessage = (ws: WebSocket, data: RawData, isBinary: boolean) =>
@@ -335,7 +384,7 @@ export class Ball
 
     start(game: GameArea)
     {
-        if ((game.p1Score + game.p2Score) % 2)
+        if ((game.p1.score + game.p2.score) % 2)
             this.xVel = -this.moveSpeed;
         else
             this.xVel = this.moveSpeed;

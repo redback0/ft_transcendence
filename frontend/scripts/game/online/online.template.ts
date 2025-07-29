@@ -1,5 +1,4 @@
 
-import { server } from 'typescript';
 import { GameArea } from './online.controller.js'
 
 export class OnlineGamePage extends HTMLElement {
@@ -13,6 +12,8 @@ export class OnlineGamePage extends HTMLElement {
             // error page
             return;
         }
+
+        // TODO: resize canvas when page resized
         var canvas = document.createElement('canvas');
         canvas.width = window.outerWidth * 3 / 4;
         canvas.height = canvas.width / 2.2;

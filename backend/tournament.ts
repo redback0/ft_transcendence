@@ -76,7 +76,7 @@ export class Tournament {
 			const game_id = NewID(8);
 			this.game_ids.push(game_id);
 			this.prev_pairings.push({ first: p1, second: p2 });
-			AddNewGame(game_id, (winner: "player1" | "player2", p1Score: number, p2Score: number) => {
+			AddNewGame(game_id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => {
 				console.log("game finished!!!");
 				if (p1Score > p2Score) {
 					console.log(`${p1.uuid} won vs. ${p2.uuid}!`);
