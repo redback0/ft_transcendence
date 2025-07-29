@@ -1,4 +1,4 @@
-export type ClientUUID = string | undefined;
+export type ClientUUID = string;
 export type LobbyID = string;
 
 export interface LobbyInfoMessage {
@@ -43,6 +43,13 @@ export interface LobbyInfoRequest {
 
 export interface LobbyStartRequest {
 	type: "startRequest",
+}
+
+export interface LobbySessionID {
+	type: "session_id",
+	msg: {
+		session_id: ClientUUID,
+	}
 }
 
 export type LobbyRequest = LobbyInfoRequest

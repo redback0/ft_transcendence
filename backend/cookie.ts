@@ -1,8 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './database';
+import { ClientUUID } from './lobby.schema';
 
-export const COOKIE_NAME = 'session_id';
+export const SESSION_ID_COOKIE_NAME = 'session_id';
 
 export async function createUserSession(userId: string): Promise<string>
 {
@@ -40,7 +41,7 @@ export async function clearUserSession(userId: string): Promise<void>
     }
 }
 
-export async function validateSession(sessionId: string): Promise<string | null>
+export async function validateSession(sessionId: string): Promise<ClientUUID | null>
 {
     try
     {
@@ -62,7 +63,7 @@ export async function setUUIDCookie(request: FastifyRequest, reply: FastifyReply
         const statement = db.prepare('UPDATE users SET session_id = ? WHERE user_id = ?');
         const update = statement.run(uuid, userId);
         reply
-            .setCookie(COOKIE_NAME, uuid, {
+            .setCookie(SESSION_ID_COOKIE_NAME, uuid, {
                 path: '/',
                 httpOnly: true,
                 sameSite: 'strict',
@@ -80,7 +81,7 @@ export async function setUUIDCookie(request: FastifyRequest, reply: FastifyReply
 
 export async function getUUIDCookie(request: FastifyRequest, reply: FastifyReply): Promise<string | null>
 {
-    const sessionId = request.cookies[COOKIE_NAME];
+    const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
 
     if (!sessionId)
     {
@@ -101,7 +102,7 @@ export async function clearUUIDCookie(request: FastifyRequest, reply: FastifyRep
         const statement = db.prepare('UPDATE users SET session_id = NULL WHERE user_id = ?');
         const update = statement.run(userId);
         reply
-            .clearCookie(COOKIE_NAME, { path: '/' })
+            .clearCookie(SESSION_ID_COOKIE_NAME, { path: '/' })
             .send({ message: 'Logged out, cookie cleared' });
     }
     catch (error)

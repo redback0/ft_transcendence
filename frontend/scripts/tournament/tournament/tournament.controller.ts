@@ -27,6 +27,9 @@ export class TournamentArea {
     join_button: HTMLButtonElement;
 
 	constructor(page: TournamentPage, lobby_page: LobbyJoinPage, room_code: TournamentID) {
+        if (!lobby_page.lobby.lobby_host || !lobby_page.lobby.me) {
+            throw new Error("lobbyhost id or my id was undefined :(");
+        }
         this.page = page;
         this.tourney_id = room_code;
         this.ws = lobby_page.lobby.ws;

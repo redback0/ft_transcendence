@@ -1,8 +1,9 @@
 import { RawData, WebSocketServer, WebSocket, Server } from "ws";
-import { ClientUUID } from "./lobby.schema";
+import { ClientUUID, LobbySessionID } from "./lobby.schema";
 import { AddNewGame, gameWebSocketServers, NewID } from "./game";
 import { Lobby } from "./lobby";
-import { GameID, TournamentID, TournamentMessage } from "./tournament.schema";
+import { GameID, SessionID, TournamentID, TournamentMessage } from "./tournament.schema";
+import { db } from "./database";
 
 type Pair<T> = {
 	first: T,
@@ -18,10 +19,13 @@ function compair<T>(pair1: Pair<T>, pair2: Pair<T>): boolean {
 
 export const tournamentWebSocketServers = new Map<TournamentID, Tournament>;
 
+// sid must be valid if it is not undefined
 export class TournamentWebSocket extends WebSocket {
 	isAlive: boolean = true;
 	been_byed: boolean = false;
-	uuid: ClientUUID;
+	sid: SessionID | undefined;
+	uuid: ClientUUID | undefined;
+	username: string | undefined;
 	wins: number = 0;
 }
 
@@ -63,6 +67,21 @@ export class Tournament {
 		this.sendToAll({ type: "tournament_starting", msg: { room_code: this.id } });
 		tournamentWebSocketServers.set(this.id, this);
 		
+		try {
+			db.prepare('BEGIN TRANSACTION').run();
+			const statement = db.prepare(
+				`INSERT INTO tournament (tour_id, number_of_players, round_number, tour_name)
+				VALUES (?, ?, ?, ?)`
+			);
+			statement.run(this.id, this.wss.clients.size, this.current_round, "coolio");
+			db.prepare("COMMIT").run();
+		} catch (error) {
+			db.prepare("ROLLBACK").run();
+			console.error(`Fail to save tournament on creation, closing active tournament (id: ${this.id})`);
+			tournamentWebSocketServers.delete(this.id);
+			return;
+		}
+		
 		this.startNextRound();
 	} //end contructor
 
@@ -89,11 +108,11 @@ export class Tournament {
 					type: "game_finished",
 					msg: {
 						p1: {
-							uuid: p1.uuid, // TODO: figure this out
+							uuid: <ClientUUID>p1.uuid, // TODO: figure this out
 							points: p1Score,
 						},
 						p2: {
-							uuid: p2.uuid,
+							uuid: <ClientUUID>p2.uuid,
 							points: p2Score,
 						},
 						game_id: game_id,
@@ -106,11 +125,11 @@ export class Tournament {
 				gameWebSocketServers.get(game_id)?.kill(); // TODO: need a better way to disconnect players on game end i thnkkkk
 				if (this.game_ids.length === 0 && this.current_round >= this.total_rounds_needed) {
 					console.log(`tourney finished !!!`);
-					var tmp: Array<TournamentWebSocket> = [];
+					const tmp: Array<TournamentWebSocket> = [];
 					this.wss.clients.forEach(c => tmp.push(c));
 					tmp.sort((a, b) => b.wins - a.wins);
-					var rankings = tmp.map(client => {
-						return { name: client.uuid, score: client.wins };
+					const rankings = tmp.map(client => {
+						return { name: <ClientUUID>client.uuid, score: client.wins };
 					});
 					for (let client of rankings) {
 						console.log(`${client.name} (${client.score})`);
@@ -123,8 +142,8 @@ export class Tournament {
 			this.sendToAll({
 				type: "game_starting",
 				msg: {
-					p1: p1.uuid,
-					p2: p2.uuid,
+					p1: <ClientUUID>p1.uuid,
+					p2: <ClientUUID>p2.uuid,
 					game_id: game_id,
 				}
 			});
@@ -201,7 +220,7 @@ export class Tournament {
 				let client = client_pool[i];
 				if (!client.been_byed) {
 					console.log(`${client.uuid} has been byed!`);
-					this.sendToAll({ type: "byed", msg: { player: client.uuid } });
+					this.sendToAll({ type: "byed", msg: { player: <ClientUUID>client.uuid } });
 					client.wins++;
 					client.been_byed = true;
 					client_pool.slice(i, i);

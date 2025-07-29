@@ -1,6 +1,7 @@
 import { ClientUUID, LobbyID, LobbyClientLeftMessage } from './lobby.schema';
 
 export type GameID = string;
+export type SessionID = string;
 export type TournamentID = string;
 
 export interface TournamentByedMessage {
@@ -76,3 +77,4 @@ export type TournamentMessage = TournamentStartMessage
 	| TournamentByedMessage
 	| TournamentNextRoundStart
 	| LobbyClientLeftMessage;
+

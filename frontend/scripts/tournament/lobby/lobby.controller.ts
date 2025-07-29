@@ -1,4 +1,4 @@
-import { LobbyRequest, LobbyMessage, ClientUUID, LobbyStartRequest } from "../../lobby.schema.js";
+import { LobbyRequest, LobbyMessage, ClientUUID, LobbyStartRequest, LobbySessionID } from "../../lobby.schema.js";
 import { LobbyJoinPage } from "./lobby.template.js";
 import { TournamentStartMessage } from '../../tournament.schema.js';
 import { currPage, newPage } from "../../index.js";
@@ -9,13 +9,22 @@ const htmlClientNamePrefix = "name-of-client-";
 const hostPrefix = "👑 ";
 const meSuffix = " (You)";
 
-
+function NewID(length: number)
+{
+    let result = "";
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    for (let i = 0; i < length; i++)
+    {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return (result);
+}
 
 export class LobbyJoinArea {
 	parent: LobbyJoinPage;
     ws: WebSocket;
-	lobby_host: ClientUUID;
-	me: ClientUUID;
+	lobby_host: ClientUUID | undefined;
+	me: ClientUUID | undefined;
 	names: HTMLElement[];
 	players: ClientUUID[];
 
@@ -39,6 +48,14 @@ export class LobbyJoinArea {
 
     wsConnect = () => {
         console.log("Lobby WebSocket connected");
+
+		let session_id_msg: LobbySessionID = {
+			type: "session_id",
+			msg: {
+				session_id: "bad_id",
+			}
+		}
+
 		let message: LobbyRequest = {
 			type: "infoRequest",
 		}

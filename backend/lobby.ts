@@ -2,10 +2,11 @@
 import { WebSocketServer, WebSocket, Server, RawData } from 'ws';
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
-import { LobbyMessage, ClientUUID, LobbyRequest, LobbyID } from './lobby.schema';
+import { LobbyMessage, ClientUUID, LobbyRequest, LobbyID, LobbySessionID } from './lobby.schema';
 import { server } from 'typescript';
 import { IncomingMessage } from "http";
 import { Tournament, TournamentWebSocket } from './tournament';
+import { validateSession } from './cookie';
 
 export const lobbyWebSocketServers = new Map<LobbyID, Lobby>;
 
@@ -48,15 +49,6 @@ export class Lobby {
                 clearTimeout(this.timeout);
                 this.timeout = undefined;
             }
-
-			// TODO: get an actual UUID lmao
-			ws.uuid = NewID(8);
-			console.log(`client id: ${ws.uuid}`);
-			
-			if (!this.host)
-				this.host = ws;
-			
-			this.sendToAll({ type: "new_client", msg: { client: ws.uuid } });
             
             ws.on("message", (data, isBinary) => { this.wsOnMessage(ws, data, isBinary) });
             ws.on("close", (code, reason) => { this.wsOnClose(ws, code, reason) });
@@ -75,8 +67,27 @@ export class Lobby {
 		lobbyWebSocketServers.delete(this.room_code);
 	}
 
-	wsOnMessage = (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
+	wsOnMessage = async (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
 		console.log(`msg from client in lobby: (${isBinary}, ${data})`);
+		if (!ws.uuid) {
+			/
+			//TODO: cookies :D yum
+			const request: LobbySessionID = JSON.parse(data.toString());
+			if (request.type !== "session_id") {
+				console.warn("request from unauthorised client, ignoring");
+				return;
+			}
+			var uuid = await validateSession(request.msg.session_id);
+			if (!uuid) {
+				console.warn("invalid session id");
+				return;
+			}
+			ws.uuid = uuid;
+			if (!this.host)
+				this.host = ws;
+			this.sendToAll({ type: "new_client", msg: { client: ws.uuid } });
+			return;
+		}
 		const request: LobbyRequest = JSON.parse(data.toString());
 		switch (request.type) {
 			case "infoRequest":
@@ -96,10 +107,6 @@ export class Lobby {
 	}
 
 	wsOnClose = (ws: TournamentWebSocket, code: number, reason: Buffer<ArrayBufferLike>) => {
-		this.sendToAll({ type: "client_left", msg: { client: ws.uuid } });
-		if (ws == this.host) {
-			this.chooseNewHost();
-		}
 		// if there are no sockets connected just kill this game
 		if (this.wss.clients.size === 0)
 		{
@@ -110,19 +117,29 @@ export class Lobby {
 				console.log(`Lobby deleted (${this.room_code})`);
 			}, 10000)
 		}
+	
+		if (!ws.uuid)
+			return;
+		this.sendToAll({ type: "client_left", msg: { client: ws.uuid } });
+		if (ws == this.host) {
+			this.chooseNewHost();
+		}
 	}
 
 	sendInfoResponse = (ws: TournamentWebSocket) => {
+		if (!this.host || !this.host.uuid || !ws.uuid)
+			return;
 		var clients: ClientUUID[] = [];
 		this.wss.clients.forEach((client) => {
-			clients.push(client.uuid);
+			if (client.uuid)
+				clients.push(client.uuid);
 		});
 
 		var message: LobbyMessage = {
 			type: "info",
 			msg: {
 				whoami: ws.uuid,
-				host: this.host?.uuid,
+				host: this.host.uuid,
 				clients: clients,
 			}
 		}
@@ -140,7 +157,8 @@ export class Lobby {
 		} else {
 			this.host = undefined;
 		}
-		this.sendToAll({ type: "new_host", msg: { client: this.host?.uuid }});
+		if (this.host && this.host.uuid)
+			this.sendToAll({ type: "new_host", msg: { client: this.host.uuid }});
 	}
 
 	sendToAll = (message: LobbyMessage) => {
