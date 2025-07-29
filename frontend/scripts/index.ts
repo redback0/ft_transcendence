@@ -1,4 +1,5 @@
 
+//import { Fastify } from "fastify";
 import { api } from './api.js'
 import { IndexPage, IndexPostLoad } from './index.template.js'
 import { GamePage } from './game/game.template.js'
@@ -7,6 +8,9 @@ import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { AddNavigation } from './navigation.js'
+import { LoginPage } from './login/login.template.js'
+import { LoginPostLoad } from './login/login.controller.js'
+import { UserPage } from './userpage/userpage.template.js'
 
 type Page = {
     builder: typeof HTMLElement,
@@ -17,7 +21,9 @@ const pages = new Map<string, Page>([
     ['/game', {builder: GamePage}],
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
-    ['/chat', {builder: ChatPage}]
+    // ['/chat', {builder: ChatPage}],
+    ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
+    ['/mypage', {builder: UserPage}]
 ]);
 
 // this is available so we don't have to change the index every time we add

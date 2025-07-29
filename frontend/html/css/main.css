@@ -2,9 +2,28 @@
 
 body
 {
-    background-color: var(--color-gray-500);
+    background-color: var(--color-pink-200);
 }
-
+container 
+{
+    width: 50%;
+    margin: auto;
+}
+profile-container
+{
+    width: 50%;
+    margin: auto;
+}
+label
+{
+    width: 90px;
+    display: inline-block;
+}
+big-label
+{
+    width: 170px;
+    display: inline-block;
+}
 button
 {
     padding: 2px;
@@ -22,8 +41,8 @@ button:hover
 
 button:disabled
 {
-    background-color: var(--color-gray-200);
-    color: var(--color-gray-400);
+    background-color: var(--color-pink-200);
+    color: var(--color-gray-100);
 }
 
 input
@@ -31,7 +50,7 @@ input
     padding: 2px;
     padding-left: 10px;
     padding-right: 10px;
-    background-color: var(--color-gray-300);
+    background-color: var(--color-pink-200);
     border: 1px solid var(--color-gray-400);
     border-radius: 5px;
 }
@@ -51,6 +70,6 @@ canvas
     margin: auto;
     border: 1px solid var(--color-gray-800);
     margin-top: 30px;
-    background-color: var(--color-gray-400);
+    background-color: var(--color-pink-600);
     touch-action: none;
 }
