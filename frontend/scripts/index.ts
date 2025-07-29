@@ -9,6 +9,7 @@ import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { AddNavigation } from './navigation.js'
 import { LoginPage } from './login/login.template.js'
+import { LoginPostLoad } from './login/login.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
 
 type Page = {
@@ -21,7 +22,7 @@ const pages = new Map<string, Page>([
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
     ['/chat', {builder: ChatPage}],
-    ['/login', {builder: LoginPage}],
+    ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
     ['/mypage', {builder: UserPage}]
 ]);
 

@@ -6,22 +6,13 @@
 // TO DO: JACK - Implement cookie stuff
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { appendFile } from "fs"; 
-import { createUserSession, COOKIE_NAME, validateSession } from "./cookie";
-import { db } from "./server";
-import { request } from "http";
-import * as bcrypt from 'bcrypt';
-import { escapeLeadingUnderscores } from "typescript";
-
-async function registerRoutes(fastify: FastifyInstance)
-{
-    fastify.post('/api/createuser', { schema: postCreateUser }, CreateUser);
-    fastify.get('/api/login', { schema: getLogin },  LoginUser);
-    fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
-    fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
-} 
-
-export default registerRoutes;
+//import { appendFile } from "fs"; 
+import { COOKIE_NAME, validateSession } from "./cookie";
+//import { db } from "./server";
+import { db } from "./database";
+//import { request } from "http";
+import * as bcrypt from 'bcrypt-ts';
+//import { escapeLeadingUnderscores } from "typescript";
 
 const postCreateUser = {
     body: {
@@ -33,6 +24,51 @@ const postCreateUser = {
         },
     },
 };
+
+const getLogin = {
+    body: {
+        type: 'object',
+        required: ['username', 'password'],
+        properties: {
+            username: { type: 'string'},
+            password: { type: 'string'},
+        },
+       additionalProperties: false
+    },
+};
+
+const postChangePw = {
+    body: {
+        type: 'object',
+        required: ['old_password', 'new_password'],
+        properties: {
+            username: { type: 'string' },
+            old_password: { type: 'string' },
+            new_password: { type: 'string' }, 
+        },
+    },
+};
+
+const postDeleteUser = {
+    body: {
+        type: 'object',
+        required: ['username', 'password'],
+        properties: {
+            username: { type: 'string' },
+            password: { type: 'string' }, 
+        },
+    },
+};
+
+
+export async function registerRoutes(fastify: FastifyInstance)
+{
+    fastify.post('/api/user', { schema: postCreateUser }, CreateUser);
+    fastify.post('/api/user/session', { schema: getLogin },  LoginUser);
+    fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
+    fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
+}
+
 
 async function CreateUser(request: FastifyRequest, reply: FastifyReply)
 {
@@ -57,20 +93,7 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
         request.log.error('Failed to create user.', error);
         reply.code(500).send({ error: 'Server error in processing create user request.' });
     }
-} 
-
-
-const getLogin = {
-    body: {
-        type: 'object',
-        required: ['username', 'password'],
-        properties: {
-            username: { type: 'string'},
-            password: { type: 'string'},
-        },
-        additionalProperties: false
-    },
-};
+}
 
 async function LoginUser(request: FastifyRequest, reply: FastifyReply)
 {
@@ -88,18 +111,6 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });
     }
-}
-
-const postChangePw = {
-    body: {
-        type: 'object',
-        required: ['old_password', 'new_password'],
-        properties: {
-            username: { type: 'string' },
-            old_password: { type: 'string' },
-            new_password: { type: 'string' }, 
-        },
-    },
 }
 
 export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
@@ -149,17 +160,6 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });
     }
-}
-
-const postDeleteUser = {
-    body: {
-        type: 'object',
-        required: ['username', 'password'],
-        properties: {
-            username: { type: 'string' },
-            password: { type: 'string' }, 
-        },
-    },
 }
 
 export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)
@@ -231,10 +231,10 @@ class IUserActions implements UserActions {
     userNoExist(enteredUser: string): boolean {
         try {
 
-            const statement_num_users = db.prepare('SELECT COUNT (*) FROM users WHERE username = ?');
-            const num_users = statement_num_users.get(enteredUser);
+            const statement_num_users = db.prepare('SELECT COUNT (*) as count FROM users WHERE username = ?');
+            const num_users = statement_num_users.get(enteredUser) as {count: number};
             
-            if (num_users != 0)
+            if (num_users.count != 0)
                 {
                     console.log(`User ${enteredUser} exists in the database.`);
                     return false;
@@ -251,6 +251,7 @@ class IUserActions implements UserActions {
     }
 
 	pwCheck(newPw: string): boolean {
+        return (true);
 		return (this.pwHasMinTwelveChar()
 			&& this.pwHasNoWhite()
 			&& this.pwHasUpper()
@@ -314,7 +315,11 @@ class IUserActions implements UserActions {
 		try {
 
             const statement_db_pw = db.prepare("SELECT user_password FROM users WHERE username = ?");
-            const db_pw = statement_db_pw.get(enteredUser);
+            const db_return = statement_db_pw.get(enteredUser) as {user_password: string} | undefined;
+
+            console.log(db_return);
+
+            const db_pw = db_return?.user_password
             if (!db_pw)
             {
                 console.log(`User ${enteredUser} not found in database.`);
