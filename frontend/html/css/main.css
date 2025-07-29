@@ -54,3 +54,7 @@ canvas
     background-color: var(--color-gray-400);
     touch-action: none;
 }
+
+base{
+    padding: 20px;
+}

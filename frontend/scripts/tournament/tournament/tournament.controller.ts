@@ -1,5 +1,5 @@
 import { ClientUUID } from "../../lobby.schema.js";
-import { GameID, TournamentMessage } from "../../tournament.schema.js";
+import { GameID, TournamentID, TournamentMessage } from "../../tournament.schema.js";
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
 import { TournamentPage } from "./tournament.template.js";
 import { newPage, setCurrentPage } from "../../index.js";
@@ -15,25 +15,41 @@ const matchup_button_text = "👁️";
 
 export class TournamentArea {
     page: TournamentPage;
+    tourney_id: TournamentID;
     ws: WebSocket;
 	tournament_host: ClientUUID;
 	me: ClientUUID;
 	players: ClientUUID[];
     current_games_div: HTMLDivElement;
     matchups: Matchup[];
+    byed_html: HTMLParagraphElement | undefined;
+    game: GameID | undefined;
+    join_button: HTMLButtonElement;
 
-	constructor(page: TournamentPage, lobby_page: LobbyJoinPage) {
+	constructor(page: TournamentPage, lobby_page: LobbyJoinPage, room_code: TournamentID) {
         this.page = page;
+        this.tourney_id = room_code;
         this.ws = lobby_page.lobby.ws;
 		this.ws.onmessage = this.wsMessage;
         window.removeEventListener("popstate", lobby_page.lobby.disconnectOnPop);
         this.tournament_host = lobby_page.lobby.lobby_host;
         this.me = lobby_page.lobby.me;
         this.players = lobby_page.lobby.players;
+        
+        this.join_button = document.createElement("button");
+        this.join_button.innerText = "Join next game";
+        this.join_button.disabled = this.game === undefined;
+        this.join_button.onclick = (ev: MouseEvent) => {
+            if (this.game)
+                this.joinGame();
+        };
+        this.page.appendChild(this.join_button);
+
         this.current_games_div = document.createElement('div');
-        this.current_games_div.className = "flex-col";
-        this.matchups = [];
+        this.current_games_div.className = "flex flex-col justify-center items-center";
         this.page.appendChild(this.current_games_div);
+        
+        this.matchups = [];
         this.log(`me: ${this.me}, host: ${this.tournament_host}, everyone: ${this.players}`);
 	}
 
@@ -47,14 +63,17 @@ export class TournamentArea {
         const { type, msg } = data;
         switch (type) {
             case "go_to_game":
-                this.log(`going to game: ${msg.game_id}`);
-                this.goToGame(msg.game_id);
+                this.game = msg.game_id;
+                this.join_button.disabled = false;
             break;
             case "game_starting":
                 this.log(`game starting: ${msg.game_id}; (${msg.p1}) vs. (${msg.p2})`);
                 this.addMatchup(msg.p1, msg.p2, msg.game_id);
             break;
             case "game_finished":
+                if (msg.game_id === this.game) {
+                    this.leaveGame();
+                }
                 this.log(`game finished (${msg.p1.uuid} vs. ${msg.p2.uuid}): ${msg.p1.points} ${msg.p2.points}`);
                 var matchup = this.matchups.find((matchup) => { return matchup.data.p1 === msg.p1.uuid && matchup.data.p2 === msg.p2.uuid && matchup.data.game_id === msg.game_id;});
                 if (!matchup)
@@ -66,10 +85,8 @@ export class TournamentArea {
                     matchup.html.text.textContent = `${matchup.data.p1} (${msg.p1.points}) vs. 👑 ${matchup.data.p2} (${msg.p2.points})`;
             break;
             case "go_to_bracket":
-                setTimeout(() => {
-                    history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.tourney_id);
-                    setCurrentPage(this.page);
-                }, 3000);
+                this.tourney_id = msg.tourney_id;
+                this.leaveGame();
             break;
             case "client_left":
                 this.log(`client left: ${msg.client}`);
@@ -94,35 +111,46 @@ export class TournamentArea {
         }
     }
 
-    goToGame = (game_id: GameID) => {
-        let seconds_passed = 0;
-        this.log(3);
-        let interval = setInterval(() => {
-            seconds_passed++;
-            if (seconds_passed == 3) {
-                clearInterval(interval);
-                const newURL = "/game/online?id=" + game_id;
-                history.pushState({}, "", newURL);
-                newPage();
-            }
-            this.log(3 - seconds_passed);
-        }, 1000)
+    joinGame = () => {
+        if (!this.game)
+            return;
+        const newURL = "/game/online?id=" + this.game;
+        history.pushState({}, "", newURL);
+        newPage();
+    }
+
+    spectateGame = (game_id: GameID) => {
+        const newURL = "/game/online?id=" + game_id;
+        history.pushState({}, "", newURL);
+        newPage();
+    }
+
+    leaveGame = () => {
+        setTimeout(() => {
+            this.game = undefined;
+            this.join_button.disabled = true;
+            history.pushState({}, "", "/tournament/bracket?bracket_id=" + this.tourney_id);
+            setCurrentPage(this.page);
+        }, 3000);
     }
 
     addMatchup = (p1: ClientUUID, p2: ClientUUID, game_id: GameID) => {
         var both_div = document.createElement('div');
-        both_div.className = "flex flex-row";
+        both_div.className = "flex flex-row justify-center items-center";
 
         var matchup_text = document.createElement('p');
         matchup_text.innerText = `${p1} vs. ${p2}`;
-        matchup_text.className = 'flex' + matchup_text_style;
+        matchup_text.className = 'flex flex-none' + matchup_text_style;
 
         var spectate_button = document.createElement('button');
-        spectate_button.className = 'flex' + matchup_button_style;
+        spectate_button.className = 'flex flex-none' + matchup_button_style;
         spectate_button.textContent = matchup_button_text;
         spectate_button.addEventListener("click", () => {
-            console.log("TODO: go to game to specteate or smth");
+            this.spectateGame(game_id);
         });
+        if (game_id === this.game || p1 === this.me || p2 === this.me) {
+            spectate_button.disabled = true;
+        }
 
         both_div.appendChild(matchup_text);
         both_div.appendChild(spectate_button);
@@ -137,6 +165,6 @@ export class TournamentArea {
         console.log(msg);
         var p = document.createElement("p");
         p.innerText = msg;
-        this.page.appendChild(p);
+        //this.page.appendChild(p);
     }
 }

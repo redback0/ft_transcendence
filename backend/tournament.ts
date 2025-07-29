@@ -43,8 +43,10 @@ export class Tournament {
 		this.host = lobby.host;
 		this.wss = lobby.wss;
 		this.total_rounds_needed = Math.ceil(Math.log2(this.wss.clients.size));
+		console.log(`total rounds needed: ${this.total_rounds_needed}`);
 		// TODO: do not accept any more connections (temporary thing)
 		this.wss.on("connection", (ws: TournamentWebSocket) => {
+			console.log("refusing connection");
 			ws.close();
 		});
 		// TODO: make tournament code or something
@@ -102,21 +104,20 @@ export class Tournament {
 
 				this.game_ids = this.game_ids.filter(id => id !== game_id);
 				gameWebSocketServers.get(game_id)?.kill(); // TODO: need a better way to disconnect players on game end i thnkkkk
-				if (this.game_ids.length === 0) {
-					if (this.current_round === this.total_rounds_needed) {
-						console.log(`tourney finished !!!`);
-						var tmp: Array<TournamentWebSocket> = [];
-						this.wss.clients.forEach(c => tmp.push(c));
-						tmp.sort((a, b) => b.wins - a.wins);
-						var rankings = tmp.map(client => {
-							return { name: client.uuid, score: client.wins };
-						});
-						for (let client of rankings) {
-							console.log(`${client.name} (${client.score})`);
-						}
-						this.sendToAll({ type: "tournament_finished", msg: { rankings: rankings } });
-					} else
-						this.startNextRound();
+				if (this.game_ids.length === 0 && this.current_round >= this.total_rounds_needed) {
+					console.log(`tourney finished !!!`);
+					var tmp: Array<TournamentWebSocket> = [];
+					this.wss.clients.forEach(c => tmp.push(c));
+					tmp.sort((a, b) => b.wins - a.wins);
+					var rankings = tmp.map(client => {
+						return { name: client.uuid, score: client.wins };
+					});
+					for (let client of rankings) {
+						console.log(`${client.name} (${client.score})`);
+					}
+					this.sendToAll({ type: "tournament_finished", msg: { rankings: rankings } });
+				} else {
+					this.startNextRound();
 				}
 			}); // end AddNewGame
 			this.sendToAll({
@@ -195,14 +196,17 @@ export class Tournament {
 		client_pool.sort((a, b) => {
 			return (b.wins - a.wins);
 		});
-		for (var i = client_pool.length - 1; i >= 0; i--) {
-			let client = client_pool[i];
-			if (!client.been_byed) {
-				console.log(`${client.uuid} has been byed!`);
-				this.sendToAll({ type: "byed", msg: { player: client.uuid } });
-				client.wins++;
-				client.been_byed = true;
-				break;
+		if (client_pool.length % 2 === 1) {
+			for (var i = client_pool.length - 1; i >= 0; i--) {
+				let client = client_pool[i];
+				if (!client.been_byed) {
+					console.log(`${client.uuid} has been byed!`);
+					this.sendToAll({ type: "byed", msg: { player: client.uuid } });
+					client.wins++;
+					client.been_byed = true;
+					client_pool.slice(i, i);
+					break;
+				}
 			}
 		}
 		while (client_pool.length > 1) {

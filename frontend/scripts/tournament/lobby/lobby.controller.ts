@@ -16,7 +16,6 @@ export class LobbyJoinArea {
     ws: WebSocket;
 	lobby_host: ClientUUID;
 	me: ClientUUID;
-	start_button: HTMLButtonElement;
 	names: HTMLElement[];
 	players: ClientUUID[];
 
@@ -29,18 +28,13 @@ export class LobbyJoinArea {
 		this.ws.onmessage = this.wsMessage;
 		this.ws.onclose = (ev: CloseEvent) => { console.log("disconnected from lobby"); };
 
-        this.start_button = document.createElement('button');
-        this.start_button.textContent = "Start!";
-        this.start_button.disabled = true;
-        this.start_button.onclick = () => {
+        this.parent.start_button.onclick = () => {
 			const req: LobbyStartRequest = { type: "startRequest" };
 			this.ws.send(JSON.stringify(req));
         };
 
 		this.names = [];
 		this.players = []
-
-		this.parent.appendChild(this.start_button);
 	}
 
     wsConnect = () => {
@@ -82,7 +76,7 @@ export class LobbyJoinArea {
 			case "tournament_starting":
 				console.log(`tournament is starting !!! rom code ${data.msg.room_code}`);
 				history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.room_code);
-				setCurrentPage(new TournamentPage(this.parent));
+				setCurrentPage(new TournamentPage(this.parent, data.msg.room_code));
 				break;
 			default:
 				console.warn("unrecognised message from lobby !!!");
@@ -101,10 +95,10 @@ export class LobbyJoinArea {
 
 		var textdiv = document.createElement("div");
 		textdiv.id = htmlClientNamePrefix + client;
-		textdiv.style = "text-align: center;padding: 10px;border: black;";
+		textdiv.className = "flex px-5 text-center border-black";
 		textdiv.appendChild(text);
 
-		this.parent.div.appendChild(textdiv);
+		this.parent.names_div.appendChild(textdiv);
 		this.names.push(text);
 	}
 
@@ -123,7 +117,7 @@ export class LobbyJoinArea {
 		var textparent = this.names[idx].parentElement;
 		if (textparent === null)
 			return;
-		this.parent.div.removeChild(textparent);
+		this.parent.names_div.removeChild(textparent);
 		this.names.splice(idx, 1);
 	}
 
@@ -138,7 +132,7 @@ export class LobbyJoinArea {
 			old_host_b.innerText = old_host_b.innerText.slice(hostPrefix.length);
 		
 		this.lobby_host = new_host;
-		this.start_button.disabled = this.lobby_host != this.me;
+		this.parent.start_button.disabled = this.lobby_host != this.me;
 		var new_host_b = this.names.find(name => {
 			if (new_host === this.me)
 				return name.innerText.slice(0, -meSuffix.length) === new_host;
@@ -150,6 +144,7 @@ export class LobbyJoinArea {
 	}
 
 	disconnectOnPop = (e: PopStateEvent) => {
+		console.log("disconnect cuz pop");
 		this.ws.close();
 		window.removeEventListener("popstate", this.disconnectOnPop);
 	}
