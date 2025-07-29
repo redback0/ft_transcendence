@@ -101,6 +101,7 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
             reply.code(401).send({ error: 'Username or password is incorrect.' });
             return;
         }
+        // run function to add session cookie
         reply.code(200).send({ message: 'User logged in successfully.' });
         //Take user to profile page
     } catch (error) {
@@ -181,25 +182,25 @@ export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)
         reply.code(500).send({ error: 'Server error in processing delete user request.' });
     }
 }
-	
+
 
 interface UserActions {
 enteredUser:string;
-currentPw:	string;
+currentPw:  string;
 newPw:      string;
-saltRounds:	number;
+saltRounds: number;
 
-userHasNoWhite():	boolean;
+userHasNoWhite(): boolean;
 userNoExist(enteredUser: string): boolean;
 
-pwCheck(pw: string):			boolean;
+pwCheck(pw: string): boolean;
 
-pwHasNoWhite():		boolean;
-pwHasMinTwelveChar():		boolean;
-pwHasUpper():		boolean;
-pwHasLower():		boolean;
-pwHasNb():			boolean;
-pwHasSymbol():		boolean;
+pwHasNoWhite(): boolean;
+pwHasMinTwelveChar(): boolean;
+pwHasUpper(): boolean;
+pwHasLower(): boolean;
+pwHasNb(): boolean;
+pwHasSymbol(): boolean;
 
 pwNotPrevFourHash(enteredUser: string, newPw: string):boolean;
 authenticatePw(enteredUser: string, currentPw: string): boolean;
@@ -209,20 +210,20 @@ clearUser(enteredUser: string): boolean;
 };
 
 class IUserActions implements UserActions {
-	enteredUser:string;
-	currentPw:	string;
+    enteredUser:string;
+    currentPw:  string;
     newPw:      string;
-	saltRounds: number;
+    saltRounds: number;
 
-	constructor(enteredUser: string, currentPw: string = '', newPw: string = '', saltRounds: number = 10)
-	{
-		this.enteredUser = enteredUser;
-		this.currentPw = currentPw;
+    constructor(enteredUser: string, currentPw: string = '', newPw: string = '', saltRounds: number = 10)
+    {
+        this.enteredUser = enteredUser;
+        this.currentPw = currentPw;
         this.newPw = newPw;
-		this.saltRounds = saltRounds;
-	}
-	
-	userHasNoWhite(): boolean {return (!/\s/.test(this.enteredUser))}
+        this.saltRounds = saltRounds;
+    }
+
+    userHasNoWhite(): boolean {return (!/\s/.test(this.enteredUser))}
 
     userNoExist(enteredUser: string): boolean {
         try {
@@ -246,26 +247,26 @@ class IUserActions implements UserActions {
         }
     }
 
-	pwCheck(newPw: string): boolean {
+    pwCheck(newPw: string): boolean {
         return (true);
-		return (this.pwHasMinTwelveChar()
-			&& this.pwHasNoWhite()
-			&& this.pwHasUpper()
-			&& this.pwHasLower()
-			&& this.pwHasNb()
-			&& this.pwHasSymbol()
-		);
-	}
+        return (this.pwHasMinTwelveChar()
+            && this.pwHasNoWhite()
+            && this.pwHasUpper()
+            && this.pwHasLower()
+            && this.pwHasNb()
+            && this.pwHasSymbol()
+        );
+    }
 
-	pwHasMinTwelveChar(): boolean {return (this.newPw.length >= 12);}
-	pwHasNoWhite(): boolean {return (!/\s/.test(this.newPw));}
-	pwHasUpper(): boolean {return /[A-Z]/.test(this.newPw);}
-	pwHasLower(): boolean {return /[a-z]/.test(this.newPw);}
-	pwHasNb(): boolean {return /[0-9]/.test(this.newPw)}
-	pwHasSymbol(): boolean {return /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/.test(this.newPw);}
+    pwHasMinTwelveChar(): boolean {return (this.newPw.length >= 12);}
+    pwHasNoWhite(): boolean {return (!/\s/.test(this.newPw));}
+    pwHasUpper(): boolean {return /[A-Z]/.test(this.newPw);}
+    pwHasLower(): boolean {return /[a-z]/.test(this.newPw);}
+    pwHasNb(): boolean {return /[0-9]/.test(this.newPw)}
+    pwHasSymbol(): boolean {return /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/.test(this.newPw);}
 
     pwNotPrevFourHash(enteredUser: string, newPw: string): boolean
-	{
+    {
         try {
             interface db_pw_struct {
                 user_password: string;
@@ -306,9 +307,9 @@ class IUserActions implements UserActions {
         }
     }
 
-	authenticatePw(enteredUser: string, currentPw: string): boolean
-	{
-		try {
+    authenticatePw(enteredUser: string, currentPw: string): boolean
+    {
+        try {
 
             const statement_db_pw = db.prepare("SELECT user_password FROM users WHERE username = ?");
             const db_return = statement_db_pw.get(enteredUser) as {user_password: string} | undefined;

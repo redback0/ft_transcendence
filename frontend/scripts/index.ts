@@ -21,7 +21,7 @@ const pages = new Map<string, Page>([
     ['/game', {builder: GamePage}],
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
-    ['/chat', {builder: ChatPage}],
+    // ['/chat', {builder: ChatPage}],
     ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
     ['/mypage', {builder: UserPage}]
 ]);
