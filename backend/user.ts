@@ -6,7 +6,7 @@
 // TO DO: JACK - Implement cookie stuff
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { COOKIE_NAME, validateSession } from "./cookie";
+import { COOKIE_NAME, routeMakeNewCookie, validateSession } from "./cookie";
 import { db } from "./database";
 import * as bcrypt from 'bcrypt-ts';
 
@@ -83,9 +83,20 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
             reply.code(422).send({ error: 'Insufficient data for user creation.' });
             return;
         }
-        reply.code(200).send({ message: 'User created successfully.'});
+
+        const result = await routeMakeNewCookie(request, reply, username, false);
+        if (result === 200)
+        {
+            reply.code(200).send({ message: 'User created successfully.'});
+        }
+        else
+        {
+            reply.code(500).send({ error: 'Failed to set session cookie when creating user.' });
+        }
         //Take user to profile page.
-    } catch (error) {
+    }
+    catch (error)
+    {
         request.log.error('Failed to create user.', error);
         reply.code(500).send({ error: 'Server error in processing create user request.' });
     }
