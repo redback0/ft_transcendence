@@ -19,36 +19,72 @@ export function registerCookieRoutes(fastify: FastifyInstance)
 }
 
 /**
+ * 
+ * @param reply The fastify reply paramater. 
+ * @param name Set to constant 'session_id'.
+ * @param value The random uuid to set in the cookie. 
+ * @returns A fastify reply. 
+ */
+function defaultCookieCreator(reply: FastifyReply, name: string, value: string)
+{
+    return reply.setCookie(name, value, {
+            path: '/',
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: false, // TODO: Set to 'true' in production
+            domain: 'localhost', // TODO change to URL ttpg.xyz. Not https://ttpg.xyz
+            maxAge: 60 * 60 * 24 // 1 day
+        });
+}
+
+/**
  * @param username the current logged in account name. 
+ * @param sendReply If called from the route in this file, leave as true. If called form a function set to false to avoid sending a reply to the client. 
+ * @return The HTML code returns if needed. 
  * @description Sets a UUID to the database and a cookie for the current user; adds the UUID to a cookie and sends the cookie as a reply. 
  */
-export async function routeMakeNewCookie(request: FastifyRequest, reply: FastifyReply, username: string)
+export async function routeMakeNewCookie(request: FastifyRequest, reply: FastifyReply, username: string, sendReply: boolean = true): Promise<number | void>
 {
     try
     {
         const result = db.getUserIdFromUsername.get(username) as { user_id: string } | undefined;
         if (!result)
         {
-            reply.code(500).send({ error: 'Cannot create cookie.' });
-            return ;
+            if (sendReply)
+            {
+                reply.code(500).send({ error: 'Cannot create cookie.' });
+                return ;
+            }
+            else
+            {
+                return (500);
+            }
         }
         const userId = result.user_id;
 
         const uuid = await setUuid(userId);
-        reply
-            .setCookie(COOKIE_NAME, uuid, {
-                path: '/',
-                httpOnly: true,
-                sameSite: 'strict',
-                secure: false, // TODO: Set to 'true' in production
-                domain: 'localhost', // TODO change to URL ttpg.xyz. Not https://ttpg.xyz
-                maxAge: 60 * 60 * 24 // 1 day
-            })
-            .send({ message: 'UUID stored in cookie', session_id: uuid });
+
+        if (sendReply)
+        {
+            defaultCookieCreator(reply, COOKIE_NAME, uuid)
+                .send({ message: 'UUID stored in cookie', session_id: uuid });
+        }
+        else
+        {
+            defaultCookieCreator(reply, COOKIE_NAME, uuid);
+            return (200);
+        }
     }
     catch (error)
     {
-        reply.code(500).send({ error: 'Failed to set session cookie' });
+        if (sendReply)
+        {
+            reply.code(500).send({ error: 'Failed to set session cookie' });
+        }
+        else
+        {
+            return (500);
+        }
     }
 }
 

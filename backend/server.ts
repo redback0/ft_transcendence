@@ -23,7 +23,7 @@ const start = async () =>
 {
     try
     {
-     //   initChat();
+        // initChat();
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
@@ -41,13 +41,13 @@ fastify.server.on("upgrade", function (req, socket, head)
     // console.log(req.url);
     // const { pathname } = new URL(req.url);
 
-   /* if (req.url === '/wss/chat')
-    {
-        chatWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
-        {
-            chatWebSocketServer.emit('connection', ws, req);
-        });
-    } */
+    // if (req.url === '/wss/chat')
+    // {
+    //     chatWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
+    //     {
+    //         chatWebSocketServer.emit('connection', ws, req);
+    //     });
+    // }
     if (req.url?.startsWith('/wss/game'))
     {
         const id = req.url.substring("/wss/game/".length)
@@ -74,7 +74,7 @@ process.on('SIGINT', () =>
     {
         v.wss.close();
     });
-    //chatWebSocketServer.close();
+    // chatWebSocketServer.close();
     process.exit(0);
 })
 process.on('SIGTERM', () =>

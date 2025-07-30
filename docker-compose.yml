@@ -34,6 +34,8 @@ services:
       - nodejs
     volumes:
       - database:/database
+    profiles:
+      - dbcontrol
 
   volume-fix:
     image: alpine
