@@ -4,7 +4,6 @@ import { newPage } from './index.js'
 const nav = new Map<string, string>([
     ["Home", "/"],
     ["Game", "/game"],
-    ["Chat", "/chat"],
     ["Tournament", "/lobby"],
     // ["Chat", "/chat"],
     ["Login/Sign In","/login"],

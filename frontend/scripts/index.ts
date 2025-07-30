@@ -23,7 +23,6 @@ const pages = new Map<string, Page>([
     ['/game', {builder: GamePage}],
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
-    ['/chat', {builder: ChatPage}],
     ['/lobby', {builder: LobbyNavPage}],
     ['/lobby/join', {builder: LobbyJoinPage}],
     // ['/chat', {builder: ChatPage}],
