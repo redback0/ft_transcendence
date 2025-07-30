@@ -7,6 +7,7 @@ import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
+import { ChatPostLoad } from './chat/chat.controller.js'
 import { AddNavigation } from './navigation.js'
 import { LoginPage } from './login/login.template.js'
 import { LoginPostLoad } from './login/login.controller.js'
@@ -21,7 +22,7 @@ const pages = new Map<string, Page>([
     ['/game', {builder: GamePage}],
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
-    // ['/chat', {builder: ChatPage}],
+    ['/chat', {builder: ChatPage, postLoad: ChatPostLoad}],
     ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
     ['/mypage', {builder: UserPage}]
 ]);
