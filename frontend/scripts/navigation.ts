@@ -5,7 +5,10 @@ const nav = new Map<string, string>([
     ["Home", "/"],
     ["Game", "/game"],
     ["Chat", "/chat"],
-    ["Tournament", "/lobby"]
+    ["Tournament", "/lobby"],
+    // ["Chat", "/chat"],
+    ["Login/Sign In","/login"],
+    ["My Home Page", "/mypage"],
 ]);
 
 export function AddNavigation()

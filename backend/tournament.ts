@@ -91,8 +91,8 @@ export class Tournament {
 		this.sendToAll({ type: "next_round_starting", msg: {} });
 		const pairs = this.matchmakeClients();
 		for (let { first: p1, second: p2 } of pairs) {
-			console.log(`making game: ${p1.uuid} (${p1.wins}) vs. ${p2.uuid} (${p2.wins})`);
 			const game_id = NewID(8);
+			console.log(`making game (${game_id}): ${p1.uuid} (${p1.wins}) vs. ${p2.uuid} (${p2.wins})`);
 			this.game_ids.push(game_id);
 			this.prev_pairings.push({ first: p1, second: p2 });
 			AddNewGame(game_id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => {
@@ -135,7 +135,7 @@ export class Tournament {
 						console.log(`${client.name} (${client.score})`);
 					}
 					this.sendToAll({ type: "tournament_finished", msg: { rankings: rankings } });
-				} else {
+				} else if (this.game_ids.length === 0) {
 					this.startNextRound();
 				}
 			}); // end AddNewGame
@@ -148,6 +148,7 @@ export class Tournament {
 				}
 			});
 			if (p1 && p2) {
+				console.log(`sending clients to game: ${p1.uuid}, ${p2.uuid}`);
 				this.sendTo(p1, { type: "go_to_game", msg: { game_id: game_id } });
 				this.sendTo(p2, { type: "go_to_game", msg: { game_id: game_id } });
 			}

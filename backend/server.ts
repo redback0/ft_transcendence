@@ -1,13 +1,13 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
-import { initChat, chatWebSocketServer } from './chat.js';
+//import { initChat, chatWebSocketServer } from './chat.js';
 import cookie from '@fastify/cookie';
 import * as Game from './game.js';
-import * as Lobby from './lobby.js';
-import Database from 'better-sqlite3';
-
+import { registerCookieRoutes } from './cookie.js';
 // export const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({ logger: true });
+import * as User from './user.js';
+import * as Lobby from './lobby.js';
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
 {
@@ -16,14 +16,16 @@ fastify.get('/api/buttonpressed', function handler(request, reply)
 
 fastify.register(Game.gameInit);
 fastify.register(Lobby.lobbyInit);
+fastify.register(cookie);
+fastify.register(registerCookieRoutes);
+fastify.register(User.registerRoutes);
 
 // Run the fastify!
 const start = async () =>
 {
     try
     {
-        initChat();
-        fastify.register(cookie);
+        // initChat();
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
@@ -43,14 +45,14 @@ fastify.server.on("upgrade", function (req, socket, head)
     // console.log(req.url);
     // const { pathname } = new URL(req.url);
 
-    if (req.url === '/wss/chat')
-    {
-        chatWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
-        {
-            chatWebSocketServer.emit('connection', ws, req);
-        });
-    }
-    else if (req.url?.startsWith('/wss/game'))
+    // if (req.url === '/wss/chat')
+    // {
+    //     chatWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
+    //     {
+    //         chatWebSocketServer.emit('connection', ws, req);
+    //     });
+    // }
+    if (req.url?.startsWith('/wss/game'))
     {
         const id = req.url.substring("/wss/game/".length)
         if (id === "")
@@ -89,7 +91,7 @@ process.on('SIGINT', () =>
     {
         v.wss.close();
     });
-    chatWebSocketServer.close();
+    // chatWebSocketServer.close();
     process.exit(0);
 })
 process.on('SIGTERM', () =>

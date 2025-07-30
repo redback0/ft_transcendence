@@ -3,7 +3,7 @@ import { WebSocketServer, WebSocket, Server, RawData } from 'ws';
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
 import { LobbyMessage, ClientUUID, LobbyRequest, LobbyID, LobbySessionID } from './lobby.schema';
-import { server } from 'typescript';
+import { convertTypeAcquisitionFromJson, server } from 'typescript';
 import { IncomingMessage } from "http";
 import { Tournament, TournamentWebSocket } from './tournament';
 import { validateSession } from './cookie';
@@ -43,13 +43,19 @@ export class Lobby {
         });
 		this.room_code = room_code;
 
+
 		this.wss.on("connection", (ws: TournamentWebSocket) => {
             console.log("new client in lobby !!1!!! yay");
 			if (this.timeout) {
                 clearTimeout(this.timeout);
                 this.timeout = undefined;
             }
+
+			ws.uuid = NewID(8);
+			if (!this.host)
+				this.host = ws;
             
+			this.sendToAll({ type: "new_client", msg: { client: ws.uuid } });
             ws.on("message", (data, isBinary) => { this.wsOnMessage(ws, data, isBinary) });
             ws.on("close", (code, reason) => { this.wsOnClose(ws, code, reason) });
             ws.on("pong", () => {

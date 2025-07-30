@@ -23,6 +23,7 @@ export class TournamentArea {
     current_games_div: HTMLDivElement;
     matchups: Matchup[];
     byed_html: HTMLParagraphElement | undefined;
+    spectating: GameID | undefined;
     game: GameID | undefined;
     join_button: HTMLButtonElement;
 
@@ -66,6 +67,7 @@ export class TournamentArea {
         const { type, msg } = data;
         switch (type) {
             case "go_to_game":
+                this.log(`go to game: ${msg.game_id}`);
                 this.game = msg.game_id;
                 this.join_button.disabled = false;
             break;
@@ -76,6 +78,8 @@ export class TournamentArea {
             case "game_finished":
                 if (msg.game_id === this.game) {
                     this.leaveGame();
+                } else if (msg.game_id === this.spectating) {
+                    this.stopSpectating();
                 }
                 this.log(`game finished (${msg.p1.uuid} vs. ${msg.p2.uuid}): ${msg.p1.points} ${msg.p2.points}`);
                 var matchup = this.matchups.find((matchup) => { return matchup.data.p1 === msg.p1.uuid && matchup.data.p2 === msg.p2.uuid && matchup.data.game_id === msg.game_id;});
@@ -89,7 +93,10 @@ export class TournamentArea {
             break;
             case "go_to_bracket":
                 this.tourney_id = msg.tourney_id;
-                this.leaveGame();
+                if (this.game)
+                    this.leaveGame();
+                else if (this.spectating)
+                    this.stopSpectating();
             break;
             case "client_left":
                 this.log(`client left: ${msg.client}`);
@@ -123,19 +130,28 @@ export class TournamentArea {
     }
 
     spectateGame = (game_id: GameID) => {
+        this.spectating = game_id;
         const newURL = "/game/online?id=" + game_id;
         history.pushState({}, "", newURL);
         newPage();
     }
 
     leaveGame = () => {
+        this.game = undefined;
+        this.join_button.disabled = true;
         setTimeout(() => {
-            this.game = undefined;
-            this.join_button.disabled = true;
             history.pushState({}, "", "/tournament/bracket?bracket_id=" + this.tourney_id);
             setCurrentPage(this.page);
         }, 3000);
     }
+
+    stopSpectating = () => {
+        setTimeout(() => {
+                this.spectating = undefined;
+                history.pushState({}, "", "/tournament/bracket?bracket_id=" + this.tourney_id);
+                setCurrentPage(this.page);
+            }, 3000);
+        }
 
     addMatchup = (p1: ClientUUID, p2: ClientUUID, game_id: GameID) => {
         var both_div = document.createElement('div');
