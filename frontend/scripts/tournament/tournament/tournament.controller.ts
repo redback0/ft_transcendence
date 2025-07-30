@@ -1,11 +1,10 @@
-import { ClientUUID } from "../../lobby.schema.js";
-import { GameID, TournamentID, TournamentMessage } from "../../tournament.schema.js";
+import { GameID, TournamentID, TournamentMessage, UserInfo } from "../../tournament.schema.js";
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
 import { TournamentPage } from "./tournament.template.js";
 import { newPage, setCurrentPage } from "../../index.js";
 
 type Matchup = { 
-    data: { p1: ClientUUID, p2: ClientUUID, game_id: GameID },
+    data: { p1: UserInfo, p2: UserInfo, game_id: GameID },
     html: { div: HTMLDivElement, text: HTMLParagraphElement, button: HTMLButtonElement },
 };
 
@@ -17,9 +16,9 @@ export class TournamentArea {
     page: TournamentPage;
     tourney_id: TournamentID;
     ws: WebSocket;
-	tournament_host: ClientUUID;
-	me: ClientUUID;
-	players: ClientUUID[];
+	tournament_host: UserInfo;
+	me: UserInfo;
+	players: UserInfo[];
     current_games_div: HTMLDivElement;
     matchups: Matchup[];
     byed_html: HTMLParagraphElement | undefined;
@@ -54,7 +53,7 @@ export class TournamentArea {
         this.page.appendChild(this.current_games_div);
         
         this.matchups = [];
-        this.log(`me: ${this.me}, host: ${this.tournament_host}, everyone: ${this.players}`);
+        this.log(`me: ${this.me.username}, host: ${this.tournament_host.user_id}, everyone: ${this.players}`);
 	}
 
     wsMessage = (ev: MessageEvent) => {
@@ -81,15 +80,15 @@ export class TournamentArea {
                 } else if (msg.game_id === this.spectating) {
                     this.stopSpectating();
                 }
-                this.log(`game finished (${msg.p1.uuid} vs. ${msg.p2.uuid}): ${msg.p1.points} ${msg.p2.points}`);
-                var matchup = this.matchups.find((matchup) => { return matchup.data.p1 === msg.p1.uuid && matchup.data.p2 === msg.p2.uuid && matchup.data.game_id === msg.game_id;});
+                this.log(`game finished (${msg.p1.user_info.username} vs. ${msg.p2.user_info.username}): ${msg.p1.points} ${msg.p2.points}`);
+                var matchup = this.matchups.find((matchup) => { return matchup.data.p1.user_id === msg.p1.user_info.user_id && matchup.data.p2.user_id === msg.p2.user_info.user_id && matchup.data.game_id === msg.game_id;});
                 if (!matchup)
                     break;
                 matchup.html.button.disabled = true;
                 if (msg.p1.points > msg.p2.points)
-                    matchup.html.text.textContent = `👑 ${matchup.data.p1} (${msg.p1.points}) vs. ${matchup.data.p2} (${msg.p2.points})`;
+                    matchup.html.text.textContent = `👑 ${matchup.data.p1.username} (${msg.p1.points}) vs. ${matchup.data.p2.username} (${msg.p2.points})`;
                 else
-                    matchup.html.text.textContent = `${matchup.data.p1} (${msg.p1.points}) vs. 👑 ${matchup.data.p2} (${msg.p2.points})`;
+                    matchup.html.text.textContent = `${matchup.data.p1.username} (${msg.p1.points}) vs. 👑 ${matchup.data.p2.username} (${msg.p2.points})`;
             break;
             case "go_to_bracket":
                 this.tourney_id = msg.tourney_id;
@@ -99,16 +98,16 @@ export class TournamentArea {
                     this.stopSpectating();
             break;
             case "client_left":
-                this.log(`client left: ${msg.client}`);
+                this.log(`client left: ${msg.client.username}`);
             break;
             case "tournament_finished":
                 this.log(`tournament finished`);
                 for (let ranking of msg.rankings) {
-                    this.log(`${ranking.name} (${ranking.score})`);
+                    this.log(`${ranking.user_info.username} (${ranking.score})`);
                 }
             break;
             case "byed":
-                this.log(`${msg.player} has been byed`);
+                this.log(`${msg.player.username} has been byed`);
             break;
             case "next_round_starting":
                 this.matchups.forEach((matchup) => {
@@ -153,12 +152,12 @@ export class TournamentArea {
             }, 3000);
         }
 
-    addMatchup = (p1: ClientUUID, p2: ClientUUID, game_id: GameID) => {
+    addMatchup = (p1: UserInfo, p2: UserInfo, game_id: GameID) => {
         var both_div = document.createElement('div');
         both_div.className = "flex flex-row justify-center items-center";
 
         var matchup_text = document.createElement('p');
-        matchup_text.innerText = `${p1} vs. ${p2}`;
+        matchup_text.innerText = `${p1.username} vs. ${p2.username}`;
         matchup_text.className = 'flex flex-none' + matchup_text_style;
 
         var spectate_button = document.createElement('button');
@@ -167,7 +166,7 @@ export class TournamentArea {
         spectate_button.addEventListener("click", () => {
             this.spectateGame(game_id);
         });
-        if (game_id === this.game || p1 === this.me || p2 === this.me) {
+        if (game_id === this.game || p1.user_id === this.me.user_id || p2.user_id === this.me.user_id) {
             spectate_button.disabled = true;
         }
 

@@ -1,4 +1,3 @@
-import { ClientUUID } from "../../lobby.schema.js";
 import { TournamentID } from "../../tournament.schema.js";
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
 import { TournamentArea } from "./tournament.controller.js";

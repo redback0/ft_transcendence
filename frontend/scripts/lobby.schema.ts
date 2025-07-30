@@ -1,33 +1,35 @@
-export type ClientUUID = string;
+import { UserInfo } from "./tournament.schema";
+
+export type UserID = string;
 export type LobbyID = string;
 
 export interface LobbyInfoMessage {
 	type: "info",
 	msg: {
-		whoami: ClientUUID,
-		host: ClientUUID,
-		clients: ClientUUID[],
+		whoami: UserInfo,
+		host: UserInfo,
+		clients: UserInfo[],
 	},
 }
 
 export interface LobbyNewClientMessage {
 	type: "new_client",
 	msg: {
-		client: ClientUUID,
+		client: UserInfo,
 	}
 }
 
 export interface LobbyClientLeftMessage {
 	type: "client_left",
 	msg: {
-		client: ClientUUID,
+		client: UserInfo,
 	}
 }
 
 export interface LobbyNewHostMessage {
 	type: "new_host",
 	msg: {
-		client: ClientUUID,
+		client: UserInfo,
 	}
 }
 
@@ -48,7 +50,7 @@ export interface LobbyStartRequest {
 export interface LobbySessionID {
 	type: "session_id",
 	msg: {
-		session_id: ClientUUID,
+		session_id: UserInfo,
 	}
 }
 

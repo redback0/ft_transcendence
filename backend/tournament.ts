@@ -1,8 +1,8 @@
 import { RawData, WebSocketServer, WebSocket, Server } from "ws";
-import { ClientUUID, LobbySessionID } from "./lobby.schema";
+import { UserID, LobbySessionID } from "./lobby.schema";
 import { AddNewGame, gameWebSocketServers, NewID } from "./game";
 import { Lobby } from "./lobby";
-import { GameID, SessionID, TournamentID, TournamentMessage } from "./tournament.schema";
+import { GameID, SessionID, TournamentID, TournamentMessage, UserInfo } from "./tournament.schema";
 import { db } from "./database";
 
 type Pair<T> = {
@@ -23,9 +23,7 @@ export const tournamentWebSocketServers = new Map<TournamentID, Tournament>;
 export class TournamentWebSocket extends WebSocket {
 	isAlive: boolean = true;
 	been_byed: boolean = false;
-	sid: SessionID | undefined;
-	uuid: ClientUUID | undefined;
-	username: string | undefined;
+	user_info: UserInfo | undefined;
 	wins: number = 0;
 }
 
@@ -92,27 +90,27 @@ export class Tournament {
 		const pairs = this.matchmakeClients();
 		for (let { first: p1, second: p2 } of pairs) {
 			const game_id = NewID(8);
-			console.log(`making game (${game_id}): ${p1.uuid} (${p1.wins}) vs. ${p2.uuid} (${p2.wins})`);
+			console.log(`making game (${game_id}): ${p1.user_info?.user_id} (${p1.wins}) vs. ${p2.user_info?.user_id} (${p2.wins})`);
 			this.game_ids.push(game_id);
 			this.prev_pairings.push({ first: p1, second: p2 });
 			AddNewGame(game_id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => {
 				console.log("game finished!!!");
 				if (p1Score > p2Score) {
-					console.log(`${p1.uuid} won vs. ${p2.uuid}!`);
+					console.log(`${p1.user_info?.user_id} won vs. ${p2.user_info?.user_id}!`);
 					p1.wins++;
 				} else {
-					console.log(`${p2.uuid} won vs. ${p1.uuid}!`);
+					console.log(`${p2.user_info?.user_id} won vs. ${p1.user_info?.user_id}!`);
 					p2.wins++;
 				}
 				this.sendToAll({ 
 					type: "game_finished",
 					msg: {
 						p1: {
-							uuid: <ClientUUID>p1.uuid, // TODO: figure this out
+							user_info: <UserInfo>p1.user_info, // TODO: figure this out
 							points: p1Score,
 						},
 						p2: {
-							uuid: <ClientUUID>p2.uuid,
+							user_info: <UserInfo>p2.user_info,
 							points: p2Score,
 						},
 						game_id: game_id,
@@ -129,10 +127,10 @@ export class Tournament {
 					this.wss.clients.forEach(c => tmp.push(c));
 					tmp.sort((a, b) => b.wins - a.wins);
 					const rankings = tmp.map(client => {
-						return { name: <ClientUUID>client.uuid, score: client.wins };
+						return { user_info: <UserInfo>client.user_info, score: client.wins };
 					});
 					for (let client of rankings) {
-						console.log(`${client.name} (${client.score})`);
+						console.log(`${client.user_info?.username} (${client.score})`);
 					}
 					this.sendToAll({ type: "tournament_finished", msg: { rankings: rankings } });
 				} else if (this.game_ids.length === 0) {
@@ -142,13 +140,13 @@ export class Tournament {
 			this.sendToAll({
 				type: "game_starting",
 				msg: {
-					p1: <ClientUUID>p1.uuid,
-					p2: <ClientUUID>p2.uuid,
+					p1: <UserInfo>p1.user_info,
+					p2: <UserInfo>p2.user_info,
 					game_id: game_id,
 				}
 			});
 			if (p1 && p2) {
-				console.log(`sending clients to game: ${p1.uuid}, ${p2.uuid}`);
+				console.log(`sending clients to game: ${p1.user_info?.user_id}, ${p2.user_info?.user_id}`);
 				this.sendTo(p1, { type: "go_to_game", msg: { game_id: game_id } });
 				this.sendTo(p2, { type: "go_to_game", msg: { game_id: game_id } });
 			}
@@ -220,8 +218,8 @@ export class Tournament {
 			for (var i = client_pool.length - 1; i >= 0; i--) {
 				let client = client_pool[i];
 				if (!client.been_byed) {
-					console.log(`${client.uuid} has been byed!`);
-					this.sendToAll({ type: "byed", msg: { player: <ClientUUID>client.uuid } });
+					console.log(`${client.user_info?.user_id} has been byed!`);
+					this.sendToAll({ type: "byed", msg: { player: <UserInfo>client.user_info } });
 					client.wins++;
 					client.been_byed = true;
 					client_pool.slice(i, i);
@@ -233,16 +231,16 @@ export class Tournament {
 			for (let i = 1; i < client_pool.length; ++i) {
 				const p1: TournamentWebSocket = client_pool[0];
 				const p2: TournamentWebSocket = client_pool[i];
-				console.log(`p1: ${p1.uuid}, p2: ${p2.uuid}`);
+				console.log(`p1: ${p1.user_info?.user_id}, p2: ${p2.user_info?.user_id}`);
 				let pair: Pair<TournamentWebSocket> = { first: p1, second: p2 };
 				if (i != client_pool.length - 1 && this.prev_pairings.find(prev_pair => compair(prev_pair, pair)) !== undefined) {
 					continue;
 				}	
 				pairs.push(pair);
 				client_pool = client_pool.filter(sock => !(sock === p1 || sock === p2));
-				console.log(`paired: ${pair.first.uuid} vs. ${pair.second.uuid}`);
+				console.log(`paired: ${pair.first.user_info?.user_id} vs. ${pair.second.user_info?.user_id}`);
 				for (let client of client_pool) {
-					console.log(`clients left: ${client.uuid}`);
+					console.log(`clients left: ${client.user_info?.user_id}`);
 				}
 				console.log("");
 				i = 1;

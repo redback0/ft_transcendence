@@ -1,13 +1,14 @@
-import { ClientUUID, LobbyID, LobbyClientLeftMessage } from './lobby.schema';
+import { UserID, LobbyID, LobbyClientLeftMessage } from './lobby.schema';
 
 export type GameID = string;
 export type SessionID = string;
 export type TournamentID = string;
+export type UserInfo = { user_id: UserID, username: string };
 
 export interface TournamentByedMessage {
 	type: "byed",
 	msg: {
-		player: ClientUUID,
+		player: UserInfo,
 	}
 }
 
@@ -28,8 +29,8 @@ export interface TournamentGoToGameMessage {
 export interface TournamentGameStartingMessage {
 	type: "game_starting",
 	msg: {
-		p1: ClientUUID,
-		p2: ClientUUID,
+		p1: UserInfo,
+		p2: UserInfo,
 		game_id: GameID,
 	}
 }
@@ -38,11 +39,11 @@ export interface TournamentGameFinishedMessage {
 	type: "game_finished",
 	msg: {
 		p1: {
-			uuid: ClientUUID,
+			user_info: UserInfo,
 			points: number,
 		}
 		p2: {
-			uuid: ClientUUID,
+			user_info: UserInfo,
 			points: number,
 		}
 		game_id: GameID,
@@ -59,7 +60,7 @@ export interface TournamentGoToBracketMessage {
 export interface TournamentFinishedMessage {
 	type: "tournament_finished",
 	msg: {
-		rankings: Array<{ name: ClientUUID, score: number }>,
+		rankings: Array<{ user_info: UserInfo, score: number }>,
 	}
 }
 

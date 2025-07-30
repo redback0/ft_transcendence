@@ -1,6 +1,6 @@
-import { LobbyRequest, LobbyMessage, ClientUUID, LobbyStartRequest, LobbySessionID } from "../../lobby.schema.js";
+import { LobbyRequest, LobbyMessage, LobbyStartRequest, LobbySessionID } from "../../lobby.schema.js";
 import { LobbyJoinPage } from "./lobby.template.js";
-import { TournamentStartMessage } from '../../tournament.schema.js';
+import { TournamentStartMessage, UserInfo } from '../../tournament.schema.js';
 import { currPage, newPage } from "../../index.js";
 import { TournamentPage } from "../tournament/tournament.template.js";
 import { setCurrentPage } from '../../index.js';
@@ -23,10 +23,10 @@ function NewID(length: number)
 export class LobbyJoinArea {
 	parent: LobbyJoinPage;
     ws: WebSocket;
-	lobby_host: ClientUUID | undefined;
-	me: ClientUUID | undefined;
+	lobby_host: UserInfo | undefined;
+	me: UserInfo | undefined;
 	names: HTMLElement[];
-	players: ClientUUID[];
+	players: UserInfo[];
 
 	constructor(room_code: string, parent: LobbyJoinPage) {
 		this.parent = parent;
@@ -48,14 +48,6 @@ export class LobbyJoinArea {
 
     wsConnect = () => {
         console.log("Lobby WebSocket connected");
-
-		let session_id_msg: LobbySessionID = {
-			type: "session_id",
-			msg: {
-				session_id: "bad_id",
-			}
-		}
-
 		let message: LobbyRequest = {
 			type: "infoRequest",
 		}
@@ -71,23 +63,23 @@ export class LobbyJoinArea {
 		const data: LobbyMessage | TournamentStartMessage = JSON.parse(ev.data);
 		switch (data.type) {
 			case "info":
-				console.log(`whoami: ${data.msg.whoami}, host: ${data.msg.host}, clients: ${data.msg.clients}`);
+				console.log(`whoami: ${data.msg.whoami.username}, host: ${data.msg.host.username}, clients: ${data.msg.clients.length}`);
 				this.me = data.msg.whoami;
 				data.msg.clients.forEach((client) => this.addClient(client));
 				this.updateHost(data.msg.host);
 				break;
 			case "new_client":
-				console.log(`new client ${data.msg.client} joined lobby !!!`);
+				console.log(`new client ${data.msg.client.username} joined lobby !!!`);
 				if (!this.me)
 					this.me = data.msg.client;
 				this.addClient(data.msg.client);
 				break;
 			case "client_left":
-				console.log(`client (${data.msg.client}) left !!!`);
+				console.log(`client (${data.msg.client.username}) left !!!`);
 				this.removeClient(data.msg.client);
 				break;
 			case "new_host":
-				console.log(`new host: ${data.msg.client}`);
+				console.log(`new host: ${data.msg.client.username}`);
 				this.updateHost(data.msg.client);
 				break;
 			case "tournament_starting":
@@ -100,18 +92,18 @@ export class LobbyJoinArea {
 		}
     }
 
-	addClient = (client: ClientUUID) => {
-		if (!client || this.players.includes(client))
+	addClient = (client: UserInfo) => {
+		if (!this.players.every(user => user.user_id !== client.user_id))
 			return;
 		this.players.push(client);
 	
 		var text = document.createElement("b");
-		text.innerText = client;
-		if (client == this.me)
+		text.innerText = client.username;
+		if (client.user_id === this.me?.user_id)
 			text.innerText += meSuffix;
 
 		var textdiv = document.createElement("div");
-		textdiv.id = htmlClientNamePrefix + client;
+		textdiv.id = htmlClientNamePrefix + client.user_id;
 		textdiv.className = "flex px-5 text-center border-black";
 		textdiv.appendChild(text);
 
@@ -119,15 +111,15 @@ export class LobbyJoinArea {
 		this.names.push(text);
 	}
 
-	removeClient = (client: ClientUUID) => {
+	removeClient = (client: UserInfo) => {
 		if (!client)
 			return;
-		this.players = this.players.filter(c => c !== client);
+		this.players = this.players.filter(c => c.user_id !== client.user_id);
 		var idx = this.names.findIndex(name => {
-			if (client === this.lobby_host) {
-				return name.innerText.slice(hostPrefix.length) === client;
+			if (client.user_id === this.lobby_host?.user_id) {
+				return name.innerText.slice(hostPrefix.length) === client.username;
 			}
-			return name.innerText === client;
+			return name.innerText === client.username;
 		});
 		if (idx === -1)
 			return;
@@ -138,7 +130,7 @@ export class LobbyJoinArea {
 		this.names.splice(idx, 1);
 	}
 
-	updateHost = (new_host: ClientUUID) => {
+	updateHost = (new_host: UserInfo) => {
 		console.log("updateing host");
 		console.log(this.names.length);
 		var old_host_b = this.names.find(name => {
@@ -149,11 +141,11 @@ export class LobbyJoinArea {
 			old_host_b.innerText = old_host_b.innerText.slice(hostPrefix.length);
 		
 		this.lobby_host = new_host;
-		this.parent.start_button.disabled = this.lobby_host != this.me;
+		this.parent.start_button.disabled = this.lobby_host.user_id != this.me?.user_id;
 		var new_host_b = this.names.find(name => {
-			if (new_host === this.me)
-				return name.innerText.slice(0, -meSuffix.length) === new_host;
-			return name.innerText === new_host;
+			if (new_host.user_id === this.me?.user_id)
+				return name.innerText.slice(0, -meSuffix.length) === new_host.username;
+			return name.innerText === new_host.username;
 		});
 		if (!new_host_b)
 			return;
