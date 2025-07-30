@@ -73,3 +73,7 @@ canvas
     background-color: var(--color-pink-600);
     touch-action: none;
 }
+
+base{
+    padding: 20px;
+}

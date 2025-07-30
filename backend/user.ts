@@ -6,7 +6,7 @@
 // TO DO: JACK - Implement cookie stuff
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { COOKIE_NAME, routeMakeNewCookie, validateSession } from "./cookie";
+import { SESSION_ID_COOKIE_NAME, routeMakeNewCookie, validateSession } from "./cookie";
 import { db } from "./database";
 import * as bcrypt from 'bcrypt-ts';
 
@@ -125,7 +125,7 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
 {
     try
     {
-        const sessionId = request.cookies[COOKIE_NAME];
+        const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
         if (!sessionId)
         {
             reply.code(403).send({ error: 'Failed to read cookie.' })

@@ -488,18 +488,19 @@ class PlayerController
 
     touchHandler = (e: TouchEvent) =>
     {
-        this.moveUp = false;
-        this.moveDown = false;
-
         if (e.changedTouches.length < 1)
             return ;
         const bx = this.canvas.getBoundingClientRect();
         const t = e.changedTouches[0];
+        console.log(`new touch Y: ${t.clientY}`);
 
-        if (t.clientY - bx.top < this.canvas.height / 2)
+        if (t.clientY - bx.top < this.canvas.height / 2) {
             this.moveUp = true;
-        else
+            this.moveDown = false;
+        } else {
             this.moveDown = true;
+            this.moveUp = false;
+        }
 
         // previously used every changed touch, but actually, that doesn't
         // make sense

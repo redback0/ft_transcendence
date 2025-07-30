@@ -7,7 +7,9 @@ import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
+import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { AddNavigation } from './navigation.js'
+import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { LoginPage } from './login/login.template.js'
 import { LoginPostLoad } from './login/login.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
@@ -21,10 +23,24 @@ const pages = new Map<string, Page>([
     ['/game', {builder: GamePage}],
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
+    ['/lobby', {builder: LobbyNavPage}],
+    ['/lobby/join', {builder: LobbyJoinPage}],
     // ['/chat', {builder: ChatPage}],
     ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
     ['/mypage', {builder: UserPage}]
 ]);
+
+export let currPage : HTMLElement
+
+// prefer newPage over setCurrentPage
+export function setCurrentPage(page: HTMLElement) {
+    document.title = "page is changing!";
+    try {
+		document.body.removeChild(currPage);
+    } catch (e) {}
+	currPage = page;
+	document.body.appendChild(currPage);
+}
 
 // this is available so we don't have to change the index every time we add
 // a new page
@@ -35,8 +51,6 @@ export function AddPage(path: string, page: Page)
 
 type cleanupFunc = () => any;
 const cleanupFuncs = new Array<cleanupFunc>;
-
-let currPage : HTMLElement;
 
 /**
  * 
@@ -80,10 +94,20 @@ export function newPage()
     if (currPage)
         document.body.removeChild(currPage);
     let pageBuilder = pages.get(document.location.pathname);
-    if (pageBuilder)
-        currPage = new pageBuilder.builder;
-    else
+    try {
+        if (pageBuilder?.builder.prototype instanceof HTMLElement)
+            currPage = new pageBuilder.builder;
+        else
+            currPage = new ErrorPage;
+    } catch (e) {
+        console.error("Exception thrown while building page");
+        if (e instanceof Error) {
+            console.error(e.name);
+            console.error(e.message);
+            console.error(e.stack);
+        }
         currPage = new ErrorPage;
+    }
     document.body.appendChild(currPage);
 
     if (pageBuilder?.postLoad)

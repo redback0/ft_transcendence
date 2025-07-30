@@ -1,8 +1,9 @@
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './database';
+import { ClientUUID } from './lobby.schema';
 
-export const COOKIE_NAME = 'session_id';
+export const SESSION_ID_COOKIE_NAME = 'session_id';
 
 export function registerCookieRoutes(fastify: FastifyInstance)
 {
@@ -66,12 +67,12 @@ export async function routeMakeNewCookie(request: FastifyRequest, reply: Fastify
 
         if (sendReply)
         {
-            defaultCookieCreator(reply, COOKIE_NAME, uuid)
+            defaultCookieCreator(reply, SESSION_ID_COOKIE_NAME, uuid)
                 .send({ message: 'UUID stored in cookie', session_id: uuid });
         }
         else
         {
-            defaultCookieCreator(reply, COOKIE_NAME, uuid);
+            defaultCookieCreator(reply, SESSION_ID_COOKIE_NAME, uuid);
             return (200);
         }
     }
@@ -132,7 +133,7 @@ export async function setUuid(userId: string): Promise<string>
  */
 export async function routeCheckUserSession(request: FastifyRequest, reply: FastifyReply) : Promise<void>
 {
-    const sessionId = request.cookies[COOKIE_NAME];
+    const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
 
     if (!sessionId)
     {
@@ -178,7 +179,7 @@ export async function validateSession(sessionId: string): Promise<string | null>
  */
 export async function routeClearCookie(request: FastifyRequest, reply: FastifyReply): Promise<void>
 {
-    const sessionId = request.cookies[COOKIE_NAME];
+    const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
     
     if (!sessionId)
     {
@@ -196,7 +197,7 @@ export async function routeClearCookie(request: FastifyRequest, reply: FastifyRe
     {
         await clearUserSession(userId);
         reply
-            .clearCookie(COOKIE_NAME, { path: '/' })
+            .clearCookie(SESSION_ID_COOKIE_NAME, { path: '/' })
             .send({ message: 'Logged out, cookie cleared' });
     }
     catch (error)

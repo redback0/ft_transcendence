@@ -7,6 +7,7 @@ import { registerCookieRoutes } from './cookie.js';
 // export const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({ logger: true });
 import * as User from './user.js';
+import * as Lobby from './lobby.js';
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
 {
@@ -14,6 +15,7 @@ fastify.get('/api/buttonpressed', function handler(request, reply)
 });
 
 fastify.register(Game.gameInit);
+fastify.register(Lobby.lobbyInit);
 fastify.register(cookie);
 fastify.register(registerCookieRoutes);
 fastify.register(User.registerRoutes);
@@ -34,6 +36,8 @@ const start = async () =>
     }
 }
 
+// TODO: display error page when client request a lobby that does not exist (this issue probably affects games too)
+// NOTE: since Tournaments reuse the websockets of a Lobby, they get created by a Lobby, not here
 fastify.server.on("upgrade", function (req, socket, head)
 {
     // if (!req.url)
@@ -59,6 +63,19 @@ fastify.server.on("upgrade", function (req, socket, head)
         gameServer.handleUpgrade(req, socket, head, function done(ws)
         {
             gameServer.emit('connection', ws, req);
+        });
+    }
+    else if (req.url?.startsWith('/wss/lobby'))
+    {
+        const room_code = req.url.substring("/wss/lobby/".length);
+        if (room_code === "")
+            return;
+        const lobbyServer = Lobby.lobbyWebSocketServers.get(room_code)?.wss;
+        if (!lobbyServer) {
+            return;
+        }
+        lobbyServer.handleUpgrade(req, socket, head, function done(ws) {
+            lobbyServer.emit('connection', ws, req);
         });
     }
     else

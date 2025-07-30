@@ -17,7 +17,7 @@ class GameWebSocket extends WebSocket
     uid: UserID | undefined
 }
 
-function NewID(length: number)
+export function NewID(length: number)
 {
     let result = "";
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";

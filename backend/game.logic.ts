@@ -16,7 +16,7 @@ export class GameArea
     p1: Player;
     p2: Player;
     ball: Ball;
-    winScore: number = 11;
+    winScore: number = 3;
     running: boolean = false;
     framerate: number = 60;
     interval: NodeJS.Timeout | undefined;
