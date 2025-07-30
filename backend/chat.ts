@@ -1,5 +1,5 @@
-// Server class things
-/*import { WebSocketServer, WebSocket } from 'ws';
+/*// Server class things
+import { WebSocketServer, WebSocket } from 'ws';
 import { FastifyInstance } from 'fastify';
 
 class HBWebSocket extends WebSocket
@@ -564,7 +564,4 @@ class Channel
 
     }
     type getAllClientInfo(ClientInfo[] = [])
-}
-*/
-
-
+} */
