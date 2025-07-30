@@ -70,7 +70,6 @@ export class Lobby {
 	wsOnMessage = async (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
 		console.log(`msg from client in lobby: (${isBinary}, ${data})`);
 		if (!ws.uuid) {
-			/
 			//TODO: cookies :D yum
 			const request: LobbySessionID = JSON.parse(data.toString());
 			if (request.type !== "session_id") {
