@@ -30,6 +30,23 @@ CREATE TABLE IF NOT EXISTS users (
   avatar TEXT UNIQUE DEFAULT NULL
 );
 
+-- Create friends table
+/*
+If I am my_id and someone else is friend_id: 
+my_id = 1, friend_id = 0. I have requested friendship. 
+my_id = 1, friend_id = 1. We are friends. 
+(me) blocked_by_me = 1, (their) blocked_by_me = 0. I have blocked them. 
+*/
+CREATE TABLE IF NOT EXISTS friend (
+  my_id TEXT NOT NULL, 
+  friend_id TEXT NOT NULL,
+  blocked_by_me TEXT NOT NULL DEFAULT 0,
+  friend_status NOT NULL DEFAULT 0,
+  PRIMARY KEY (my_id, friend_id),
+  FOREIGN KEY (my_id) REFERENCES users(user_id),
+  FOREIGN KEY (friend_id) REFERENCES users(user_id)
+);
+
 -- Create game table
 CREATE TABLE IF NOT EXISTS game (
   game_id TEXT PRIMARY KEY UNIQUE,
@@ -54,6 +71,7 @@ CREATE TABLE IF NOT EXISTS user_has_tournament (
   FOREIGN KEY (user_tournament_tour_id) REFERENCES tournament(tour_id)
 );
 
+CREATE INDEX IF NOT EXISTS index_session_id on users(session_id);
 CREATE INDEX IF NOT EXISTS index_username ON users(username);
 
 PRAGMA foreign_keys = ON;
