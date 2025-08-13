@@ -1,10 +1,11 @@
 
-var DEFAULT_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-black");
-var BALL_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-blue-800");
-var PLAYER_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-red-700");
-var TEXT_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-black");
-var BUTTON_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-500");
-var BUTTON_BORDER_COLOR = window.getComputedStyle(document.body).getPropertyValue("--color-gray-600")
+const WINDOW_STYLE = window.getComputedStyle(document.body)
+const DEFAULT_COLOR = WINDOW_STYLE.getPropertyValue("--color-black");
+const BALL_COLOR = WINDOW_STYLE.getPropertyValue("--color-blue-800");
+const PLAYER_COLOR = WINDOW_STYLE.getPropertyValue("--color-red-700");
+const TEXT_COLOR = WINDOW_STYLE.getPropertyValue("--color-black");
+const BUTTON_COLOR = WINDOW_STYLE.getPropertyValue("--color-gray-500");
+const BUTTON_BORDER_COLOR = WINDOW_STYLE.getPropertyValue("--color-gray-600")
 
 import * as GameSchema from "./../../game.schema.js"
 import { onPageChange } from "../../index.js";
@@ -32,6 +33,7 @@ export class GameArea
     frameNo: number = 0;
     interval: number | undefined;
     registerButton: Button;
+    textBoxes: TextBox[] = [];
 
     constructor(gameID: string, canvas: HTMLCanvasElement, h = 100, w = 200)
     {
@@ -57,6 +59,27 @@ export class GameArea
             this.register, canvas, this, "Click to register!");
         this.registerButton.enabled = false;
         this.registerButton.hidden = true;
+
+        this.textBoxes.push(new TextBox("Spectating...", w / 2, h / 6, 
+            function (this: TextBox, game)
+            {
+                if (game.interval)
+                    this.enabled = true;
+                console.log(game.player);
+                return game.player === undefined;
+            }));
+        this.textBoxes.push(new TextBox("", w / 2 - (w / 16), h / 16,
+            function (this: TextBox, game)
+            {
+                this.text = game.p1Score.toString();
+                return true;
+            }, {align: "right"}));
+        this.textBoxes.push(new TextBox("", w / 2 + (w / 16), h / 16,
+            function (this: TextBox, game)
+            {
+                this.text = game.p2Score.toString();
+                return true;
+            }, {align: "left"}))
 
         this.p1.update(this, 0);
         this.p2.update(this, 0);
@@ -103,13 +126,13 @@ export class GameArea
             {
                 this.registerButton.enabled = true;
                 this.registerButton.hidden = false;
-                this.registerButton.draw(this);
             }
             else
             {
                 this.registerButton.enabled = false;
                 this.registerButton.hidden = true;
             }
+            this.draw();
             break;
         }
         case "registerSuccess":
@@ -121,21 +144,16 @@ export class GameArea
                 this.registerButton.hidden = true;
                 this.player = info.position;
             }
-            else
-            {
-                const ctx = this.context;
-                ctx.font = "24px sans";
-                ctx.fillStyle = TEXT_COLOR;
-                ctx.textAlign = "center";
-                ctx.fillText(this.p1Score.toString(), 0, 0)
-            }
+            this.draw();
             break;
         }
         case "info":
         {
             const info = (data as GameSchema.GameInfo);
             if (info.started)
+            {
                 this.start();
+            }
             this.w = info.gameWidth;
             this.h = info.gameHeight;
             this.framerate = info.framerate;
@@ -149,6 +167,7 @@ export class GameArea
             this.ball.r = info.ballRadius;
             //ball speed
             //ball acel
+            this.draw();
             break;
         }
         case "start":
@@ -232,6 +251,7 @@ export class GameArea
         clearInterval(this.interval);
         this.draw();
         ctx.font = "36px sans";
+        ctx.textBaseline = "middle"
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (scorer == this.p1)
@@ -251,6 +271,7 @@ export class GameArea
         clearInterval(this.interval);
         this.draw();
         ctx.font = "48px sans";
+        ctx.textBaseline = "middle"
         ctx.textAlign = "center";
         ctx.fillStyle = TEXT_COLOR;
         if (winner == this.p1)
@@ -292,7 +313,13 @@ export class GameArea
         this.p2.draw(this);
         this.ball.draw(this);
         this.registerButton.draw(this);
-        this.drawScore();
+
+        const game = this;
+        this.textBoxes = this.textBoxes.filter((tb) => tb.update(game));
+        this.textBoxes.forEach((tb) => tb.draw(game));
+        // this.drawScore();
+        // if (!this.player)
+        //     this.drawSpectate();
     }
 
     drawBackground()
@@ -320,10 +347,73 @@ export class GameArea
 
         ctx.font = "24px sans";
         ctx.fillStyle = TEXT_COLOR;
+        ctx.textBaseline = "middle"
         ctx.textAlign = "right";
         ctx.fillText(this.p1Score.toString(), (this.canvas.width / 2) - 50, 80)
         ctx.textAlign = "left";
         ctx.fillText(this.p2Score.toString(), (this.canvas.width / 2) + 50, 80)
+    }
+
+    drawSpectate()
+    {
+        let ctx = this.context;
+
+        ctx.font = "24px sans";
+        ctx.fillStyle = TEXT_COLOR;
+        ctx.textBaseline = "middle"
+        ctx.textAlign = "center";
+        ctx.fillText("Spectating", this.canvas.width / 2, 160);
+    }
+}
+
+class TextBox
+{
+    text: string;
+    enabled: boolean = true;
+    x: number;
+    y: number;
+    font: string = "24px sans";
+    fillStyle: string = TEXT_COLOR;
+    baseline: CanvasTextBaseline = "middle";
+    align: CanvasTextAlign = "center";
+
+    constructor(
+        text: string, x: number, y: number,
+        update: (game: GameArea) => boolean,
+        params?: {
+            font?: string,
+            fillStyle?: string,
+            baseline?: CanvasTextBaseline,
+            align?: CanvasTextAlign,
+            enabled?: boolean
+        })
+    {
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.update = update;
+        if (params?.font) this.font = params.font;
+        if (params?.fillStyle) this.fillStyle = params.fillStyle;
+        if (params?.baseline) this.baseline = params.baseline;
+        if (params?.align) this.align = params.align;
+        if (params?.enabled) this.enabled = params.enabled;
+    }
+
+    update = (game: GameArea) =>
+    {
+        return true;
+    }
+
+    draw(game: GameArea)
+    {
+        if (!this.enabled) return;
+        const ctx = game.context;
+
+        ctx.font = this.font;
+        ctx.fillStyle = this.fillStyle;
+        ctx.textBaseline = this.baseline;
+        ctx.textAlign = this.align;
+        ctx.fillText(this.text, game.sidePadding + (this.x * game.ratio), this.y * game.ratio);
     }
 }
 
@@ -343,6 +433,7 @@ class Button
     textColor: string;
     enabled: boolean = true;
     hidden: boolean = false;
+    game: GameArea;
 
     constructor(x: number,
         y: number,
@@ -369,6 +460,7 @@ class Button
         this.baseColor = baseColor;
         this.borderColor = borderColor;
         this.textColor = textColor;
+        this.game = game;
 
         element.addEventListener("click", this.onClickHandler)
     }
@@ -387,8 +479,8 @@ class Button
         ctx.strokeRect(rectX, rectY, this.w * game.ratio, this.h * game.ratio);
         ctx.fillStyle = this.textColor;
         ctx.font = this.font;
-        ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
         ctx.fillText(this.text, (this.x * game.ratio) + this.sidePadding, this.y * game.ratio, this.w * game.ratio);
     }
 
