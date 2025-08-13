@@ -37,7 +37,7 @@ export class TournamentArea {
         window.removeEventListener("popstate", lobby_page.lobby.disconnectOnPop);
         this.tournament_host = lobby_page.lobby.lobby_host;
         this.me = lobby_page.lobby.me;
-        this.players = lobby_page.lobby.players;
+        this.players = lobby_page.lobby.players.map(p => p.info);
         
         this.join_button = document.createElement("button");
         this.join_button.innerText = "Join next game";

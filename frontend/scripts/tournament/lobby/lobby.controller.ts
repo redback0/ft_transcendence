@@ -25,8 +25,7 @@ export class LobbyJoinArea {
     ws: WebSocket;
 	lobby_host: UserInfo | undefined;
 	me: UserInfo | undefined;
-	names: HTMLElement[];
-	players: UserInfo[];
+	players: { info: UserInfo, html: HTMLElement }[];
 
 	constructor(room_code: string, parent: LobbyJoinPage) {
 		this.parent = parent;
@@ -42,7 +41,6 @@ export class LobbyJoinArea {
 			this.ws.send(JSON.stringify(req));
         };
 
-		this.names = [];
 		this.players = []
 	}
 
@@ -93,9 +91,8 @@ export class LobbyJoinArea {
     }
 
 	addClient = (client: UserInfo) => {
-		if (!this.players.every(user => user.user_id !== client.user_id))
+		if (!this.players.every(user => user.info.user_id !== client.user_id))
 			return;
-		this.players.push(client);
 	
 		var text = document.createElement("b");
 		text.innerText = client.username;
@@ -108,48 +105,39 @@ export class LobbyJoinArea {
 		textdiv.appendChild(text);
 
 		this.parent.names_div.appendChild(textdiv);
-		this.names.push(text);
+		this.players.push({ info: client, html: text });
 	}
 
-	removeClient = (client: UserInfo) => {
-		if (!client)
+	removeClient = (leaver: UserInfo) => {
+		if (!leaver)
 			return;
-		this.players = this.players.filter(c => c.user_id !== client.user_id);
-		var idx = this.names.findIndex(name => {
-			if (client.user_id === this.lobby_host?.user_id) {
-				return name.innerText.slice(hostPrefix.length) === client.username;
-			}
-			return name.innerText === client.username;
-		});
+		//this.players = this.players.filter(player => player.user_id !== leaver.user_id);
+		let idx = this.players.findIndex(player => player.info.user_id === leaver.user_id);
 		if (idx === -1)
 			return;
-		var textparent = this.names[idx].parentElement;
+		var textparent = this.players[idx].html.parentElement;
 		if (textparent === null)
 			return;
 		this.parent.names_div.removeChild(textparent);
-		this.names.splice(idx, 1);
+		this.players.splice(idx, 1);
 	}
 
 	updateHost = (new_host: UserInfo) => {
 		console.log("updateing host");
-		console.log(this.names.length);
-		var old_host_b = this.names.find(name => {
-			console.log(name.innerText);
-			return (name.innerText.startsWith(hostPrefix));
+		console.log(this.players.length);
+		var old_host = this.players.find(player => {
+			console.log(player.html.innerText);
+			return (player.info.user_id === this.lobby_host?.user_id);
 		});
-		if (old_host_b)
-			old_host_b.innerText = old_host_b.innerText.slice(hostPrefix.length);
+		if (old_host)
+			old_host.html.innerText = old_host.html.innerText.slice(hostPrefix.length);
 		
 		this.lobby_host = new_host;
 		this.parent.start_button.disabled = this.lobby_host.user_id != this.me?.user_id;
-		var new_host_b = this.names.find(name => {
-			if (new_host.user_id === this.me?.user_id)
-				return name.innerText.slice(0, -meSuffix.length) === new_host.username;
-			return name.innerText === new_host.username;
-		});
+		var new_host_b = this.players.find(player => player.info.user_id === new_host.user_id);
 		if (!new_host_b)
 			return;
-		new_host_b.innerText = hostPrefix + new_host_b.innerText;
+		new_host_b.html.innerText = hostPrefix + new_host_b.html.innerText;
 	}
 
 	disconnectOnPop = (e: PopStateEvent) => {
