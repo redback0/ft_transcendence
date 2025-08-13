@@ -15,8 +15,19 @@ export class OnlineGamePage extends HTMLElement {
 
         // TODO: resize canvas when page resized
         var canvas = document.createElement('canvas');
-        canvas.width = window.outerWidth * 3 / 4;
-        canvas.height = canvas.width / 2.2;
+
+        let width = window.outerWidth * 3 / 4;
+        let height = width / 2.2;
+
+        if (window.outerHeight * 3 / 4 < height)
+        {
+            height = window.outerHeight * 3 / 4;
+            width = height * 2.2;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
         canvas.tabIndex = 0;
         this.game = new GameArea(id, canvas);
         this.appendChild(canvas);
