@@ -176,7 +176,7 @@ export class Tournament {
 				} else if (this.active_games.length === 0) {
 					this.startNextRound();
 				}
-			}, p1.user_info?.user_id, p2.user_info?.user_id); // end AddNewGame
+			}); // end AddNewGame
 			this.sendToAll({
 				type: "game_starting",
 				msg: {
@@ -227,7 +227,6 @@ export class Tournament {
 	}
 
 	sendTo = (client: TournamentWebSocket, message: TournamentMessage) => {
-		console.log(`sending message to ${client.user_info?.username} !!! | ${JSON.stringify(message)}`);
 		client.send(JSON.stringify(message), { binary: false });
 	}
 
