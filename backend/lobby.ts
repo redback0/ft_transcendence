@@ -43,26 +43,7 @@ export class Lobby {
             noServer: true,
         });
 		this.room_code = room_code;
-
-
-		this.wss.on("connection", (ws: TournamentWebSocket) => {
-            console.log("new client in lobby !!1!!! yay");
-			if (this.timeout) {
-                clearTimeout(this.timeout);
-                this.timeout = undefined;
-            }
-
-			if (!this.host)
-				this.host = ws;
-            
-			this.sendToAll({ type: "new_client", msg: { client: <UserInfo>ws.user_info } });
-            ws.on("message", (data, isBinary) => { this.wsOnMessage(ws, data, isBinary) });
-            ws.on("close", (code, reason) => { this.wsOnClose(ws, code, reason) });
-            ws.on("pong", () => {
-				// client responded to ping message, keep the connection alive
-                ws.isAlive = true;
-            });
-		});
+		this.wss.on("connection", this.wssOnConnection);
 		lobbyWebSocketServers.set(this.room_code, this);
 		this.setPingInterval(1000);
 	} //end contructor
@@ -73,14 +54,34 @@ export class Lobby {
 		lobbyWebSocketServers.delete(this.room_code);
 	}
 
+	wssOnConnection = (ws: TournamentWebSocket) => {
+		console.log("new client in lobby !!1!!! yay");
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = undefined;
+		}
+
+		if (!this.host)
+			this.host = ws;
+		
+		this.sendToAll({ type: "new_client", msg: { client: <UserInfo>ws.user_info } });
+		ws.on("message", (data, isBinary) => { this.wsOnMessage(ws, data, isBinary) });
+		ws.on("close", (code, reason) => { this.wsOnClose(ws, code, reason) });
+		ws.on("pong", () => {
+			// client responded to ping message, keep the connection alive
+			ws.isAlive = true;
+		});
+	}
+
 	wsOnMessage = async (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
 		console.log(`msg from client in lobby: (${isBinary}, ${data})`);
 		const request: LobbyRequest = JSON.parse(data.toString());
 		switch (request.type) {
-			case "infoRequest":
+			case "infoRequest": {
 				this.sendInfoResponse(ws);
 				break;
-			case "startRequest":
+			}
+			case "startRequest": {
 				if (ws !== this.host)
 					return;
 				console.log(`lobby (${this.room_code}) start request receieved`);
@@ -88,8 +89,10 @@ export class Lobby {
 				this.intoTournament();
 				console.log(`Lobby deleted (${this.room_code}), turned into tournament`);
 				break;
-			default:
+			}
+			default: {
 				console.warn("unknown lobby request from client");
+			}
 		}
 	}
 
@@ -157,7 +160,7 @@ export class Lobby {
             this.wss.clients.forEach(ws => {
                 if (ws.isAlive === false)
                 {
-                    console.debug("client failed to ping (game)");
+                    console.debug("client failed to ping (lobby)");
                     return ws.terminate();
                 }
                 ws.isAlive = false;

@@ -83,7 +83,7 @@ export class LobbyJoinArea {
 			case "tournament_starting":
 				console.log(`tournament is starting !!! rom code ${data.msg.room_code}`);
 				history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.room_code);
-				setCurrentPage(new TournamentPage(this.parent, data.msg.room_code));
+				setCurrentPage(new TournamentPage({ page: this.parent, room_code: data.msg.room_code }));
 				break;
 			default:
 				console.warn("unrecognised message from lobby !!!");

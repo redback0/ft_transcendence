@@ -13,6 +13,7 @@ import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { LoginPage } from './login/login.template.js'
 import { LoginPostLoad } from './login/login.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
+import { TournamentPage } from './tournament/tournament/tournament.template.js'
 
 type Page = {
     builder: typeof HTMLElement,
@@ -27,7 +28,8 @@ const pages = new Map<string, Page>([
     ['/lobby/join', {builder: LobbyJoinPage}],
     // ['/chat', {builder: ChatPage}],
     ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
-    ['/mypage', {builder: UserPage}]
+    ['/mypage', {builder: UserPage}],
+    ['/tournament/bracket', {builder: TournamentPage}]
 ]);
 
 export let currPage : HTMLElement

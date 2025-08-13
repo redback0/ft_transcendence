@@ -2,13 +2,25 @@ import { RawData, WebSocketServer, WebSocket, Server } from "ws";
 import { UserID, LobbySessionID } from "./lobby.schema";
 import { AddNewGame, gameWebSocketServers, NewID } from "./game";
 import { Lobby } from "./lobby";
-import { GameID, SessionID, TournamentID, TournamentMessage, UserInfo } from "./tournament.schema";
+import { GameID, SessionID, TournamentID, TournamentMessage, UserInfo, TournamentNextRoundStart } from './tournament.schema';
 import { db } from "./database";
 
 type Pair<T> = {
 	first: T,
 	second: T,
 }
+
+type GameRecord = {
+	game_id: GameID,
+	p1: {
+		user_info: UserInfo,
+		points: number,
+	}
+	p2: {
+		user_info: UserInfo,
+		points: number,
+	}
+}	
 
 function compair<T>(pair1: Pair<T>, pair2: Pair<T>): boolean {
 	return (
@@ -30,10 +42,13 @@ export class TournamentWebSocket extends WebSocket {
 // monrad system swiss style tournament
 export class Tournament {
 	id: TournamentID;
+	players: UserInfo[];
 	wss: Server<typeof TournamentWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
 	timeout: NodeJS.Timeout | undefined;
 	host: TournamentWebSocket | undefined;
-	game_ids: Array<GameID>;
+	byed_player: UserInfo | undefined;
+	active_games: Array<{ game_id: GameID, p1: UserInfo, p2: UserInfo }>;
+	finished_games: Array<GameRecord>;
 	current_round: number;
 	total_rounds_needed: number;	
 	prev_pairings: Array<Pair<TournamentWebSocket>>;
@@ -41,17 +56,41 @@ export class Tournament {
 	constructor(lobby: Lobby, tourney_id: TournamentID) {
 		this.prev_pairings = [];
 		this.current_round = 0;
-		this.game_ids = [];
+		this.active_games = [];
+		this.finished_games = [];
 		this.host = lobby.host;
 		this.wss = lobby.wss;
+		this.players = [];
+		this.wss.clients.forEach(client => this.players.push(<UserInfo>client.user_info));
 		this.total_rounds_needed = Math.ceil(Math.log2(this.wss.clients.size));
 		console.log(`total rounds needed: ${this.total_rounds_needed}`);
-		// TODO: do not accept any more connections (temporary thing)
+		
+		this.wss.removeListener("connection", lobby.wssOnConnection);
 		this.wss.on("connection", (ws: TournamentWebSocket) => {
-			console.log("refusing connection");
-			ws.close();
+			console.log(`tournament reconnect: ${ws.user_info?.username}`);
+			this.sendTo(ws, { type: "you_are", msg: { you: <UserInfo>ws.user_info }})
+			this.sendTo(ws, { type: "next_round_starting", msg: {}});
+			if (this.byed_player)
+				this.sendTo(ws, { type: "byed", msg: { player: this.byed_player } });
+			this.active_games.forEach(game => {
+				this.sendTo(ws, { type: "game_starting", msg: game })
+				if (game.p1.user_id === ws.user_info?.user_id || game.p2.user_id === ws.user_info?.user_id) {
+					this.sendTo(ws, { type: "go_to_game", msg: { game_id: game.game_id } });
+				}
+			});
+			this.finished_games.forEach(game => {
+				this.sendTo(ws, { type: "game_starting", msg: {
+					game_id: game.game_id,
+					p1: game.p1.user_info,
+					p2: game.p2.user_info
+				}});
+				this.sendTo(ws, { 
+					type: "game_finished",
+					msg: game
+				});
+			});
 		});
-		// TODO: make tournament code or something
+
 		this.id = tourney_id;
 		this.timeout = lobby.timeout;
 		this.wss.clients.forEach(client => {
@@ -87,11 +126,13 @@ export class Tournament {
 		++this.current_round;
 		console.log(`starting round ${this.current_round} !!!`);
 		this.sendToAll({ type: "next_round_starting", msg: {} });
+		this.finished_games = [];
+		this.byed_player = undefined;
 		const pairs = this.matchmakeClients();
 		for (let { first: p1, second: p2 } of pairs) {
 			const game_id = NewID(8);
 			console.log(`making game (${game_id}): ${p1.user_info?.user_id} (${p1.wins}) vs. ${p2.user_info?.user_id} (${p2.wins})`);
-			this.game_ids.push(game_id);
+			this.active_games.push({ game_id: game_id, p1: <UserInfo>p1.user_info, p2: <UserInfo>p2.user_info });
 			this.prev_pairings.push({ first: p1, second: p2 });
 			AddNewGame(game_id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => {
 				console.log("game finished!!!");
@@ -102,26 +143,25 @@ export class Tournament {
 					console.log(`${p2.user_info?.user_id} won vs. ${p1.user_info?.user_id}!`);
 					p2.wins++;
 				}
-				this.sendToAll({ 
-					type: "game_finished",
-					msg: {
-						p1: {
-							user_info: <UserInfo>p1.user_info, // TODO: figure this out
-							points: p1Score,
-						},
-						p2: {
-							user_info: <UserInfo>p2.user_info,
-							points: p2Score,
-						},
-						game_id: game_id,
-					}
-				});
+				let game_record: GameRecord = {
+					p1: {
+						user_info: <UserInfo>p1.user_info, // TODO: figure this out
+						points: p1Score,
+					},
+					p2: {
+						user_info: <UserInfo>p2.user_info,
+						points: p2Score,
+					},
+					game_id: game_id,
+				};
+				this.sendToAll({ type: "game_finished", msg: game_record });
 				this.sendTo(p1, { type: "go_to_bracket", msg: { tourney_id: this.id } });
 				this.sendTo(p2, { type: "go_to_bracket", msg: { tourney_id: this.id } });
 
-				this.game_ids = this.game_ids.filter(id => id !== game_id);
-				gameWebSocketServers.get(game_id)?.kill(); // TODO: need a better way to disconnect players on game end i thnkkkk
-				if (this.game_ids.length === 0 && this.current_round >= this.total_rounds_needed) {
+				this.active_games = this.active_games.filter(info => info.game_id !== game_id);
+				this.finished_games.push(game_record);
+				gameWebSocketServers.get(game_id)?.kill();
+				if (this.active_games.length === 0 && this.current_round >= this.total_rounds_needed) {
 					console.log(`tourney finished !!!`);
 					const tmp: Array<TournamentWebSocket> = [];
 					this.wss.clients.forEach(c => tmp.push(c));
@@ -133,10 +173,10 @@ export class Tournament {
 						console.log(`${client.user_info?.username} (${client.score})`);
 					}
 					this.sendToAll({ type: "tournament_finished", msg: { rankings: rankings } });
-				} else if (this.game_ids.length === 0) {
+				} else if (this.active_games.length === 0) {
 					this.startNextRound();
 				}
-			}); // end AddNewGame
+			}, p1.user_info?.user_id, p2.user_info?.user_id); // end AddNewGame
 			this.sendToAll({
 				type: "game_starting",
 				msg: {
@@ -187,6 +227,7 @@ export class Tournament {
 	}
 
 	sendTo = (client: TournamentWebSocket, message: TournamentMessage) => {
+		console.log(`sending message to ${client.user_info?.username} !!! | ${JSON.stringify(message)}`);
 		client.send(JSON.stringify(message), { binary: false });
 	}
 
@@ -195,7 +236,7 @@ export class Tournament {
             this.wss.clients.forEach(ws => {
                 if (ws.isAlive === false)
                 {
-                    console.debug("client failed to ping (game)");
+                    console.debug("client failed to ping (tournament)");
                     return ws.terminate();
                 }
                 ws.isAlive = false;
@@ -219,6 +260,7 @@ export class Tournament {
 				let client = client_pool[i];
 				if (!client.been_byed) {
 					console.log(`${client.user_info?.user_id} has been byed!`);
+					this.byed_player = client.user_info;
 					this.sendToAll({ type: "byed", msg: { player: <UserInfo>client.user_info } });
 					client.wins++;
 					client.been_byed = true;

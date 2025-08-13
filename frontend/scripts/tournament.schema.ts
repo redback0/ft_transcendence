@@ -69,6 +69,13 @@ export type TournamentNextRoundStart = {
 	msg: {},
 }
 
+export type TournamentYouAreMessage = {
+	type: "you_are",
+	msg: {
+		you: UserInfo
+	}
+}
+
 export type TournamentMessage = TournamentStartMessage
 	| TournamentGameFinishedMessage
 	| TournamentGoToBracketMessage
@@ -77,5 +84,6 @@ export type TournamentMessage = TournamentStartMessage
 	| TournamentFinishedMessage
 	| TournamentByedMessage
 	| TournamentNextRoundStart
+	| TournamentYouAreMessage
 	| LobbyClientLeftMessage;
 

@@ -16,9 +16,9 @@ export class TournamentArea {
     page: TournamentPage;
     tourney_id: TournamentID;
     ws: WebSocket;
-	tournament_host: UserInfo;
-	me: UserInfo;
-	players: UserInfo[];
+	//tournament_host: UserInfo;
+	me: UserInfo | undefined;
+	//players: UserInfo[];
     current_games_div: HTMLDivElement;
     matchups: Matchup[];
     byed_html: HTMLParagraphElement | undefined;
@@ -26,19 +26,26 @@ export class TournamentArea {
     game: GameID | undefined;
     join_button: HTMLButtonElement;
 
-	constructor(page: TournamentPage, lobby_page: LobbyJoinPage, room_code: TournamentID) {
-        if (!lobby_page.lobby.lobby_host || !lobby_page.lobby.me) {
-            throw new Error("lobbyhost id or my id was undefined :(");
+	constructor(page: TournamentPage, lobby_info?: { page: LobbyJoinPage, room_code: TournamentID }) {
+        if (!lobby_info) {
+            let searchParams = new URLSearchParams(window.location.search);
+            let bracket_id = searchParams.get("bracket_id");
+            if (!bracket_id)
+                throw Error("no room code. L"); // error page
+            console.log(`requesting ws: '/wss/tournament/${bracket_id}'`);
+            this.ws = new WebSocket("/wss/tournament/" + bracket_id);
+            this.tourney_id = bracket_id;
+        } else {
+            this.tourney_id = lobby_info.room_code;
+            this.ws = lobby_info.page.lobby.ws;
+            window.removeEventListener("popstate", lobby_info.page.lobby.disconnectOnPop);
+            if (!lobby_info.page.lobby.lobby_host)
+                throw new Error("no host");
+            //this.tournament_host = lobby_info.page.lobby.lobby_host;
+            this.me = <UserInfo>lobby_info.page.lobby.me;
+            //this.players = lobby_info.page.lobby.players.map(p => p.info);
         }
-        this.page = page;
-        this.tourney_id = room_code;
-        this.ws = lobby_page.lobby.ws;
-		this.ws.onmessage = this.wsMessage;
-        window.removeEventListener("popstate", lobby_page.lobby.disconnectOnPop);
-        this.tournament_host = lobby_page.lobby.lobby_host;
-        this.me = lobby_page.lobby.me;
-        this.players = lobby_page.lobby.players.map(p => p.info);
-        
+        this.ws.onmessage = this.wsMessage;
         this.join_button = document.createElement("button");
         this.join_button.innerText = "Join next game";
         this.join_button.disabled = this.game === undefined;
@@ -46,6 +53,7 @@ export class TournamentArea {
             if (this.game)
                 this.joinGame();
         };
+        this.page = page;
         this.page.appendChild(this.join_button);
 
         this.current_games_div = document.createElement('div');
@@ -53,7 +61,7 @@ export class TournamentArea {
         this.page.appendChild(this.current_games_div);
         
         this.matchups = [];
-        this.log(`me: ${this.me.username}, host: ${this.tournament_host.user_id}, everyone: ${this.players}`);
+        this.log(`me: ${this.me?.username}`);
 	}
 
     wsMessage = (ev: MessageEvent) => {
@@ -115,6 +123,10 @@ export class TournamentArea {
                 });
                 this.matchups = [];
             break;
+            case "you_are": {
+                this.me = msg.you;
+                break;
+            }
             default:
                 this.log("Unrecognised message from server");
         }
@@ -166,7 +178,7 @@ export class TournamentArea {
         spectate_button.addEventListener("click", () => {
             this.spectateGame(game_id);
         });
-        if (game_id === this.game || p1.user_id === this.me.user_id || p2.user_id === this.me.user_id) {
+        if (!this.me || game_id === this.game || p1.user_id === this.me.user_id || p2.user_id === this.me.user_id) {
             spectate_button.disabled = true;
         }
 
