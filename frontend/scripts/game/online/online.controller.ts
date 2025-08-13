@@ -43,6 +43,7 @@ export class GameArea
         this.ws = new WebSocket("/wss/game/" + gameID);
         const ws = this.ws;
         onPageChange(() => {ws.close()});
+        addEventListener("resize", (e) => this.pageResize(e))
         this.ws.onopen = this.wsConnect;
         this.ws.onmessage = this.wsMessage;
         this.canvas = canvas;
@@ -341,19 +342,6 @@ export class GameArea
         );
     }
 
-    drawScore()
-    {
-        let ctx = this.context;
-
-        ctx.font = "24px sans";
-        ctx.fillStyle = TEXT_COLOR;
-        ctx.textBaseline = "middle"
-        ctx.textAlign = "right";
-        ctx.fillText(this.p1Score.toString(), (this.canvas.width / 2) - 50, 80)
-        ctx.textAlign = "left";
-        ctx.fillText(this.p2Score.toString(), (this.canvas.width / 2) + 50, 80)
-    }
-
     drawSpectate()
     {
         let ctx = this.context;
@@ -363,6 +351,26 @@ export class GameArea
         ctx.textBaseline = "middle"
         ctx.textAlign = "center";
         ctx.fillText("Spectating", this.canvas.width / 2, 160);
+    }
+
+    pageResize(e: UIEvent)
+    {
+        let width = window.outerWidth * 3 / 4;
+        let height = width / 2.2;
+
+        if (window.outerHeight * 3 / 4 < height)
+        {
+            height = window.outerHeight * 3 / 4;
+            width = height * 2.2;
+        }
+
+        this.canvas.width = width;
+        this.canvas.height = height;
+
+        this.ratio = height / this.h;
+        this.sidePadding = (width - (this.w * this.ratio)) / 2;
+
+        this.draw();
     }
 }
 
