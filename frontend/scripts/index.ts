@@ -2,7 +2,7 @@
 //import { Fastify } from "fastify";
 import { api } from './api.js'
 import { IndexPage, IndexPostLoad } from './index.template.js'
-import { GamePage } from './game/game.template.js'
+import { GamePage, GamePostLoad } from './game/game.template.js'
 import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
@@ -12,6 +12,7 @@ import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { LoginPage } from './login/login.template.js'
 import { LoginPostLoad } from './login/login.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
+import './navigation.js'
 
 type Page = {
     builder: typeof HTMLElement,
@@ -19,7 +20,7 @@ type Page = {
 }
 const pages = new Map<string, Page>([
     ['/', {builder: IndexPage, postLoad: IndexPostLoad}],
-    ['/game', {builder: GamePage}],
+    ['/game', {builder: GamePage, postLoad: GamePostLoad}],
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
     ['/lobby', {builder: LobbyNavPage}],
@@ -66,6 +67,7 @@ export function onPageChange(func: cleanupFunc)
 
 export function NavOnClick(e: MouseEvent)
 {
+    closeMenu();
     if (!(e.target instanceof HTMLAnchorElement))
         return;
 
@@ -85,6 +87,12 @@ document.body.onload = () => {
     newPage();
     history.replaceState(null, "", document.location.href);
 
+    const navButtons = document.getElementsByClassName("nav-button");
+
+    for (let navButton of navButtons)
+    {
+        if (navButton instanceof HTMLElement) navButton.onclick = NavOnClick;
+    }
 }
 
 window.addEventListener("popstate", (e) =>
