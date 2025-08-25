@@ -431,8 +431,6 @@ class Button
     y: number;
     w: number;
     h: number;
-    ratio: number;
-    sidePadding: number;
     event: Function;
     text: string;
     font: string;
@@ -460,8 +458,6 @@ class Button
         this.y = y;
         this.w = w;
         this.h = h;
-        this.ratio = game.ratio;
-        this.sidePadding = game.sidePadding;
         this.event = event;
         this.text = text;
         this.font = font;
@@ -477,10 +473,10 @@ class Button
     {
         if (this.hidden)
             return;
-        let ctx = game.context;
+        const ctx = game.context;
         // TODO: change color when disabled
         ctx.fillStyle = this.baseColor;
-        let rectX = ((this.x - (this.w / 2)) * game.ratio) + this.sidePadding;
+        let rectX = ((this.x - (this.w / 2)) * game.ratio) + game.sidePadding;
         let rectY = (this.y - (this.h / 2)) * game.ratio;
         ctx.fillRect(rectX, rectY, this.w * game.ratio, this.h * game.ratio);
         ctx.strokeStyle = this.borderColor;
@@ -489,16 +485,17 @@ class Button
         ctx.font = this.font;
         ctx.textBaseline = "middle";
         ctx.textAlign = "center";
-        ctx.fillText(this.text, (this.x * game.ratio) + this.sidePadding, this.y * game.ratio, this.w * game.ratio);
+        ctx.fillText(this.text, (this.x * game.ratio) + game.sidePadding, this.y * game.ratio, this.w * game.ratio);
     }
 
     onClickHandler = (e: MouseEvent) =>
     {
+        const game = this.game
         if (this.enabled && !this.hidden &&
-            e.offsetX > ((this.x * this.ratio) + this.sidePadding) - (this.w / 2 * this.ratio) &&
-            e.offsetX < ((this.x * this.ratio) + this.sidePadding) + (this.w / 2 * this.ratio) &&
-            e.offsetY > (this.y * this.ratio) - (this.h / 2 * this.ratio) &&
-            e.offsetY < (this.y * this.ratio) + (this.h / 2 * this.ratio))
+            e.offsetX > ((this.x * game.ratio) + game.sidePadding) - (this.w / 2 * game.ratio) &&
+            e.offsetX < ((this.x * game.ratio) + game.sidePadding) + (this.w / 2 * game.ratio) &&
+            e.offsetY > (this.y * game.ratio) - (this.h / 2 * game.ratio) &&
+            e.offsetY < (this.y * game.ratio) + (this.h / 2 * game.ratio))
         {
             this.event();
         }
