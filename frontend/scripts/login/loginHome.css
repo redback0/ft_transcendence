@@ -1,0 +1,59 @@
+			#redHover:hover {
+				color: #DED19C !important;
+				background-color: #520404;
+				display: inline-block;
+			}
+			input {
+				background-color:#520404;
+				display: block;
+				height: 5vh;
+				width: 40vw;
+				text-indent: 10px;
+				color:#DED19C;
+				outline: none;
+			}
+			form input::placeholder {
+				color:#DED19C;
+			}
+			#main-content {
+				display: flex;
+				position: fixed;
+				justify-content: center;
+				align-items: center;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -60%);
+			}
+			@keyframes marquee {
+				from {
+					transform: translateX(100vw);
+				}
+				to {
+					transform: translateX(-200%);
+				}
+			}
+			.marquee {
+				position: absolute;
+				white-space: nowrap;
+				will-change: transform;
+			}
+			#mc1 {
+				animation: marquee 60s linear infinite;
+			}
+			#mc2 {
+				transform: translateX(100vw);
+				animation: marquee 60s linear infinite;
+				/* animation-delay: 2s; */
+			}
+			.marquee-content {
+				display: inline-block;
+				/* position: absolute; */
+			}
+			.marquee a {
+				margin-right: 7vw;
+				text-decoration: none;
+				color: inherit;
+			}
+			footer .marquee a:hover {
+				color: white !important;
+			}

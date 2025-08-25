@@ -1,13 +1,14 @@
-//Authored by Bethany Milford 22/06/2025
-export class LoginPage extends HTMLElement
-{
-    constructor()
-    {
-        super();
-        this.innerHTML =
-        `
-		<link rel="stylesheet" href="./loginHome.css" type="text/css"> <!-- TODO: maybe need to move these -->
-
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LOGIN - TRANSVENGENCE</title>
+        <!-- <link rel="stylesheet" href="./nav_bar.css" type="text/css"> TODO: maybe need to move these -->
+        <link rel="stylesheet" href="./loginHome.css" type="text/css"> <!-- TODO: maybe need to move these -->
+        <!-- <script defer src="./nav_bar.js"></script> TODO: Changed this for convenince during migration, must fix, also check the files these link to, this might be moving to be linked from somewhere else. -->
+        <script src="https://cdn.tailwindcss.com"></script> <!-- TODO: See previous comment. -->
+        <meta name="viewport" charset="UTF-8" content="width=device-width, initial-scale=1">
+    </head>
+    <body class="pt-[8vh] pb-[5vh] bg-[#DED19C]"> <!-- Old HTML body element has no tags. -->
         <div id="main-content">
             <form method="POST" id="LoginForm"> <!-- Leaving this id from the old html, to avoid changing code on the back end. -->
                 <div class="container">
@@ -31,7 +32,6 @@ export class LoginPage extends HTMLElement
                 <h1 id="redHover" id="loginButton" onclick="submitForm()" style="font-weight:bold; font-size:10vh; color:#520404">PLAY -></h1> <!-- TODO: Added the old HTML code for the id here. Must check if it is use at all before deleting. -->
             </form> 
         </div>
-            `;
-    }
-}
-customElements.define('login-page', LoginPage);
+    </body>
+</html>
+<!-- TODO: JC removed sign up stuff here. Must make a new page for this. -->
