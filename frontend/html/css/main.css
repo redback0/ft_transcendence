@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
-body
+:root
 {
-    background-color: var(--color-pink-200);
+    --color1: #DED19C;
+    --color2: #520404;
 }
+
+/********************************************************/
+/**************          OLD CSS          ***************/
+/********************************************************/
+
 container 
 {
     width: 50%;
@@ -41,7 +47,6 @@ button:hover
 
 button:disabled
 {
-    background-color: var(--color-pink-200);
     color: var(--color-gray-100);
 }
 
@@ -50,7 +55,6 @@ input
     padding: 2px;
     padding-left: 10px;
     padding-right: 10px;
-    background-color: var(--color-pink-200);
     border: 1px solid var(--color-gray-400);
     border-radius: 5px;
 }
@@ -70,10 +74,307 @@ canvas
     margin: auto;
     border: 1px solid var(--color-gray-800);
     margin-top: 30px;
-    background-color: var(--color-pink-600);
     touch-action: none;
 }
 
 base{
     padding: 20px;
+}
+
+/********************************************************/
+/**************           SIGNUP          ***************/
+/********************************************************/
+#signup-main-content {
+    display: block;
+    position: fixed;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/********************************************************/
+/*************          LOGINHOME          **************/
+/********************************************************/
+#loginhome-redHover:hover, #signin-redHover:hover {
+    color: #DED19C !important;
+    background-color: #520404;
+    display: inline-block;
+}
+#loginhome-input, #signup-input {
+    background-color:#520404;
+    display: block;
+    height: 5vh;
+    width: 40vw;
+    text-indent: 10px;
+    color:#DED19C;
+    outline: none;
+}
+#loginform input::placeholder {
+    color:#DED19C;
+}
+#loginhome-main-content {
+    display: flex;
+    position: fixed;
+    justify-content: center;
+    align-items: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+}
+
+/********************************************************/
+/*************          GAMESELECT         **************/
+/********************************************************/
+#gameselect-redHover {
+    font-weight: bold;
+    color:#520404;
+}
+#gameselect-redHover:hover {
+    color: #DED19C !important;
+    background-color: #520404;
+}
+#gameselect-main-content {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    font-size: min(10vw, 80px);
+    text-align: center;
+}
+
+
+/********************************************************/
+/***************          FRIENDS         ***************/
+/********************************************************/
+#table-friends {
+    margin-left: 20vw;
+    margin-right: 20vw;
+    margin-bottom: 20vh;
+    color: #520404;
+}
+.profile-container:hover .profile-name {
+    color: #520404 !important;
+    background-color: #DED19C;
+}
+.profile-name {
+    font-size: 2rem;
+}
+#friends-redHover:hover {
+    color: #DED19C !important;
+    background-color: #520404;
+    display: inline-block;
+}
+#friends-user-search {
+    background-color:#520404;
+    display: block;
+    height: 5vh;
+    width: 40vw;
+    text-indent: 10px;
+    font-size: 16px;
+    padding: 0;
+    box-sizing: border-box;
+    line-height: 40px;
+    color:#DED19C;
+    outline: none;
+    border: none;
+}
+#down-arrow {
+    position: absolute;
+    bottom: 8vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 80;
+}
+form input::placeholder {
+    color:#DED19C;
+}
+#friends-main-content {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: left;
+    overflow: visible;
+    transform: translateY(-15%);
+}
+
+
+
+/********************************************************/
+/***************          FOOTER          ***************/
+/********************************************************/
+@keyframes marquee {
+    from {
+        transform: translateX(100vw);
+    }
+    to {
+        transform: translateX(-200%);
+    }
+}
+.marquee {
+    position: absolute;
+    white-space: nowrap;
+    will-change: transform;
+}
+#mc1 {
+    animation: marquee 60s linear infinite;
+}
+#mc2 {
+    transform: translateX(100vw);
+    animation: marquee 60s linear infinite;
+    /* animation-delay: 2s; */
+}
+.marquee-content {
+    display: inline-block;
+    /* position: absolute; */
+}
+.marquee a {
+    margin-right: 7vw;
+    text-decoration: none;
+    color: inherit;
+}
+footer .marquee a:hover {
+    color: white !important;
+}
+
+
+/********************************************************/
+/***************          NAV-BAR         ***************/
+/********************************************************/
+.nav-bar {
+    width: 100%;
+    background-color: #520404;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 90;
+}
+
+#hamburger-menu > svg {
+    width: min(10vw, 50px);
+    height: auto;
+    cursor: pointer;
+    transition: scale .1s ease-in-out;
+}
+
+#hamburger-menu > svg:hover {
+    scale: 1.1;
+}
+
+#transvengence-logo > svg {
+    cursor: pointer;
+    fill: #DED19C;
+    transition: fill .1s ease-in-out;
+    transition: scale .1s ease-in-out;
+}
+
+#transvengence-logo > svg:hover {
+    fill: #FFFFFF !important;
+    scale: 1.025;
+}
+
+#chat-icon > svg {
+    width: min(10vw, 38px);
+    height: auto;
+    cursor: pointer;
+}
+
+#chat-icon > svg {
+    transition: scale .1s ease-in-out;
+}
+
+#chat-icon > svg:hover {
+    scale: 1.08;
+}
+
+#menu-exit:hover > svg {
+    scale: 1.2;
+}
+
+.menu-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1;
+}
+
+.nav-bar, .menu-nav-bar {
+    padding: 3px 15px 3px 1vw;
+}
+
+.nav-bar-logo {
+    width: min(30vw, 160px);
+}
+
+/********************************************************/
+/***************       MENU OVERLAY       ***************/
+/********************************************************/
+ul {
+    color: #DED19C;
+}
+ul a:hover, ul a:focus {
+    color: #520404 !important;
+    background-color: #DED19C;
+}
+
+li {
+    list-style-type: none;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+    background-color: #520404;
+}
+
+.menu-items {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: min(10vw, 80px);
+    text-align: center;
+}
+
+.menu-items .active {
+    color: #DED19C;
+}
+
+.menu-items > ul > li > a {
+    padding: 0 5px;
+}
+
+#main-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    z-index: 1000;
+    overflow: hidden;
+    justify-content: space-between;
+    background-color: #520404;
+    transition: height .5s ease-in-out;
+}
+
+#menu-exit > svg {
+    width: min(7vw, 30px);
 }
