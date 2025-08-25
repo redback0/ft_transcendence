@@ -8,7 +8,6 @@ import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
-import { AddNavigation } from './navigation.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { LoginPage } from './login/login.template.js'
 import { LoginPostLoad } from './login/login.controller.js'
@@ -67,10 +66,23 @@ export function onPageChange(func: cleanupFunc)
     cleanupFuncs.push(func);
 }
 
+export function NavOnClick(e: MouseEvent)
+{
+    if (!(e.target instanceof HTMLAnchorElement))
+        return;
+
+    e.preventDefault();
+
+    const newURL = e.target.href;
+
+    history.pushState({}, "", newURL);
+
+    newPage();
+}
+
+
 document.body.onload = () => {
     document.title = "Code defined title!";
-
-    AddNavigation();
 
     newPage();
     history.replaceState(null, "", document.location.href);
