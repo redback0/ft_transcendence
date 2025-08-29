@@ -10,7 +10,7 @@ class HBWebSocket extends WebSocket
 export const chatWebSocketServer = new WebSocketServer({
     WebSocket: HBWebSocket,
     noServer: true,
-    path: '/wss/chat'
+    path: '/wss/generalchat'
 });
 
 export function initChat()
@@ -54,6 +54,7 @@ export function initChat()
         })
     }, 30000)
 }
+/*
 // Server tingz!!
 class Server
 {// user connects as soon as they sign in!
