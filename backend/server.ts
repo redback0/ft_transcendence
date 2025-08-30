@@ -60,7 +60,7 @@ fastify.server.on("upgrade", async function (req, socket, head)
              chatWebSocketServer.emit('connection', ws, req);
          });
     }
-    if (req.url?.startsWith('/wss/game'))
+    else if (req.url?.startsWith('/wss/game'))
     {
         const id = req.url.substring("/wss/game/".length)
         if (id === "")

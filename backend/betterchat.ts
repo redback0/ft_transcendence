@@ -98,11 +98,11 @@ export function initChat()
                 clients.delete(clientId);
                 console.log(`Client ${clientId} has disconnected.`)
             }
+        });
 
         ws.on("pong", function (buffer)
         {
             ws.isAlive = true;
-        });
         });
 
         ws.onerror = function(error) {

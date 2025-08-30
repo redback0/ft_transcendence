@@ -68,15 +68,15 @@ let ws:  WebSocket | undefined;
 
 export function ChatPostLoad(page: HTMLElement)
 {
-   /* const MessageTb = (document.getElementById('messageInput') as HTMLInputElement);
-    if (MessageTb)
+   const MessageInput = (document.getElementById('messageInput') as HTMLInputElement);
+    if (MessageInput)
     {
-        MessageTb.onkeydown = (event) =>
+        MessageInput.onkeydown = (event) =>
         {
             if (event.key === "Enter")
-                wssMessageSender(MessageTb.value);
+                wssMessageSender("sendMessage", MessageInput.value,"general");
         };
-    }*/ 
+    }
     //document.getElementById('default')?.click();
     /*function openChat(event: any, chatName: string) 
     {
@@ -126,6 +126,11 @@ export function ChatPostLoad(page: HTMLElement)
        SendButton.innerHTML = `<p> Success </p>`;
     });
 
+    window.addEventListener("popstate", function disconnectChat(e)
+    {
+        ws?.close();
+        this.removeEventListener("popstate", disconnectChat);
+    });
 
     function connectWS()
     {
@@ -133,6 +138,7 @@ export function ChatPostLoad(page: HTMLElement)
         ws.onopen = function ()
         {
             messageReciever("connected to chat", "info");
+            wssMessageSender("sendMessage", "New Client Connected", "general");
         }
         ws.onmessage = function (ev: MessageEvent)
         {
@@ -191,7 +197,7 @@ const outgoingMessage = (msg: string, type: "normal" | "info" = "normal") =>
     }
 }
 
-const wssMessageSender = (type:string, message: string, reciever:string) =>
+const wssMessageSender = (type:string, message: string, reciever: string) =>
 {
     if (!ws || ws.readyState === ws.CLOSED)
         return;
@@ -205,6 +211,6 @@ const wssMessageSender = (type:string, message: string, reciever:string) =>
             reciever: reciever
         }));
     }
-    //outgoingMessage(message);
+   // outgoingMessage(message);
 }
 
