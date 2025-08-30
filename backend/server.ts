@@ -1,13 +1,15 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 //import { initChat, chatWebSocketServer } from './chat.js';
-import cookie from '@fastify/cookie';
+import cookie, { fastifyCookie } from '@fastify/cookie';
 import * as Game from './game.js';
-import { registerCookieRoutes } from './cookie.js';
+import { registerCookieRoutes, sidToUserIdAndName, validateSession } from './cookie.js';
 // export const db = new Database('/database/pong.db');
 export const fastify: FastifyInstance = Fastify({ logger: true });
 import * as User from './user.js';
 import * as Lobby from './lobby.js';
+import { SESSION_ID_COOKIE_NAME } from './cookie';
+import * as Tournament from './tournament.js';
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
 {
@@ -38,7 +40,7 @@ const start = async () =>
 
 // TODO: display error page when client request a lobby that does not exist (this issue probably affects games too)
 // NOTE: since Tournaments reuse the websockets of a Lobby, they get created by a Lobby, not here
-fastify.server.on("upgrade", function (req, socket, head)
+fastify.server.on("upgrade", async function (req, socket, head)
 {
     // if (!req.url)
     //     return;
@@ -74,8 +76,65 @@ fastify.server.on("upgrade", function (req, socket, head)
         if (!lobbyServer) {
             return;
         }
+        if (!req.headers?.cookie)
+            return;
+        const sid_cookie = fastifyCookie.parse(<string>req.headers.cookie)[SESSION_ID_COOKIE_NAME];
+        if (!sid_cookie)
+            return;
+        const user_info = await sidToUserIdAndName(sid_cookie);
+        if (!user_info) {
+            console.warn("Warning: Invalid session ID from client");
+            return;
+        }
+		let already_here = false;
+		lobbyServer.clients.forEach((c) => {
+			if (user_info.user_id === c.user_info?.user_id) {
+				already_here = true;
+			}
+		});
+        if (already_here) {
+            return;
+        }
         lobbyServer.handleUpgrade(req, socket, head, function done(ws) {
+            ws.user_info = user_info;
             lobbyServer.emit('connection', ws, req);
+        });
+    }
+    else if (req.url?.startsWith('/wss/tournament'))
+    {
+        const bracket_id = req.url.substring("/wss/tournament/".length);
+        if (bracket_id === "")
+            return;
+        const tourney = Tournament.tournamentWebSocketServers.get(bracket_id);
+        if (!tourney) {
+            return;
+        }
+        if (!req.headers?.cookie)
+            return;
+        const sid_cookie = fastifyCookie.parse(<string>req.headers.cookie)[SESSION_ID_COOKIE_NAME];
+        if (!sid_cookie)
+            return;
+        const user_info = await sidToUserIdAndName(sid_cookie);
+        if (!user_info) {
+            console.warn("Warning: Invalid session ID from client");
+            return;
+        }
+        if (tourney.players.every(player => player.user_id !== user_info.user_id)) {
+            console.warn("refusing connection: not part of this tournament");
+            return;
+        }
+        let already_here = false;
+		tourney.wss.clients.forEach((c) => {
+			if (user_info.user_id === c.user_info?.user_id) {
+				already_here = true;
+			}
+		});
+        if (already_here) {
+            return;
+        }
+        tourney.wss.handleUpgrade(req, socket, head, function done(ws) {
+            ws.user_info = user_info;
+            tourney.wss.emit('connection', ws, req);
         });
     }
     else

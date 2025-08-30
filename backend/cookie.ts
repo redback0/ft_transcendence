@@ -1,7 +1,11 @@
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './database';
-import { ClientUUID } from './lobby.schema';
+import { UserID } from './lobby.schema';
+import { WebSocket } from 'ws';
+import { SessionID } from './tournament.schema';
+import { IncomingMessage } from 'http';
+import { Duplex } from 'stream';
 
 export const SESSION_ID_COOKIE_NAME = 'session_id';
 
@@ -170,6 +174,20 @@ export async function validateSession(sessionId: string): Promise<string | null>
     catch (error)
     {
         return null;
+    }
+}
+
+export async function sidToUserIdAndName(sessionId: string): Promise<{ user_id: UserID, username: string } | undefined>
+{
+    try
+    {
+        const statement = db.prepare('SELECT user_id, username FROM users WHERE session_id = ?');
+        const result = statement.get(sessionId) as { user_id: UserID, username: string } | undefined;
+        return result;
+    }
+    catch (error)
+    {
+        return undefined;
     }
 }
 
