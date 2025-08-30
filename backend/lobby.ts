@@ -29,6 +29,7 @@ export function lobbyInit(fastify: FastifyInstance, opts: RegisterOptions, done:
 	done();
 }
 
+// TODO: same user can have multiple tabs open, breaks stuff :(
 // FIXME: if no one connects to lobby it will never get deleteed i thinkers
 export class Lobby {
 	room_code: LobbyID;
