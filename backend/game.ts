@@ -10,7 +10,7 @@ let testGameWinner: "Player 1" | "Player 2" | "No winner yet";
 
 type UserID = string;
 
-class GameWebSocket extends WebSocket
+export class GameWebSocket extends WebSocket
 {
     isAlive: boolean = true;
     uid: UserID | undefined

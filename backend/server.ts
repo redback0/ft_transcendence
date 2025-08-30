@@ -47,6 +47,11 @@ fastify.server.on("upgrade", async function (req, socket, head)
     // console.log(req.url);
     // const { pathname } = new URL(req.url);
 
+    const sid_cookie = req.headers?.cookie?
+        fastifyCookie.parse(<string>req.headers.cookie)[SESSION_ID_COOKIE_NAME] :
+        undefined;
+    const user_info = sid_cookie? await sidToUserIdAndName(sid_cookie): undefined;
+
     // if (req.url === '/wss/chat')
     // {
     //     chatWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
@@ -64,6 +69,7 @@ fastify.server.on("upgrade", async function (req, socket, head)
             return; // invalid game
         gameServer.handleUpgrade(req, socket, head, function done(ws)
         {
+            (ws as Game.GameWebSocket).uid = user_info?.user_id;
             gameServer.emit('connection', ws, req);
         });
     }
@@ -76,16 +82,8 @@ fastify.server.on("upgrade", async function (req, socket, head)
         if (!lobbyServer) {
             return;
         }
-        if (!req.headers?.cookie)
+        if (!user_info)
             return;
-        const sid_cookie = fastifyCookie.parse(<string>req.headers.cookie)[SESSION_ID_COOKIE_NAME];
-        if (!sid_cookie)
-            return;
-        const user_info = await sidToUserIdAndName(sid_cookie);
-        if (!user_info) {
-            console.warn("Warning: Invalid session ID from client");
-            return;
-        }
 		let already_here = false;
 		lobbyServer.clients.forEach((c) => {
 			if (user_info.user_id === c.user_info?.user_id) {
@@ -109,16 +107,8 @@ fastify.server.on("upgrade", async function (req, socket, head)
         if (!tourney) {
             return;
         }
-        if (!req.headers?.cookie)
+        if (!user_info)
             return;
-        const sid_cookie = fastifyCookie.parse(<string>req.headers.cookie)[SESSION_ID_COOKIE_NAME];
-        if (!sid_cookie)
-            return;
-        const user_info = await sidToUserIdAndName(sid_cookie);
-        if (!user_info) {
-            console.warn("Warning: Invalid session ID from client");
-            return;
-        }
         if (tourney.players.every(player => player.user_id !== user_info.user_id)) {
             console.warn("refusing connection: not part of this tournament");
             return;
