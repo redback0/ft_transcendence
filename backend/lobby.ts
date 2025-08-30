@@ -1,5 +1,5 @@
 
-import { WebSocketServer, WebSocket, Server, RawData } from 'ws';
+import { WebSocketServer, WebSocket, Server, RawData, CONNECTING } from 'ws';
 import { FastifyInstance, RegisterOptions } from "fastify";
 import { NewID } from "./game"; // lol
 import { LobbyMessage, UserID, LobbyRequest, LobbyID, LobbySessionID } from './lobby.schema';

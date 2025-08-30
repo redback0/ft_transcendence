@@ -86,6 +86,15 @@ fastify.server.on("upgrade", async function (req, socket, head)
             console.warn("Warning: Invalid session ID from client");
             return;
         }
+		let already_here = false;
+		lobbyServer.clients.forEach((c) => {
+			if (user_info.user_id === c.user_info?.user_id) {
+				already_here = true;
+			}
+		});
+        if (already_here) {
+            return;
+        }
         lobbyServer.handleUpgrade(req, socket, head, function done(ws) {
             ws.user_info = user_info;
             lobbyServer.emit('connection', ws, req);
@@ -112,6 +121,15 @@ fastify.server.on("upgrade", async function (req, socket, head)
         }
         if (tourney.players.every(player => player.user_id !== user_info.user_id)) {
             console.warn("refusing connection: not part of this tournament");
+            return;
+        }
+        let already_here = false;
+		tourney.wss.clients.forEach((c) => {
+			if (user_info.user_id === c.user_info?.user_id) {
+				already_here = true;
+			}
+		});
+        if (already_here) {
             return;
         }
         tourney.wss.handleUpgrade(req, socket, head, function done(ws) {
