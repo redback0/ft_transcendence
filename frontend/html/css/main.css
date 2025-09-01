@@ -10,7 +10,7 @@
 /**************          OLD CSS          ***************/
 /********************************************************/
 
-container 
+/* container 
 {
     width: 50%;
     margin: auto;
@@ -29,7 +29,7 @@ big-label
 {
     width: 170px;
     display: inline-block;
-}
+} */
 /* button
 {
     padding: 2px;
@@ -50,7 +50,7 @@ button:disabled
     color: var(--color-gray-100);
 } */
 
-input
+/* input
 {
     padding: 2px;
     padding-left: 10px;
@@ -62,12 +62,12 @@ input
 input:focus
 {
     background-color: var(--color-gray-100);
-}
+} */
 
-p, button
+/* p, button
 {
     margin: 5px;
-}
+} */
 
 canvas
 {
@@ -77,9 +77,9 @@ canvas
     touch-action: none;
 }
 
-base{
+/* base{
     padding: 20px;
-}
+} */
 
 /********************************************************/
 /**************           SIGNUP          ***************/
@@ -97,12 +97,12 @@ base{
 /********************************************************/
 /*************          LOGINHOME          **************/
 /********************************************************/
-#loginhome-redHover:hover, #signin-redHover:hover {
+.loginhome-redHover:hover, .signin-redHover:hover {
     color: var(--color1) !important;
     background-color: var(--color2);
     display: inline-block;
 }
-#loginhome-input, #signup-input {
+.loginhome-input, .signup-input {
     background-color: var(--color2);
     display: block;
     height: 5vh;
@@ -111,10 +111,10 @@ base{
     color: var(--color1);
     outline: none;
 }
-#loginform input::placeholder {
+.loginform input::placeholder {
     color: var(--color1);
 }
-#loginhome-main-content {
+index-page {
     display: flex;
     position: fixed;
     justify-content: center;
