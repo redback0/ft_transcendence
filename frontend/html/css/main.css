@@ -30,7 +30,7 @@ big-label
     width: 170px;
     display: inline-block;
 }
-button
+/* button
 {
     padding: 2px;
     padding-left: 10px;
@@ -48,7 +48,7 @@ button:hover
 button:disabled
 {
     color: var(--color-gray-100);
-}
+} */
 
 input
 {
@@ -98,21 +98,21 @@ base{
 /*************          LOGINHOME          **************/
 /********************************************************/
 #loginhome-redHover:hover, #signin-redHover:hover {
-    color: #DED19C !important;
-    background-color: #520404;
+    color: var(--color1) !important;
+    background-color: var(--color2);
     display: inline-block;
 }
 #loginhome-input, #signup-input {
-    background-color:#520404;
+    background-color: var(--color2);
     display: block;
     height: 5vh;
     width: 40vw;
     text-indent: 10px;
-    color:#DED19C;
+    color: var(--color1);
     outline: none;
 }
 #loginform input::placeholder {
-    color:#DED19C;
+    color: var(--color1);
 }
 #loginhome-main-content {
     display: flex;
@@ -127,15 +127,19 @@ base{
 /********************************************************/
 /*************          GAMESELECT         **************/
 /********************************************************/
-#gameselect-redHover {
+.gameselect-redHover {
     font-weight: bold;
-    color:#520404;
+    color: var(--color2);
 }
-#gameselect-redHover:hover {
-    color: #DED19C !important;
-    background-color: #520404;
+.gameselect-redHover:hover {
+    color: var(--color1) !important;
+    cursor: pointer;
+    background-color: var(--color2);
 }
-#gameselect-main-content {
+/* these are named the same as they are in the line
+customElements.define('game-page', GamePage)
+in the template file */
+game-page {
     width: 100vw;
     height: 100vh;
     position: absolute;
@@ -157,22 +161,22 @@ base{
     margin-left: 20vw;
     margin-right: 20vw;
     margin-bottom: 20vh;
-    color: #520404;
+    color: var(--color2);
 }
 .profile-container:hover .profile-name {
-    color: #520404 !important;
-    background-color: #DED19C;
+    color: var(--color2) !important;
+    background-color: var(--color1);
 }
 .profile-name {
     font-size: 2rem;
 }
 #friends-redHover:hover {
-    color: #DED19C !important;
-    background-color: #520404;
+    color: var(--color1) !important;
+    background-color: var(--color2);
     display: inline-block;
 }
 #friends-user-search {
-    background-color:#520404;
+    background-color: var(--color2);
     display: block;
     height: 5vh;
     width: 40vw;
@@ -181,7 +185,7 @@ base{
     padding: 0;
     box-sizing: border-box;
     line-height: 40px;
-    color:#DED19C;
+    color: var(--color1);
     outline: none;
     border: none;
 }
@@ -193,7 +197,7 @@ base{
     z-index: 80;
 }
 form input::placeholder {
-    color:#DED19C;
+    color: var(--color1);
 }
 #friends-main-content {
     width: 100%;
@@ -253,7 +257,7 @@ footer .marquee a:hover {
 /********************************************************/
 .nav-bar {
     width: 100%;
-    background-color: #520404;
+    background-color: var(--color2);
     position: fixed;
     top: 0;
     left: 0;
@@ -276,7 +280,7 @@ footer .marquee a:hover {
 
 #transvengence-logo > svg {
     cursor: pointer;
-    fill: #DED19C;
+    fill: var(--color1);
     transition: fill .1s ease-in-out;
     transition: scale .1s ease-in-out;
 }
@@ -323,11 +327,11 @@ footer .marquee a:hover {
 /***************       MENU OVERLAY       ***************/
 /********************************************************/
 ul {
-    color: #DED19C;
+    color: var(--color1);
 }
 ul a:hover, ul a:focus {
-    color: #520404 !important;
-    background-color: #DED19C;
+    color: var(--color2) !important;
+    background-color: var(--color1);
 }
 
 li {
@@ -339,7 +343,7 @@ li {
     flex-direction: column;
     justify-content: space-between;
     height: 100vh;
-    background-color: #520404;
+    background-color: var(--color2);
 }
 
 .menu-items {
@@ -355,7 +359,7 @@ li {
 }
 
 .menu-items .active {
-    color: #DED19C;
+    color: var(--color1);
 }
 
 .menu-items > ul > li > a {
@@ -371,7 +375,7 @@ li {
     z-index: 1000;
     overflow: hidden;
     justify-content: space-between;
-    background-color: #520404;
+    background-color: var(--color2);
     transition: height .5s ease-in-out;
 }
 

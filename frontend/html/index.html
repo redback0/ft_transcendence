@@ -2,10 +2,8 @@
 <html>
 	<head>
 		<title>TRANSVENGENCE</title>
-		<link rel="stylesheet" href="./css/output.css" type="text/css">
-		<script type="module" src="./scripts/index.js"></script>
-		<!-- <script src="https://cdn.tailwindcss.com"></script> -->
-		<script defer src="./scripts/navigation.js"></script>
+		<link rel="stylesheet" href="/css/output.css" type="text/css">
+		<script defer src="/scripts/navigation.js"></script>
 		<meta name="viewport" charset="UTF-8" content="width=device-width, initial-scale=1">
 	</head>
 	<body class="pt-[8vh] pb-[5vh] bg-[#DED19C]">
@@ -24,11 +22,11 @@
 			</nav>
 			<div class="menu-items syne-header">
 				<ul>
-					<li><a onclick="NavOnClick()" href="/mypage">PROFILE</a></li>
-					<li><a onclick="NavOnClick()" href="/game">PLAY -></a></li>
-					<li><a onclick="NavOnClick()" href="/friends">FRIENDS</a></li>
-					<!-- <li><a href="./searchUsers.html">SEARCH USERS</a></li> -->
-					<li><a href="/">LOG OUT</a></li>
+					<li><a class="nav-button" href="/mypage">PROFILE</a></li>
+					<li><a class="nav-button" href="/game">PLAY -></a></li>
+					<li><a class="nav-button" href="/friends">FRIENDS</a></li>
+					<!-- below button says log out, so it should have more action than just change page -->
+					<li><a class="nav-button" href="/">LOG OUT</a></li>
 				</ul>
 			</div>
 		</div>
@@ -134,5 +132,6 @@
 				</div>
 			</div>
 		</footer>
+		<script type="module" src="/scripts/index.js"></script>
 	</body>
 </html>
