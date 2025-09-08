@@ -1,4 +1,5 @@
 //Authored by Bethany Milford 22/06/2025
+// DEPRICATED -- NOW IS JUST THE HOME PAGE AND /signup
 export class LoginPage extends HTMLElement
 {
     constructor()

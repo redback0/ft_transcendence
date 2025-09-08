@@ -1,11 +1,12 @@
 
 const WINDOW_STYLE = window.getComputedStyle(document.body)
-const DEFAULT_COLOR = WINDOW_STYLE.getPropertyValue("--color-black");
-const BALL_COLOR = WINDOW_STYLE.getPropertyValue("--color-blue-800");
-const PLAYER_COLOR = WINDOW_STYLE.getPropertyValue("--color-red-700");
-const TEXT_COLOR = WINDOW_STYLE.getPropertyValue("--color-black");
-const BUTTON_COLOR = WINDOW_STYLE.getPropertyValue("--color-gray-500");
-const BUTTON_BORDER_COLOR = WINDOW_STYLE.getPropertyValue("--color-gray-600")
+const DEFAULT_COLOR = WINDOW_STYLE.getPropertyValue("--color2");
+const BALL_COLOR = WINDOW_STYLE.getPropertyValue("--color2");
+const PLAYER_COLOR = WINDOW_STYLE.getPropertyValue("--color2");
+const TEXT_COLOR = WINDOW_STYLE.getPropertyValue("--color2");
+const BUTTON_COLOR = WINDOW_STYLE.getPropertyValue("--color2");
+const BUTTON_TEXT_COLOR = WINDOW_STYLE.getPropertyValue("--color1");
+const BUTTON_BORDER_COLOR = WINDOW_STYLE.getPropertyValue("--color2");
 
 import * as GameSchema from "./../../game.schema.js"
 import { onPageChange } from "../../index.js";
@@ -452,7 +453,7 @@ class Button
         font: string = "36px sans",
         baseColor: string = BUTTON_COLOR,
         borderColor: string = BUTTON_BORDER_COLOR,
-        textColor: string = TEXT_COLOR)
+        textColor: string = BUTTON_TEXT_COLOR)
     {
         this.x = x;
         this.y = y;
