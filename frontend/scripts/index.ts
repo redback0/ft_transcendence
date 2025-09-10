@@ -8,10 +8,7 @@ import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { ChatPostLoad } from './chat/chat.controller.js'
-<<<<<<< HEAD
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
-=======
->>>>>>> 6b83edf (html for chat interface)
 import { AddNavigation } from './navigation.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { LoginPage } from './login/login.template.js'
@@ -28,11 +25,8 @@ const pages = new Map<string, Page>([
     ['/game', {builder: GamePage}],
     ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage}],
-<<<<<<< HEAD
     ['/lobby', {builder: LobbyNavPage}],
     ['/lobby/join', {builder: LobbyJoinPage}],
-=======
->>>>>>> 6b83edf (html for chat interface)
     ['/chat', {builder: ChatPage, postLoad: ChatPostLoad}],
     ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
     ['/mypage', {builder: UserPage}],

@@ -1,10 +1,13 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { FastifyInstance } from 'fastify';
+import { UserID } from './lobby.schema';
 
 
-class HBWebSocket extends WebSocket
+export class HBWebSocket extends WebSocket
 {
     isAlive: boolean = true;
+    uid: UserID | undefined;
+    username: string | undefined;
 }
 
 export const chatWebSocketServer = new WebSocketServer({
@@ -19,8 +22,9 @@ interface Channel {
 }
 
 interface Client {
-    nickname: string;
-    ws: WebSocket;
+    sessionID: string;
+    //user: string;
+    ws: HBWebSocket;
 }
 
 const clients: Map<string, Client> = new Map();
@@ -33,8 +37,8 @@ export function initChat()
     {
         console.log('New Client Connected');
         //const clientId = getClientNickname();
-        const clientId = "1";
-        clients.set(clientId, {nickname: clientId, ws});
+        if (ws.uid) {
+            clients.set(ws.uid, {sessionID: ws.uid, ws}); }
         if (!channels.has('general'))
         {
             channels.set('general', { name: 'general', clients: new Set() });
@@ -42,18 +46,17 @@ export function initChat()
         channels.get('general')?.clients.add(ws);
         ws.on("message", (message: string) => {
             const parsedMessage = JSON.parse(message);
-            const {type, payload, reciever } = parsedMessage; 
-
+            console.log(parsedMessage.type);
             if (parsedMessage.type === 'joinChannel' && parsedMessage.reciever) 
             {
                 const channelName = parsedMessage.reciever;
-                if (!channels.has(reciever) && !clients.has(reciever))
+                if (!channels.has(parsedMessage.reciever) && !clients.has(parsedMessage.reciever))
                 {
-                    channels.set(reciever, {name: reciever, clients: new Set()});
+                    channels.set(parsedMessage.reciever, {name: parsedMessage.reciever, clients: new Set()});
                 }
                 channels.forEach(channel => channel.clients.delete(ws));
-                channels.get(reciever)?.clients.add(ws);
-                console.log(`${clientId} has joined channel: ${reciever}`);
+                channels.get(parsedMessage.reciever)?.clients.add(ws);
+                console.log(`${ws.username} has joined channel: ${parsedMessage.reciever}`);
             }
             else if (parsedMessage.type === 'sendMessage' && parsedMessage.reciever && parsedMessage.payload)
             {
@@ -61,27 +64,37 @@ export function initChat()
                 if (targetChannel)
                 {
                     targetChannel.clients.forEach(client => {
-                        if (client.readyState === WebSocket.OPEN){
-                            client.send(JSON.stringify(parsedMessage.payload));
+                        if (client !== ws && client.readyState === WebSocket.OPEN){
+                            client.send(JSON.stringify({
+                                type: "general",
+                                sender: ws.username,
+                                payload: parsedMessage.payload
+                            }));
                         }
                     });
                 }
             }
-            /*else if (parsedMessage.type === 'directMessage' && parsedMessage.reciever && parsedMessage.payload)
+            else if (parsedMessage.type === 'directMessage' && parsedMessage.reciever && parsedMessage.payload)
             {
-                const targetClient = this.clients.get(parsedMessage.reciever);
-                if (targetClient && targetClient.readyState === WebSocket.OPEN)
+               const targetClient = clients.get(parsedMessage.reciever);
+                if (targetClient && targetClient.ws.readyState === WebSocket.OPEN)
                 {
-                    targetClient.send(JSON.stringify({
-                        from: clientId,
+                    targetClient.ws.send(JSON.stringify({
+                        type: "directmessage",
+                        sender: ws.uid,
                         payload: parsedMessage.payload
                     }));
+                    console.log("DM sent successfully");
                 }
                 else
                 {
                     console.log(`User ${parsedMessage.reciever} not found.`);
                 }
-            }*/
+            }
+            else
+            {
+                console.log("Message has no parseable type", parsedMessage.type);
+            }
             /*const message = isBinary ? data : data.toString();
             console.log(`message recieved: ${message}, ${isBinary}`);
             // this.send(message, {binary: isBinary});
@@ -91,13 +104,10 @@ export function initChat()
         });
 
         ws.on('close', () => {
-            const client = clients.get(clientId);
-            if (client)
-            {
-                channels.forEach(channel => channel.clients.delete(ws));
-                clients.delete(clientId);
-                console.log(`Client ${clientId} has disconnected.`)
-            }
+            channels.forEach(channel => channel.clients.delete(ws));
+            if (ws.uid) {
+                clients.delete(ws.uid); }
+            console.log(`Client ${ws.username} has disconnected.`)
         });
 
         ws.on("pong", function (buffer)

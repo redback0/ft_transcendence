@@ -9,6 +9,11 @@ export class ChatPage extends HTMLElement
         this.innerHTML =
         `
             <p> This be the chat page, speak!! :)) </p>
+            <div class="tab">
+                <button class="tablinks" id="default">General</button>
+                <button class="tablinks" id="direct">Direct Message</button>
+            </div>
+
             <div class="msg-container">
             <!-- Header-->
                 <div class="msg-top">
@@ -20,22 +25,19 @@ export class ChatPage extends HTMLElement
                     </div>
                 </div>
                 <!-- Main Message Body-->
-                <div class="chat-body">
-                    <div class="inbox">
-                        <div class="received-chats">
-                            <div class="received-chats-img">
-                                <img src="avatar">
-                            </div>
-                            <div class="received-msg" id="recieved-msg">
-                                <span class="time">Date</span>
-                            </div> 
+                <div class="tabcontent" id="General">
+                    <div class="chat-body">
+                        <div class="inbox" id="general-inbox">
                         </div>
-                        <div class="outgoing-chats">
-                            <div class="outgoing-chats-img">
-                                <img src="avatar">
-                            </div>
-                            <div class="outgoing-msg" id="outgoing-msg">
-                                <span class="time">Date</span>
+                    </div>
+                </div>
+                <div class="tabcontent" id="DirectMessage">
+                    <div class="tab2" id="tab2">
+                        <button class="tablinks2" id="testdm">Test</button>
+                    </div>
+                    <div class="tabcontent2" id="test">
+                        <div class="chat-body">
+                            <div class="inbox" id="test-inbox">
                             </div>
                         </div>
                     </div>
@@ -45,6 +47,11 @@ export class ChatPage extends HTMLElement
                     <div class="input-group">
                         <input type="text" class="form-control" placeholder="Write message..." id="messageInput" required>
                         <button type="button" id="sendButton">Send</button>
+                    </div>
+                    <div class="input-group" id="dmrequest">
+                        <input type="text" class="form-control" id="dmreciever" placeholder="Username" required>
+                        <input type="text" class="form-control" id="dmmessage" placeholder="Write message..." required>
+                        <button type="button" id="dmreqbutton">Send</button>
                     </div>
                 </div>
             </div>
