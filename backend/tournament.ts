@@ -4,6 +4,7 @@ import { AddNewGame, gameWebSocketServers, NewID } from "./game";
 import { Lobby } from "./lobby";
 import { GameID, SessionID, TournamentID, TournamentMessage, UserInfo, TournamentNextRoundStart } from './tournament.schema';
 import { db } from "./database";
+import { userInfo } from "os";
 
 type Pair<T> = {
 	first: T,
@@ -104,6 +105,39 @@ export class Tournament {
 		this.sendToAll({ type: "tournament_starting", msg: { room_code: this.id } });
 		tournamentWebSocketServers.set(this.id, this);
 		
+		const result1 = this.insertIntoTournamentDB();
+		if (!result1) {
+			return ;
+		}
+
+		const result2 = this.insertIntoUserHasTournyDB();
+		if (!result2) {
+			return ;
+		}
+
+		this.startNextRound();
+	} //end contructor
+
+	insertIntoUserHasTournyDB() {
+		try {
+			db.prepare('BEGIN TRANSACTION').run();
+			const statement = db.prepare(
+				`INSERT INTO user_has_tourney (user_tourney_user_id, user_tourney_tour_id)
+				VALUES (?, ?)`
+			);
+			for (const player of this.players) {
+				statement.run(player.user_id, this.id);
+			}
+			db.prepare(`COMMIT`).run();
+			return (true);
+		} catch (error) {
+			db.prepare(`ROLLBACK`).run();
+			console.error(`Cannot make user_tourney entry <shrug>`);
+			return (false);
+		}
+	}
+	
+	insertIntoTournamentDB() {
 		try {
 			db.prepare('BEGIN TRANSACTION').run();
 			const statement = db.prepare(
@@ -112,18 +146,20 @@ export class Tournament {
 			);
 			statement.run(this.id, this.wss.clients.size, this.current_round, "coolio");
 			db.prepare("COMMIT").run();
+			return (true);
 		} catch (error) {
 			db.prepare("ROLLBACK").run();
 			console.error(`Fail to save tournament on creation, closing active tournament (id: ${this.id})`);
 			tournamentWebSocketServers.delete(this.id);
-			return;
+			return (false);
 		}
-		
-		this.startNextRound();
-	} //end contructor
+	}
 
 	startNextRound = () => {
 		++this.current_round;
+		db.prepare(
+			`UPDATE tournament SET round_number = ? WHERE tour_id = ?`
+		).run(this.current_round, this.id);
 		console.log(`starting round ${this.current_round} !!!`);
 		this.sendToAll({ type: "next_round_starting", msg: {} });
 		this.finished_games = [];
@@ -131,16 +167,20 @@ export class Tournament {
 		const pairs = this.matchmakeClients();
 		for (let { first: p1, second: p2 } of pairs) {
 			const game_id = NewID(8);
-			console.log(`making game (${game_id}): ${p1.user_info?.user_id} (${p1.wins}) vs. ${p2.user_info?.user_id} (${p2.wins})`);
+			console.log(`Maikn game with ID (${game_id}): User1: ${p1.user_info?.user_id} with number of wins: (${p1.wins}) vs. User2 ${p2.user_info?.user_id} with number of wins: (${p2.wins})`);
 			this.active_games.push({ game_id: game_id, p1: <UserInfo>p1.user_info, p2: <UserInfo>p2.user_info });
 			this.prev_pairings.push({ first: p1, second: p2 });
+			console.log("About to add new game");
 			AddNewGame(game_id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) => {
 				console.log("game finished!!!");
+				let playerWinner: string | undefined;
 				if (p1Score > p2Score) {
 					console.log(`${p1.user_info?.user_id} won vs. ${p2.user_info?.user_id}!`);
+					playerWinner = p1.user_info?.user_id;
 					p1.wins++;
 				} else {
 					console.log(`${p2.user_info?.user_id} won vs. ${p1.user_info?.user_id}!`);
+					playerWinner = p2.user_info?.user_id;
 					p2.wins++;
 				}
 				let game_record: GameRecord = {
@@ -161,7 +201,13 @@ export class Tournament {
 				this.active_games = this.active_games.filter(info => info.game_id !== game_id);
 				this.finished_games.push(game_record);
 				gameWebSocketServers.get(game_id)?.kill();
+				console.log(`if this.active_games.length === 0 && this.current_round >= this.total_rounds_needed)`);
+				console.log(`if ${this.active_games.length} === 0 && ${this.current_round} >= ${this.total_rounds_needed})`);
 				if (this.active_games.length === 0 && this.current_round >= this.total_rounds_needed) {
+					console.log(`no more games left`);
+					db.prepare(
+						`UPDATE tournament SET tour_winner = ? WHERE tour_id = ?`
+					).run(playerWinner, this.id);
 					console.log(`tourney finished !!!`);
 					const tmp: Array<TournamentWebSocket> = [];
 					this.wss.clients.forEach(c => tmp.push(c));
@@ -176,7 +222,10 @@ export class Tournament {
 				} else if (this.active_games.length === 0) {
 					this.startNextRound();
 				}
-			}); // end AddNewGame
+			},
+			p1.user_info?.user_id, 
+			p2.user_info?.user_id,
+			this.id); // end AddNewGame
 			this.sendToAll({
 				type: "game_starting",
 				msg: {

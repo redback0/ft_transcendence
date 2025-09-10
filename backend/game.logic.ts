@@ -20,6 +20,7 @@ export class GameArea
     started: boolean = false;
     finished: boolean = false;
     framerate: number = 60;
+	rally: number = 0;
     interval: NodeJS.Timeout | undefined;
     wss: WebSocketServer;
     frame: GameSchema.GameFrameData = {
@@ -47,9 +48,13 @@ export class GameArea
         this.p2 = new Player(w, h / 2, 10, uid2);
         this.ball = new Ball(w / 2, h / 2);
         const game = this;
+		console.log(`if (winFunction now)`);
         if (winFunction)
+		{
             this.winFunction = winFunction;
-        else
+		}
+		else // will not run when causal mode is removed. 
+		{
             this.winFunction = (winner, p1Score, p2Score) =>
             {
                 // TODO: game.id IS NOT GARANTEED TO BE UNIQUE CURRENTLY
@@ -65,7 +70,9 @@ export class GameArea
                     });
                 }
             };
-    }
+		}
+		console.log("end super");
+	}
 
     getInfo = (): string =>
     {
@@ -170,15 +177,22 @@ export class GameArea
         });
     }
 
+	// JC
     score = (scorer: Player) =>
     {
         let player: "player1" | "player2";
 
         clearInterval(this.interval);
+		this.rally = 0;
         if (scorer === this.p1)
         {
             this.p1.score++;
-            if (this.p1.score >= this.winScore)
+			db.prepare(
+				`UPDATE game SET left_score = ? WHERE game_id = ?`
+			).run(this.p1.score, this.id);
+			console.log(`Player 1 scored ${this.p1.score} in game ID: ${this.id}`)
+
+			if (this.p1.score >= this.winScore)
             {
                 this.win(this.p1);
                 return;
@@ -188,6 +202,10 @@ export class GameArea
         else
         {
             this.p2.score++;
+			db.prepare(
+				`UPDATE game SET right_score = ? WHERE game_id = ?`
+			).run(this.p2.score, this.id);
+			console.log(`Player 2 scored ${this.p2.score} in game ID: ${this.id}`)
             if (this.p2.score >= this.winScore)
             {
                 this.win(this.p2);
@@ -222,11 +240,51 @@ export class GameArea
         this.finished = true;
         this.started = false;
         let player: "player1" | "player2" | undefined = undefined;
+		console.log(`p1 uid: ${this.p1.uid}`);
+		console.log(`p2 uid: ${this.p2.uid}`);
         if (winner === this.p1)
+		{
             player = "player1";
-        else if (winner === this.p2)
+			db.prepare(
+				`UPDATE users SET num_of_win = num_of_win + 1 WHERE user_id = ?`
+				).run(this.p1.uid);
+			db.prepare(
+				`UPDATE users SET num_of_loss = num_of_loss + 1 WHERE user_id = ?`
+				).run(this.p2.uid);
+		}
+		else if (winner === this.p2)
+		{
             player = "player2";
+			db.prepare(
+				`UPDATE users SET num_of_win = num_of_win + 1 WHERE user_id = ?`
+				).run(this.p2.uid);
+			db.prepare(
+				`UPDATE users SET num_of_loss = num_of_loss + 1 WHERE user_id = ?`
+				).run(this.p1.uid);
+		}
+		console.log(`Player ${player} wins`);
 
+		const temp1 = db.prepare(`SELECT longest_rally FROM users WHERE user_id = ?`).get(this.p1.uid) as { longest_rally: number } | undefined;
+		const p1ExistingRally = temp1 ? temp1.longest_rally : 0;
+		console.log(`p1 Existing rally: ${p1ExistingRally}`);
+
+		if (this.rally > p1ExistingRally) {
+		db.prepare(
+			`UPDATE users SET longest_rally = ? WHERE user_id = ?`
+			).run(this.rally, this.p1.uid);
+		}
+
+		const temp2 = db.prepare(`SELECT longest_rally FROM users WHERE user_id = ?`).get(this.p2.uid) as { longest_rally: number } | undefined;
+		const p2ExistingRally = temp2 ? temp2.longest_rally : 0;
+		console.log(`p2 Existing rally: ${p2ExistingRally}`);
+
+		if (this.rally > p2ExistingRally) {
+		db.prepare(
+			`UPDATE users SET longest_rally = ? WHERE user_id = ?`
+			).run(this.rally, this.p2.uid);
+		}
+
+		console.log(`This rally: ${this.rally}`);
         this.winFunction(player, this.p1.score, this.p2.score, this);
 
         let win: GameSchema.GameWinData = {
@@ -237,7 +295,7 @@ export class GameArea
             ballX: this.ball.x,
             ballY: this.ball.y,
             player1Y: this.p1.y,
-            player2Y: this.p2.y
+            player2Y: this.p2.y,
         }
 
         let message = JSON.stringify(win);
@@ -253,11 +311,12 @@ export class GameArea
         gameWebSocketServers.delete(this.id);
     }
 
+	// JC leftover player wins by default. 
     playerDisconnected = (player: Player) =>
     {
         // this will do 1 of a few things in the future, for now, it just makes
         // the remaining player win after 10 seconds
-
+		console.log("PLAYER DISCONNECTD");
         const game = this;
         const other = player === this.p1 ? this.p2 : this.p1;
 
@@ -400,6 +459,8 @@ export class Ball
                 if (hitPoint < game.p1.y + (game.p1.h / 2) + this.r
                     && hitPoint > game.p1.y - (game.p1.h / 2) - this.r)
                 {
+					console.log(`HIT`);
+					game.rally++;
                     this.x = -passDist + this.r;
                     this.xVel = -this.xVel + this.moveAcel;
                     if (game.p1.moveDown)
@@ -409,6 +470,8 @@ export class Ball
                 }
                 else
                 {
+					// JC
+					console.log(`P2 SCORED`);
                     game.score(game.p2);
                 }
             }
@@ -423,6 +486,8 @@ export class Ball
                 if (hitPoint < game.p2.y + (game.p2.h / 2) + this.r
                     && hitPoint > game.p2.y - (game.p2.h / 2) - this.r)
                 {
+					console.log(`HIT`);
+					game.rally++;
                     this.x = game.w - passDist - this.r;
                     this.xVel = -this.xVel - this.moveAcel;
                     if (game.p1.moveDown)
@@ -432,6 +497,8 @@ export class Ball
                 }
                 else
                 {
+					// JC
+					console.log(`P1 SCORED`);
                     game.score(game.p1);
                 }
             }

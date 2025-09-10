@@ -131,5 +131,5 @@ export interface GameWinData extends GameInterface
 	ballX: number,
 	ballY: number,
 	player1Y: number,
-	player2Y: number
+	player2Y: number,
 }
