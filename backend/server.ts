@@ -10,6 +10,8 @@ import * as User from './user.js';
 import * as Lobby from './lobby.js';
 import { SESSION_ID_COOKIE_NAME } from './cookie';
 import * as Tournament from './tournament.js';
+import * as Friend from './friend.js';
+
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
 {
@@ -21,6 +23,8 @@ fastify.register(Lobby.lobbyInit);
 fastify.register(cookie);
 fastify.register(registerCookieRoutes);
 fastify.register(User.registerRoutes);
+fastify.register(Friend.registerRoutes);
+
 
 // Run the fastify!
 const start = async () =>

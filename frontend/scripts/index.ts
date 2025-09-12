@@ -10,6 +10,7 @@ import { ChatPage } from './chat/chat.template.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { LoginPage } from './login/login.template.js'
+import { FriendsPage } from './friends/friends.template.js'
 import { LoginPostLoad } from './login/login.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
@@ -29,7 +30,8 @@ const pages = new Map<string, Page>([
     // ['/chat', {builder: ChatPage}],
     ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
     ['/mypage', {builder: UserPage}],
-    ['/tournament/bracket', {builder: TournamentPage}]
+    ['/tournament/bracket', {builder: TournamentPage}],
+	['/friends', {builder: FriendsPage }]
 ]);
 
 export let currPage : HTMLElement
