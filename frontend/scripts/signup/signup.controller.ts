@@ -1,3 +1,4 @@
+import { newPage } from "../index.js";
 
 export function SignUpPostLoad(page: HTMLElement)
 {
@@ -53,8 +54,29 @@ export function SignUpPostLoad(page: HTMLElement)
               username: user,
               password: pass
             })
-        }).then((value) => {
+        }).then((response) => {
             // change page to play if successful
+            if (!response.ok)
+            {
+                if (response.status >= 400 && response.status < 500)
+                {
+                    response.json().then((obj) =>
+                    {
+                        const error: string = obj.error;
+                        console.log(error);
+                        if (errorText) errorText.textContent = error.toUpperCase();
+                    });
+                }
+                else
+                {
+                    console.log("Unknown error");
+                    if (errorText) errorText.textContent = "UNKNOWN ERROR";
+                }
+                return;
+            }
+
+            history.pushState({}, "", "/game");
+            newPage();
         });
     });
 }

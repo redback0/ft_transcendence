@@ -1,4 +1,4 @@
-import { NavOnClick } from "./index.js";
+import { NavOnClick, newPage } from "./index.js";
 
 export class IndexPage extends HTMLElement {
     constructor() {
@@ -52,7 +52,7 @@ export function IndexPostLoad(page: HTMLElement)
         }
 
         const user = userInput.value;
-        const pass = userInput.value;
+        const pass = passInput.value;
 
         if (user === "")
         {
@@ -72,8 +72,29 @@ export function IndexPostLoad(page: HTMLElement)
                 username: user,
                 password: pass
             })
-        }).then((value) => {
+        }).then((response) => {
             // change page to play if successful
+            if (!response.ok)
+            {
+                if (response.status >= 400 && response.status < 500)
+                {
+                    response.json().then((obj) =>
+                    {
+                        const error: string = obj.error;
+                        console.log(error);
+                        if (errorText) errorText.textContent = error.toUpperCase();
+                    });
+                }
+                else
+                {
+                    console.log("Unknown error");
+                    if (errorText) errorText.textContent = "UNKNOWN ERROR";
+                }
+                return;
+            }
+
+            history.pushState({}, "", "/game");
+            newPage()
         });
     })
 }
