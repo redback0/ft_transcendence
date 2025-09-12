@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { FastifyInstance, RegisterOptions } from "fastify";
 
 import * as GameSchema from "./game.schema";
+import { TournamentID } from './tournament.schema';
 import { GameArea, GameWinFunc } from "./game.logic";
 import { db } from "./database";
 
@@ -79,9 +80,10 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
 
 export const gameWebSocketServers = new Map<string, Game>;
 
-export function AddNewGame(id: string, gameComplete?: GameWinFunc, uid1?: UserID, uid2?: UserID)
+export function AddNewGame(id: string, gameComplete?: GameWinFunc, uid1?: UserID, uid2?: UserID, tourneyID?: TournamentID)
 {
-    gameWebSocketServers.set(id, new Game(id, gameComplete, uid1, uid2))
+	console.log(`AddNewGame: uid1: ${uid1}, uid2: ${uid2}`);
+    gameWebSocketServers.set(id  , new Game(id, gameComplete, uid1, uid2, tourneyID))
 
     // gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) =>
     // {
@@ -97,22 +99,42 @@ export function AddNewGame(id: string, gameComplete?: GameWinFunc, uid1?: UserID
     // }));
 }
 
+
+const printWinFunction: GameWinFunc = (winner, p1Score, p2Score, game) => {
+    console.log('winner:', winner);
+    console.log('p1Score:', p1Score);
+    console.log('p2Score:', p2Score);
+    console.log('game:', game);
+};
+
 class Game extends GameArea
 {
     timeout: NodeJS.Timeout | undefined;
 
-    constructor(id: string, winFunction?: GameWinFunc, uid1?: UserID, uid2?: UserID)
+    constructor(id: string, winFunction?: GameWinFunc, uid1?: UserID, uid2?: UserID, tourneyID?: TournamentID)
     {
-        const wss = new WebSocketServer({
-            WebSocket: GameWebSocket,
+		const wss = new WebSocketServer({
+			WebSocket: GameWebSocket,
             noServer: true,
         });
-
-        super(wss, winFunction, 100, 200, uid1, uid2);
+		super(wss, winFunction, 100, 200, uid1, uid2);
         this.id = id;
+		const initalScore = 0;
+		
+		try {
+			db.prepare('BEGIN TRANSACTION').run();
+			const statement = db.prepare(
+				`INSERT INTO game (game_id, left_id, right_id, game_tour_id, left_score, right_score, game_tour_id)
+				VALUES (?, ?, ?, ?, ?, ?, ?)`
+			);
+			statement.run(id, uid1, uid2, tourneyID, initalScore, initalScore, tourneyID);
+			db.prepare(`COMMIT`).run();
+		} catch (error) {
+			db.prepare(`ROLLBACK`).run();
+			console.error(`Cannot make game entry`);
+		}
 
         const game = this;
-
         wss.on("connection", function (ws: GameWebSocket)
         {
             console.log("new client");
@@ -204,7 +226,9 @@ class Game extends GameArea
 
                     }
                     this.send(JSON.stringify(response), { binary: false });
-                    break;
+					console.log(`Registered user: ${game.p1.uid} and ${game.p2.uid} for Game ID: ${game.id}`);
+
+					break;
                 }
                 case "infoRequest":
                 {
@@ -272,5 +296,8 @@ class Game extends GameArea
                 ws.ping();
             })
         }, 1000)
+
+		
     }
 }
+
