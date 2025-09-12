@@ -49,7 +49,7 @@ export class Lobby {
 		this.setPingInterval(1000);
 	} //end contructor
 
-	// JC this turn the lobby into a tourney
+	// Turn the lobby into a tourney
 	intoTournament = () => {
 		// tells lobby websockets to go to tournament in constructor
 		new Tournament(this, NewID(8));

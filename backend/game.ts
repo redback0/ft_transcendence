@@ -82,11 +82,8 @@ export const gameWebSocketServers = new Map<string, Game>;
 
 export function AddNewGame(id: string, gameComplete?: GameWinFunc, uid1?: UserID, uid2?: UserID, tourneyID?: TournamentID)
 {
-	console.log(`AddNewGame: uid1: ${uid1}`);
-	console.log(`AddNewGame: uid2: ${uid2}`);
-	// JC - uid1 and uid2 set in this object creation
+	console.log(`AddNewGame: uid1: ${uid1}, uid2: ${uid2}`);
     gameWebSocketServers.set(id  , new Game(id, gameComplete, uid1, uid2, tourneyID))
-	console.log("after new game set");
 
     // gameWebSocketServers.set(id, new Game(id, (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number) =>
     // {
@@ -104,12 +101,10 @@ export function AddNewGame(id: string, gameComplete?: GameWinFunc, uid1?: UserID
 
 
 const printWinFunction: GameWinFunc = (winner, p1Score, p2Score, game) => {
-	console.log(`PRINT WIN FUNCTION START`);
     console.log('winner:', winner);
     console.log('p1Score:', p1Score);
     console.log('p2Score:', p2Score);
     console.log('game:', game);
-	console.log(`PRINT WIN FUNCTION END`);
 };
 
 class Game extends GameArea
@@ -122,19 +117,10 @@ class Game extends GameArea
 			WebSocket: GameWebSocket,
             noServer: true,
         });
-		console.log(`####Before super`);
-			console.log(`Game ID at constructor is: ${id} and tourny_id is ${tourneyID}`)
-			console.log(`game.logic.ts: uid1: ${uid1}`);
-			console.log(`game.logic.ts: uid2: ${uid2}`);
 		super(wss, winFunction, 100, 200, uid1, uid2);
-		console.log(`####After super and here it is:`);
-		console.log(`p1 score: ${this.p1.score}`);
-		console.log(`p2 score: ${this.p2.score}`);
         this.id = id;
 		const initalScore = 0;
 		
-		
-
 		try {
 			db.prepare('BEGIN TRANSACTION').run();
 			const statement = db.prepare(
@@ -149,7 +135,6 @@ class Game extends GameArea
 		}
 
         const game = this;
-		// this.winFunction = printWinFunction;
         wss.on("connection", function (ws: GameWebSocket)
         {
             console.log("new client");

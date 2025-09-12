@@ -48,7 +48,6 @@ export class GameArea
         this.p2 = new Player(w, h / 2, 10, uid2);
         this.ball = new Ball(w / 2, h / 2);
         const game = this;
-		console.log(`if (winFunction now)`);
         if (winFunction)
 		{
             this.winFunction = winFunction;
@@ -71,7 +70,6 @@ export class GameArea
                 }
             };
 		}
-		console.log("end super");
 	}
 
     getInfo = (): string =>
@@ -177,7 +175,6 @@ export class GameArea
         });
     }
 
-	// JC
     score = (scorer: Player) =>
     {
         let player: "player1" | "player2";
@@ -240,8 +237,6 @@ export class GameArea
         this.finished = true;
         this.started = false;
         let player: "player1" | "player2" | undefined = undefined;
-		console.log(`p1 uid: ${this.p1.uid}`);
-		console.log(`p2 uid: ${this.p2.uid}`);
         if (winner === this.p1)
 		{
             player = "player1";
@@ -311,12 +306,11 @@ export class GameArea
         gameWebSocketServers.delete(this.id);
     }
 
-	// JC leftover player wins by default. 
+	// Leftover player wins by default. 
     playerDisconnected = (player: Player) =>
     {
         // this will do 1 of a few things in the future, for now, it just makes
         // the remaining player win after 10 seconds
-		console.log("PLAYER DISCONNECTD");
         const game = this;
         const other = player === this.p1 ? this.p2 : this.p1;
 
@@ -470,8 +464,6 @@ export class Ball
                 }
                 else
                 {
-					// JC
-					console.log(`P2 SCORED`);
                     game.score(game.p2);
                 }
             }
@@ -497,8 +489,6 @@ export class Ball
                 }
                 else
                 {
-					// JC
-					console.log(`P1 SCORED`);
                     game.score(game.p1);
                 }
             }
