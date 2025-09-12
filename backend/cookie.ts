@@ -11,16 +11,16 @@ export const SESSION_ID_COOKIE_NAME = 'session_id';
 
 export function registerCookieRoutes(fastify: FastifyInstance)
 {
-    fastify.post('/cookieLogin', async (request, reply) => {
-        const { username } = request.body as { username: string };
-        return await routeMakeNewCookie(request, reply, username);
-    });
+    // fastify.post('/cookieLogin', async (request, reply) => {
+    //     const { username } = request.body as { username: string };
+    //     return await routeMakeNewCookie(request, reply, username);
+    // });
 
-    fastify.get('/cookieProfile', routeCheckUserSession);
+    // fastify.get('/cookieProfile', routeCheckUserSession);
 
-    fastify.post('/cookieLogout', async (request, reply) => {
-        return await routeClearCookie(request, reply);
-    });
+    // fastify.post('/cookieLogout', async (request, reply) => {
+    //     return await routeClearCookie(request, reply);
+    // });
 }
 
 /**
@@ -36,7 +36,7 @@ function defaultCookieCreator(reply: FastifyReply, name: string, value: string)
             path: '/',
             httpOnly: true,
             sameSite: 'strict',
-            secure: false, // TODO: Set to 'true' in production
+            secure: true,
             domain: 'localhost', // TODO change to URL ttpg.xyz. Not https://ttpg.xyz
             maxAge: 60 * 60 * 24 // 1 day
         });
@@ -152,7 +152,7 @@ export async function routeCheckUserSession(request: FastifyRequest, reply: Fast
             reply.code(401).send({ error: 'Invalid session' });
             return ;
         }
-        reply.send({ session_id: sessionId });
+        reply.send();
         return ;
     }
 }

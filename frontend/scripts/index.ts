@@ -17,19 +17,20 @@ import './navigation.js'
 
 type Page = {
     builder: typeof HTMLElement,
-    postLoad?: ((page: HTMLElement) => any)
+    postLoad?: ((page: HTMLElement) => any),
+    title?: string
 }
 const pages = new Map<string, Page>([
-    ['/', {builder: IndexPage, postLoad: IndexPostLoad}],
-    ['/game', {builder: GamePage, postLoad: GamePostLoad}],
+    ['/', {builder: IndexPage, postLoad: IndexPostLoad, title: "Login"}],
+    ['/game', {builder: GamePage, postLoad: GamePostLoad, title: "Game Select"}],
     ['/game/local', {builder: LocalGamePage}],
-    ['/game/online', {builder: OnlineGamePage}],
-    ['/lobby', {builder: LobbyNavPage}],
-    ['/lobby/join', {builder: LobbyJoinPage}],
+    ['/game/online', {builder: OnlineGamePage, title: "Play Pong"}],
+    ['/lobby', {builder: LobbyNavPage, title: "Tournament Lobby"}],
+    ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
     // ['/chat', {builder: ChatPage}],
-    ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad}],
-    ['/mypage', {builder: UserPage}],
-    ['/tournament/bracket', {builder: TournamentPage}]
+    ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
+    ['/mypage', {builder: UserPage, title: "My Page"}],
+    ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}]
 ]);
 
 export let currPage : HTMLElement
@@ -67,13 +68,19 @@ export function onPageChange(func: cleanupFunc)
     cleanupFuncs.push(func);
 }
 
-export function NavOnClick(e: MouseEvent)
+export async function NavOnClick(e: MouseEvent)
 {
+    e.preventDefault();
+
     closeMenu();
     if (!(e.target instanceof HTMLAnchorElement))
         return;
 
-    e.preventDefault();
+    if (e.target.id === "logout")
+    {
+        console.log("attempting to log out");
+        await fetch("/api/user/session", { method: "DELETE" });
+    }
 
     const newURL = e.target.href;
 
@@ -83,8 +90,11 @@ export function NavOnClick(e: MouseEvent)
 }
 
 
-document.body.onload = () => {
-    document.title = "Code defined title!";
+document.body.onload = async () => {
+    document.title = "Transvengence";
+
+    if ((await fetch("/api/user/session")).ok)
+        history.pushState({}, "", "/game");
 
     newPage();
     history.replaceState(null, "", document.location.href);
@@ -104,8 +114,6 @@ window.addEventListener("popstate", (e) =>
 
 export function newPage()
 {
-    document.title = "page is changing!";
-
     cleanupFuncs.forEach((v) =>
     {
         v();
@@ -131,6 +139,11 @@ export function newPage()
         currPage = new ErrorPage;
     }
     document.body.appendChild(currPage);
+
+    if (pageBuilder?.title)
+        document.title = pageBuilder.title + " - Transvengence";
+    else
+        document.title = "Transvengence";
 
     if (pageBuilder?.postLoad)
         pageBuilder.postLoad(currPage);
