@@ -20,7 +20,8 @@ export class GameArea
     started: boolean = false;
     finished: boolean = false;
     framerate: number = 60;
-	rally: number = 0;
+	pointRally: number = 0;
+	highestGameRally: number = 0;
     interval: NodeJS.Timeout | undefined;
     wss: WebSocketServer;
     frame: GameSchema.GameFrameData = {
@@ -180,7 +181,11 @@ export class GameArea
         let player: "player1" | "player2";
 
         clearInterval(this.interval);
-		this.rally = 0;
+		if (this.pointRally > this.highestGameRally)
+		{
+			this.highestGameRally = this.pointRally;
+		}
+		this.pointRally = 0;
         if (scorer === this.p1)
         {
             this.p1.score++;
@@ -203,7 +208,7 @@ export class GameArea
 				`UPDATE game SET right_score = ? WHERE game_id = ?`
 			).run(this.p2.score, this.id);
 			console.log(`Player 2 scored ${this.p2.score} in game ID: ${this.id}`)
-            if (this.p2.score >= this.winScore)
+			if (this.p2.score >= this.winScore)
             {
                 this.win(this.p2);
                 return;
@@ -263,23 +268,23 @@ export class GameArea
 		const p1ExistingRally = temp1 ? temp1.longest_rally : 0;
 		console.log(`p1 Existing rally: ${p1ExistingRally}`);
 
-		if (this.rally > p1ExistingRally) {
+		if (this.highestGameRally > p1ExistingRally) {
 		db.prepare(
 			`UPDATE users SET longest_rally = ? WHERE user_id = ?`
-			).run(this.rally, this.p1.uid);
+			).run(this.highestGameRally, this.p1.uid);
 		}
 
 		const temp2 = db.prepare(`SELECT longest_rally FROM users WHERE user_id = ?`).get(this.p2.uid) as { longest_rally: number } | undefined;
 		const p2ExistingRally = temp2 ? temp2.longest_rally : 0;
 		console.log(`p2 Existing rally: ${p2ExistingRally}`);
 
-		if (this.rally > p2ExistingRally) {
+		if (this.highestGameRally > p2ExistingRally) {
 		db.prepare(
 			`UPDATE users SET longest_rally = ? WHERE user_id = ?`
-			).run(this.rally, this.p2.uid);
+			).run(this.highestGameRally, this.p2.uid);
 		}
 
-		console.log(`This rally: ${this.rally}`);
+		console.log(`This rally: ${this.highestGameRally}`);
         this.winFunction(player, this.p1.score, this.p2.score, this);
 
         let win: GameSchema.GameWinData = {
@@ -454,7 +459,7 @@ export class Ball
                     && hitPoint > game.p1.y - (game.p1.h / 2) - this.r)
                 {
 					console.log(`HIT`);
-					game.rally++;
+					game.pointRally++;
                     this.x = -passDist + this.r;
                     this.xVel = -this.xVel + this.moveAcel;
                     if (game.p1.moveDown)
@@ -479,7 +484,7 @@ export class Ball
                     && hitPoint > game.p2.y - (game.p2.h / 2) - this.r)
                 {
 					console.log(`HIT`);
-					game.rally++;
+					game.pointRally++;
                     this.x = game.w - passDist - this.r;
                     this.xVel = -this.xVel - this.moveAcel;
                     if (game.p1.moveDown)
