@@ -24,7 +24,7 @@ async function fetchFriends(): Promise <any[]> {
 	try
 	{
 		const response = await fetch('/api/friends') 
-		if (!response)
+		if (!response.ok)
 		{
 			throw new Error(`Cannot find friends`);
 		}

@@ -1,14 +1,9 @@
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { db } from "./database";
+import { Friend } from "./friend.schema";
+import  { getFriendsFromDatabase, getFriendsIBlockedFromDatabase, getDidIBlockThemFromDatabase, getDidTheyBlockMeFromDatabase }  from "./friend.logic";
+import { SESSION_ID_COOKIE_NAME, sidToUserIdAndName, getUserInfo } from "./cookie";
 
-const friends = [
-	{ username: "poopy", profilePicture: "./assets/images/profilePics/friend1.jpg" },
-	{ username: "coopy", profilePicture: "./assets/images/profilePics/friend2.jpg" },
-	{ username: "friend3", profilePicture: "./assets/images/profilePics/friend3.jpg" },
-	{ username: "orphan100rox", profilePicture: "./assets/images/profilePics/friend4.jpg" },
-	{ username: "momotheally", profilePicture: "./assets/images/profilePics/friend5.jpg" },
-	{ username: "3amtoes", profilePicture: "./assets/images/profilePics/friend6.jpg" }
-  ]
 
 const getUsers = {
 
@@ -37,15 +32,33 @@ const getUsers = {
 //     fastify.post('/api/friends/play', { schema: postDeleteUser }, DeleteUser);
 // }
 
-async function ListUsers(request: FastifyRequest, reply: FastifyReply)
-{
+// async function ListUsers(request: FastifyRequest, reply: FastifyReply)
+// {
 
-}
+// }
+
+
+
 
 
 export async function registerRoutes(fastify: FastifyInstance)
 {
 	fastify.get('/api/friends', async (request: FastifyRequest, reply: FastifyReply) => {
-		reply.send(friends);
+
+		const myUserId = await getUserInfo(request);
+		if (!myUserId)
+		{
+			reply.code(401).send({ error: `Authenticaion error` });
+			return ;
+		}
+		const friends = await getFriendsFromDatabase(myUserId);
+		if (friends)
+		{
+			reply.send(friends);
+		}
+		else
+		{
+			reply.code(500).send({ error: `Cannot find friends` });
+		}
 	});
 }

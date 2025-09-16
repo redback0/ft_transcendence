@@ -240,3 +240,21 @@ export async function clearUserSession(userId: string)
         throw new Error('Failed to clear user session');
     }
 }
+
+/**
+ * 
+ * @param request fastify instance. 
+ * @returns The users user id or null on error. 
+ * @description Use the users cookie to return their userId. 
+ */
+export async function getUserInfo(request: FastifyRequest): Promise<string | null>
+{
+	const cookie = request.cookies;
+	const sessionId = cookie[SESSION_ID_COOKIE_NAME];
+	if (sessionId)
+	{
+		const myUserId = await sidToUserIdAndName(sessionId);
+		return (myUserId?.user_id || null);
+	}
+	return (null);
+}
