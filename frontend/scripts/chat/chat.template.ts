@@ -20,7 +20,6 @@ export class ChatPage extends HTMLElement
                     <div class="head-cont" id="head-cont">
                         <img src="avatar" class="avatar">
                         <div class="active" id="user">
-                            <p>UserName</p>
                         </div>
                     </div>
                 </div>
