@@ -9,13 +9,15 @@ export class FriendsPage extends HTMLElement
 		<!-- TO DO: 'ADD' FUNCTIONALITY : API POST REQUEST -->
 		<!-- Main Content -->
 		<div id="friends-main-content">
-			<form id="loginform">
+			<form method="POST" id="addFriend">
 				<h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh">FRIENDS</h1>
 				<p style="font-size:2vh; color:#520404; margin-top:1vh; font-weight:bold">ADD FRIENDS:</p>
 				<input id="friends-user-search" type="text" name="username" placeholder="ENTER USERNAME" autocomplete="off" style="color:#DED19C;" required>
 				<h1 style="font-weight:bold; font-size:1.5vh; color:red">USER DOES NOT EXIST/USER ADDED!</h1>
-				<h1 id="friends-redHover" onclick="submitForm()" style="font-weight:bold; font-size:5vh; color:#520404;">ADD -></h1>
-			</form>
+				<!--<h1 id="friends-redHover" onclick="submitForm()" style="font-weight:bold; font-size:5vh; color:#520404;">ADD -></h1>-->
+				<button type="button" id="addFriendButton" style="font-weight:bold; font-size:5vh; color:#520404;>Add Friend</button>
+
+				</form>
 		</div>
 
 		<div id="down-arrow">

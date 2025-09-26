@@ -5,13 +5,13 @@ window.onload = function () {
   };
 
 const friends = [
-	{ username: "poopy", profilePicture: "./assets/images/profilePics/friend1.jpg" },
-	{ username: "coopy", profilePicture: "./assets/images/profilePics/friend2.jpg" },
-	{ username: "friend3", profilePicture: "./assets/images/profilePics/friend3.jpg" },
-	{ username: "orphan100rox", profilePicture: "./assets/images/profilePics/friend4.jpg" },
-	{ username: "momotheally", profilePicture: "./assets/images/profilePics/friend5.jpg" },
-	{ username: "3amtoes", profilePicture: "./assets/images/profilePics/friend6.jpg" }
-  ]
+	{ id: "b1a7c8e2-1f2d-4e3a-9c1a-2f3b4c5d6e7f", username: "poopy", profilePicture: "./assets/images/profilePics/friend1.jpg" },
+	{ id: "c2b8d9f3-2e3f-5a4b-8d2b-3c4d5e6f7a8b", username: "coopy", profilePicture: "./assets/images/profilePics/friend2.jpg" },
+	{ id: "d3c9eaf4-3f4a-6b5c-7e3c-4d5e6f7a8b9c", username: "friend3", profilePicture: "./assets/images/profilePics/friend3.jpg" },
+	{ id: "e4dab0f5-4a5b-7c6d-8f4d-5e6f7a8b9c0d", username: "orphan100rox", profilePicture: "./assets/images/profilePics/friend4.jpg" },
+	{ id: "f5ebc1a6-5b6c-8d7e-9a5e-6f7a8b9c0d1e", username: "momotheally", profilePicture: "./assets/images/profilePics/friend5.jpg" },
+	{ id: "a6fcd2b7-6c7d-9e8f-0b6f-7a8b9c0d1e2f", username: "3amtoes", profilePicture: "./assets/images/profilePics/friend6.jpg" }
+];
 
 const tableFriends = document.getElementById("table-friends");
   
@@ -28,7 +28,7 @@ const tableFriends = document.getElementById("table-friends");
 				<div class="relative inline-block text-left">
 					<button onclick="this.nextElementSibling.classList.toggle('hidden')" class="px-3 py-0.7 rounded-lg bg-[#DED19C] text-[#520404] text-0.5rem hover:bg-[#b8b8b8] hover:font-bold">ACTIONS ▼</button>
 					<div class="dropdown-menu hidden absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10" style="border: 2px solid #DED19C;">
-						<button class="block w-full text-left px-4 py-2 text-sm text-[#DED19C] bg-[#000000] hover:bg-[#520404]" style="border-radius:0.375rem 0.375rem 0 0;">BLOCK</button>
+						<button class="block w-full text-left px-4 py-2 text-sm text-[#DED19C] bg-[#000000] hover:bg-[#520404]" style="border-radius:0.375rem 0.375rem 0 0;" data-userid="${friend.id}">BLOCK</button>
 						<button class="block w-full text-left px-4 py-2 text-sm text-[#DED19C] bg-[#000000] hover:bg-[#520404]" style="border-radius:0 0 0.375rem 0.375rem;">DE-FRIEND</button>
 					</div>
 				</div>
@@ -43,3 +43,6 @@ const tableFriends = document.getElementById("table-friends");
 	  console.error("ERROR: No 'tableFriends' element");
 	}
   });
+
+  import { attachBlockListeners } from './friends.controller';
+  attachBlockListeners();
