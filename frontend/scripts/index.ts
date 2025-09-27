@@ -9,9 +9,9 @@ import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
-import { LoginPage } from './login/login.template.js'
+import { SignUpPage } from './signup/signup.template.js'
+import { SignUpPostLoad } from './signup/signup.controller.js'
 import { FriendsPage } from './friends/friends.template.js'
-import { LoginPostLoad } from './login/login.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
 import './navigation.js'
@@ -19,21 +19,22 @@ import { FriendsPostLoad } from './friends/friends.controller.js'
 
 type Page = {
     builder: typeof HTMLElement,
-    postLoad?: ((page: HTMLElement) => any)
+    postLoad?: ((page: HTMLElement) => any),
+    title?: string
 }
 const pages = new Map<string, Page>([
-    ['/', {builder: IndexPage, postLoad: IndexPostLoad}],
-    ['/game', {builder: GamePage, postLoad: GamePostLoad}],
+    ['/', {builder: IndexPage, postLoad: IndexPostLoad, title: "Login"}],
+    ['/game', {builder: GamePage, postLoad: GamePostLoad, title: "Game Select"}],
     ['/game/local', {builder: LocalGamePage}],
-    ['/game/online', {builder: OnlineGamePage}],
-    ['/lobby', {builder: LobbyNavPage}],
-    ['/lobby/join', {builder: LobbyJoinPage}],
+    ['/game/online', {builder: OnlineGamePage, title: "Play Pong"}],
+    ['/lobby', {builder: LobbyNavPage, title: "Tournament Lobby"}],
+    ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
     // ['/chat', {builder: ChatPage}],
-    ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
-    ['/mypage', {builder: UserPage}],
-    ['/tournament/bracket', {builder: TournamentPage}],
-	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]
-]);
+    ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
+    ['/mypage', {builder: UserPage, title: "My Page"}],
+    ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
+	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]]
+);
 
 export let currPage : HTMLElement
 
@@ -70,13 +71,19 @@ export function onPageChange(func: cleanupFunc)
     cleanupFuncs.push(func);
 }
 
-export function NavOnClick(e: MouseEvent)
+export async function NavOnClick(e: MouseEvent)
 {
+    e.preventDefault();
+
     closeMenu();
     if (!(e.target instanceof HTMLAnchorElement))
         return;
 
-    e.preventDefault();
+    if (e.target.id === "logout")
+    {
+        console.log("attempting to log out");
+        await fetch("/api/user/session", { method: "DELETE" });
+    }
 
     const newURL = e.target.href;
 
@@ -86,8 +93,11 @@ export function NavOnClick(e: MouseEvent)
 }
 
 
-document.body.onload = () => {
-    document.title = "Code defined title!";
+document.body.onload = async () => {
+    document.title = "Transvengence";
+
+    if ((await fetch("/api/user/session")).ok)
+        history.pushState({}, "", "/game");
 
     newPage();
     history.replaceState(null, "", document.location.href);
@@ -107,8 +117,6 @@ window.addEventListener("popstate", (e) =>
 
 export function newPage()
 {
-    document.title = "page is changing!";
-
     cleanupFuncs.forEach((v) =>
     {
         v();
@@ -134,6 +142,11 @@ export function newPage()
         currPage = new ErrorPage;
     }
     document.body.appendChild(currPage);
+
+    if (pageBuilder?.title)
+        document.title = pageBuilder.title + " - Transvengence";
+    else
+        document.title = "Transvengence";
 
     if (pageBuilder?.postLoad)
         pageBuilder.postLoad(currPage);

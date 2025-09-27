@@ -1,4 +1,5 @@
 //Authored by Bethany Milford 18/07/2025
+//DEPRICATED -- replaced by index.template.ts and signup.controller.ts
 import { formatDiagnostic } from "typescript";
 
 export function LoginPostLoad(page: HTMLElement)

@@ -84,7 +84,7 @@ canvas
 /********************************************************/
 /**************           SIGNUP          ***************/
 /********************************************************/
-#signup-main-content {
+signup-page {
     display: block;
     position: fixed;
     justify-content: center;
