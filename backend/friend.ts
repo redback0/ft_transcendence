@@ -1,41 +1,8 @@
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { db } from "./database";
 import { Friend } from "./friend.schema";
-import  { getFriendsFromDatabase, setIBlockThem, getFriendsIBlockedFromDatabase, getDidIBlockThemFromDatabase, getDidTheyBlockMeFromDatabase, requestFriendship }  from "./friend.logic";
+import  { getFriendsFromDatabase, setIBlockThem, defriend, getFriendsIBlockedFromDatabase, getDidIBlockThemFromDatabase, getDidTheyBlockMeFromDatabase, requestFriendship, setIUnblockThem }  from "./friend.logic";
 import { SESSION_ID_COOKIE_NAME, sidToUserIdAndName, getUserInfo } from "./cookie";
-
-
-const getUsers = {
-
-};
-
-// TODO
-// export function messageUserButtonClick(user: string) {}
-
-// TODO
-// export function blockUserButtonClick (me: string, them: string) {}
-
-// TODO
-// export function defriendButtonClick (me: string, them: string) {}
-
-// TODO or posibly remove. 
-// export function playGameWithUserClick (user: string) {}
-
-// export async function registerRoutes(fastify: FastifyInstance)
-// {
-//     fastify.get('/api/friends', async (request: FastifyInstance, reply: FastifyReply) => {
-// 		reply.send(friends);
-// 	});
-//     fastify.post('/api/friends/block', { schema: getLogin },  LoginUser);
-//     fastify.post('/api/friends/defriend', { schema: postChangePw }, ChangePw);
-//     fastify.post('/api/friends/message', { schema: postDeleteUser }, DeleteUser);
-//     fastify.post('/api/friends/play', { schema: postDeleteUser }, DeleteUser);
-// }
-
-// async function ListUsers(request: FastifyRequest, reply: FastifyReply)
-// {
-
-// }
 
 
 
@@ -79,7 +46,8 @@ async function routeRequestFriendship(request: FastifyRequest, reply: FastifyRep
 }
 
 // Block a friend
-async function routeBlockFriends(request: FastifyRequest, reply: FastifyReply) {
+async function routeBlockFriends(request: FastifyRequest, reply: FastifyReply)
+{
 	const myUserId = await getUserInfo(request);
 	if (!myUserId)
 	{
@@ -99,9 +67,55 @@ async function routeBlockFriends(request: FastifyRequest, reply: FastifyReply) {
 		reply.code(500).send({ error: `Failed to block user ${friendUserId}.` });
 }
 
+// Block a friend
+async function routeUnblockFriends(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const { friendUserId } = request.body as { friendUserId: string };
+	if (!friendUserId)
+	{
+		reply.code(400).send({ error: "Friend id doesnot exist." });
+		return;
+	}
+	const result = await setIUnblockThem(myUserId, friendUserId);
+	if (result)
+		reply.send({ message: `User ${friendUserId} blocked.` });
+	else
+		reply.code(500).send({ error: `Failed to unblock user ${friendUserId}.` });
+}
+
+// Defriend
+async function routeDefriendFriends(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const { friendUserId } = request.body as { friendUserId: string };
+	if (!friendUserId)
+	{
+		reply.code(400).send({ error: "Friend id doesnot exist." });
+		return;
+	}
+	const result = await defriend(myUserId, friendUserId);
+	if (result)
+		reply.send({ message: `User ${friendUserId} defriended.` });
+	else
+		reply.code(500).send({ error: `Failed to defriend user ${friendUserId}. Seek counciling` });
+}
+
 export async function registerRoutes(fastify: FastifyInstance)
 {
 	fastify.get('/api/friends', routeGetFriends);
 	fastify.post('/api/friends/request', routeRequestFriendship);
 	fastify.post('/api/friends/block', routeBlockFriends);
+	fastify.post('/api/friends/unblock', routeUnblockFriends);
+	fastify.post('/api/friends/defriend', routeDefriendFriends);
 }

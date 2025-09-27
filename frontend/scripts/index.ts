@@ -15,6 +15,7 @@ import { LoginPostLoad } from './login/login.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
 import './navigation.js'
+import { FriendsPostLoad } from './friends/friends.controller.js'
 
 type Page = {
     builder: typeof HTMLElement,
@@ -31,7 +32,7 @@ const pages = new Map<string, Page>([
     ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
     ['/mypage', {builder: UserPage}],
     ['/tournament/bracket', {builder: TournamentPage}],
-	['/friends', {builder: FriendsPage }]
+	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]
 ]);
 
 export let currPage : HTMLElement

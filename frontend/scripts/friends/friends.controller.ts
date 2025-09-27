@@ -1,6 +1,6 @@
 import { formatDiagnostic } from "typescript";
 
-export function LoginPostLoad(page: HTMLElement)
+export function FriendsPostLoad(page: HTMLElement)
 {
 	fetchFriends();
 	// TODO: Load friends into id="table-friends"
@@ -20,7 +20,7 @@ export function LoginPostLoad(page: HTMLElement)
 // TODO or posibly remove. 
 // export function playGameWithUserClick (user: string) {}
 
-async function fetchFriends(): Promise <any[]> {
+export async function fetchFriends(): Promise <any[]> {
 	try
 	{
 		const response = await fetch('/api/friends');
@@ -84,6 +84,48 @@ export async function blockFriend(friendUserId: string)
 	}
 }
 
+export async function unblockFriend(friendUserId: string)
+{
+	try
+	{
+		const response = await fetch('/api/friends/unblock', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ friendUserId })
+		});
+		if (!response.ok)
+		{
+			console.error(`Error: cannot unblock user`);
+			return; 
+		}
+	}
+	catch (error)
+	{
+		console.error('Error: Cannot unblock user', error);
+	}
+}
+
+export async function defriendFriend(friendUserId: string)
+{
+	try
+	{
+		const response = await fetch('/api/friends/defriend', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ friendUserId })
+		});
+		if (!response.ok)
+		{
+			console.error(`Error: cannot defriend user`);
+			return; 
+		}
+	}
+	catch (error)
+	{
+		console.error('Error: Cannot defriend user', error);
+	}
+}
+
 	// REFERENCE only for help
 	// sendInfoResponse = (ws: TournamentWebSocket) => {
 	// 	if (!this.host || !this.host.user_info || !ws.user_info)
@@ -94,9 +136,9 @@ export async function blockFriend(friendUserId: string)
 	// 			clients.push(client.user_info);
 	// 	});
 
-document.addEventListener('DOMContentLoaded', () => {
-	fetchFriends();
-
+document.addEventListener('DOMContentLoaded', async () => {
+	const friends = await fetchFriends();
+	
 	const addBtn = document.getElementById('friends-redHover');
 	if (addBtn)
 		addBtn.addEventListener('click', routeRequestFriendship);
@@ -105,13 +147,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 export function attachBlockListeners()
 {
-	document.querySelectorAll('.block').forEach(btn => {
-		btn.addEventListener('click', function(event) {
-		const target = event.currentTarget as HTMLButtonElement;
+	document.querySelectorAll('button[data-action]').forEach(btn => {
+		btn.addEventListener('click', function(event)
+		{
+			const target = event.currentTarget as HTMLButtonElement;
 			const theirUserId = target.getAttribute('data-userid');
-						if (theirUserId) {
+			const action = target.getAttribute('data-action');
+			if (theirUserId && action === 'block')
 				blockFriend(theirUserId);
-			}
+			else if (theirUserId && action === 'unblock')
+				unblockFriend(theirUserId);
+			else if (theirUserId && action == 'defriend')
+				defriendFriend(theirUserId);
+			else
+				return ;
 		});
 	});
 }

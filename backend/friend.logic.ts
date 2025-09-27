@@ -3,8 +3,6 @@ import { db } from "./database";
 import { Friend } from "./friend.schema";
 import { SESSION_ID_COOKIE_NAME, sidToUserIdAndName, getUserInfo } from "./cookie";
 
-
-// Setup
 export async function checkFriendRecordExists(myId: string, theirId: string): Promise<boolean>
 {
 		const statement = db.prepare(`SELECT 1 FROM friend WHERE my_id = ? AND friend_id = ? LIMIT 1;`);
@@ -43,12 +41,11 @@ export async function setupFriendRecordIfNotExist(myId: string, theirId: string)
 	}
 }
 
-// Block
 export async function getFriendsFromDatabase(myId: string): Promise<Friend[] | null>
 {
 	try
 	{
-		const statement = db.prepare(`SELECT u.user_id, u.username FROM users as u INNER JOIN friend as f ON u.user_id = f.friend_id WHERE f.my_id = ? AND f.friend_status = 1;`);
+		const statement = db.prepare(`SELECT u.user_id, u.username, f.blocked_by_me, f.profile_picture FROM users as u INNER JOIN friend as f ON u.user_id = f.friend_id WHERE f.my_id = ? AND f.friend_status = 1;`);
 		const friends = statement.all(myId) as Friend[];
 		return (friends);
 	}
@@ -110,14 +107,13 @@ export async function getDidTheyBlockMeFromDatabase(myId: string, theirId: strin
 	}
 }
 
-
 export async function setIBlockThem(myId: string, theirId: string): Promise<boolean>
 {
 	await setupFriendRecordIfNotExist(myId, theirId);
 	try
 	{
 		db.prepare(`BEGIN TRANSACTION`).run();
-		const statement = db.prepare(`UPDATE friend SET blocked_by_me = 1, friend_status = NULL WHERE my_id = ? AND friend_id = ?;`);
+		const statement = db.prepare(`UPDATE friend SET blocked_by_me = 1 WHERE my_id = ? AND friend_id = ?;`);
 		statement.run(myId, theirId);
 		db.prepare(`COMMIT`).run();
 		console.log(`Friend blocked: ${theirId}`);
@@ -151,7 +147,6 @@ export async function setIUnblockThem(myId: string, theirId: string): Promise<bo
 	}
 }
 
-
 // Let's make friends slowly 
 export async function checkAreTheyWaitingForFriendAproval(myId: string, theirId: string): Promise<boolean>
 {
@@ -168,8 +163,6 @@ export async function checkAreTheyWaitingForFriendAproval(myId: string, theirId:
 		return (false);
 	}
 }
-
-
 
 export async function requestFriendship(myId: string, theirId: string): Promise<boolean>
 {
@@ -198,8 +191,6 @@ export async function requestFriendship(myId: string, theirId: string): Promise<
 	}
 }
 
-
-
 export async function tryToApproveFriendship(myId: string, theirId: string): Promise<boolean>
 {
 	// Check they are ready for the next level with you. 
@@ -220,6 +211,24 @@ export async function tryToApproveFriendship(myId: string, theirId: string): Pro
 	{
 		db.prepare('ROLLBACK').run();
 		console.error(`Error: Cannot approve friendship, probally for the best.`, error);
+		return (false);
+	}
+}
+
+export async function defriend(myId: string, theirId: string): Promise<boolean>
+{
+	try
+	{
+		db.prepare('BEGIN TRANSACTION').run();
+		let statement = db.prepare(`DELETE FROM friend WHERE my_id = ? AND friend_id = ?`);
+		statement.run(myId, theirId);
+		db.prepare('COMMIT').run();
+		return (true);
+	}
+	catch (error)
+	{
+		db.prepare('ROLLBACK').run();
+		console.error(`Cannot defriend user ${theirId}: `, error);
 		return (false);
 	}
 }
