@@ -7,13 +7,31 @@ const Channels: Map<string, HTMLElement> = new Map();
 let is_active: string;
 
 export function ChatPostLoad(page: HTMLElement)
-{
+{ 
+    const chatButton = document.getElementById('chat-toggle');
+    chatButton?.addEventListener('click', async (event) => 
+    {
+        const widget = document.getElementById('chatWidget')
+        widget?.classList.toggle('hidden'); 
+    });
     onPageChange(() =>
     {
         ws?.close();
         ws = undefined;
     });
 
+    if (Channels.has('Alice') === false)
+    {
+        const generalInbox = document.getElementById('alice-inbox');
+        if (generalInbox)
+        {
+            Channels.set('Alice', generalInbox);
+        }
+        else
+        {
+            throw Error("Uh oh stinky");
+        }
+    }
     if( Channels.has('#general') === false)
     {
         const generalInbox = document.getElementById('general-inbox');
@@ -26,6 +44,7 @@ export function ChatPostLoad(page: HTMLElement)
             throw Error("Uh oh stinky");
         }
     }
+    document.getElementById('default')?.click();
     const MessageInput = (document.getElementById('messageInput') as HTMLInputElement);
     if (MessageInput)
     {
@@ -35,7 +54,7 @@ export function ChatPostLoad(page: HTMLElement)
             {
                 const client = Channels.get('#general');
                 if (client)
-                    wssMessageSender("sendMessage", MessageInput.value, "#general");
+                    wssMessageSender("message", MessageInput.value, "#general");
             }
             else 
             {
@@ -54,13 +73,18 @@ export function ChatPostLoad(page: HTMLElement)
     { 
         openChat("General", event);  
     });
-    const dmButton = document.getElementById('direct');
-    dmButton?.addEventListener("click", async (event)=>
+    // const dmButton = document.getElementById('direct');
+    // dmButton?.addEventListener("click", async (event)=>
+    // {
+    //     openChat("DirectMessage", event);
+    // });
+    const aliceButton = document.getElementById('aliceButton');
+    aliceButton?.addEventListener("click", async (event) => 
     {
-        openChat("DirectMessage", event);
-    });
+        openChat("Alice", event);
+    })
 
-    document.getElementById('default')?.click();
+    //document.getElementById('default')?.click();
     // Sending text button
     const SendButton = document.getElementById('sendButton');
     SendButton?.addEventListener("click", async (event) =>
@@ -71,6 +95,10 @@ export function ChatPostLoad(page: HTMLElement)
         {
             wssMessageSender("message", message, "#general");
             SendButton.innerHTML = `<p> General</p>`;
+        }
+        else if (is_active === "Alice")
+        {
+            wssMessageSender("message", message, "Alice")
         }
        else 
        {
@@ -97,12 +125,12 @@ export function ChatPostLoad(page: HTMLElement)
     const DmReqButton = document.getElementById('dmreqbutton');
     DmReqButton?.addEventListener("click", async (event) =>
     {
-        const reciever = (document.getElementById('dmreciever')as HTMLInputElement).value;
-        const message = (document.getElementById('dmmessage')as HTMLInputElement).value;
+        const target = (document.getElementById('dmreciever')as HTMLInputElement);
+        const reciever = target.value;
         const targetclient = friends.indexOf(reciever);
-        if (targetclient === -1)
+        if (targetclient === -1 && reciever !== "")
         {
-            newDM(message, reciever, "outgoing");
+            newDM("New Message Request", reciever, "outgoing");
             friends.push(reciever);
         }
         else
@@ -110,6 +138,7 @@ export function ChatPostLoad(page: HTMLElement)
             console.log("Inbox already exists.");
             console.log(friends);
         }
+        target.value = "";
     });
 
     function connectWS()
@@ -129,9 +158,9 @@ export function ChatPostLoad(page: HTMLElement)
             try {
                 const parsedMessage = JSON.parse(ev.data);
                 console.log(parsedMessage.sender, parsedMessage.payload, parsedMessage.type);
-                if (parsedMessage.username)
-                    setUsername(parsedMessage.username);
-                else if (parsedMessage.channel)
+                //if (parsedMessage.username)
+                //    setUsername(parsedMessage.username);
+                if (parsedMessage.channel)
                 {
                     const client = Channels.get('#general');
                     if (client)
@@ -254,68 +283,71 @@ const openChat = (chatName: string, event: any) =>
     tab.style.display = "block";
     (event.currentTarget as HTMLElement).className += " active";
     is_active = chatName;
-
+    const title = (document.getElementById("title") as HTMLElement);
+    title.innerText = chatName;
 }
 
-const openDM = (dmName: string, event: any) =>
-{
-    var index, tabcontent, tablinks;
+// const openDM = (dmName: string, event: any) =>
+// {
+//     var index, tabcontent, tablinks;
 
-    tabcontent = document.getElementsByClassName("tabcontent2");
-    for(index = 0; index < tabcontent.length; index++) {
-        (tabcontent[index] as HTMLElement).style.display = "none";
-    }
-    tablinks = document.getElementsByClassName("tablinks2");
-    for(index = 0; index < tablinks.length; index++) {
-        tablinks[index].className = tablinks[index].className.replace(" active2", "");
-    }
-    const tab = (document.getElementById(dmName) as HTMLElement);
-    tab.style.display = "block";
-    (event.currentTarget as HTMLElement).className += " active2";
-    is_active = dmName;
-}
+//     tabcontent = document.getElementsByClassName("tabcontent2");
+//     for(index = 0; index < tabcontent.length; index++) {
+//         (tabcontent[index] as HTMLElement).style.display = "none";
+//     }
+//     tablinks = document.getElementsByClassName("tablinks2");
+//     for(index = 0; index < tablinks.length; index++) {
+//         tablinks[index].className = tablinks[index].className.replace(" active2", "");
+//     }
+//     const tab = (document.getElementById(dmName) as HTMLElement);
+//     tab.style.display = "block";
+//     (event.currentTarget as HTMLElement).className += " active2";
+//     is_active = dmName;
+// }
 
 const newDM = (message: string, sender: string, type: string) =>
 {
-    const tab = document.getElementById('tab2');
-    let dmButton = document.createElement("button");
-    dmButton.textContent = sender;
-    dmButton.classList.add('tablinks');
-    dmButton.id = sender + "Button";
-    dmButton.addEventListener("click", async (event) =>
+    if (sender)
     {
-        event.preventDefault();
-        openDM(sender, event)
-    });
-
-    const div = document.getElementById('DirectMessage');
-    let tabcont = document.createElement("div");
-    tabcont.classList.add('tabcontent2');
-    tabcont.id = sender;
-    let chat = document.createElement("div");
-    chat.classList.add('chat-body');
-    const inbox = document.createElement("div");
-    inbox.classList.add('inbox');
-    inbox.id = sender + "-inbox";
-
-    if(tab && div)
-    {
-        tab.appendChild(dmButton);
-        div.appendChild(tabcont);
-        tabcont.appendChild(chat);
-        chat.appendChild(inbox);
-        const setChannel = document.getElementById(inbox.id);
-        if (setChannel)
+        const tab = document.getElementById('inboxs');
+        let dmButton = document.createElement("button");
+        dmButton.textContent = sender;
+        dmButton.classList.add('tablinks', 'dm-button');
+        dmButton.id = sender + "Button";
+        dmButton.addEventListener("click", async (event) =>
         {
-            Channels.set(sender, setChannel);
-            if (type === "incoming")
+            event.preventDefault();
+            openChat(sender, event);
+        });
+
+        const div = document.getElementById('pages');
+        let tabcont = document.createElement("div");
+        tabcont.classList.add('tabcontent');
+        tabcont.id = sender;
+        let chat = document.createElement("div");
+        chat.classList.add('chat-body');
+        const inbox = document.createElement("div");
+        inbox.classList.add('inbox');
+        inbox.id = sender + "-inbox";
+
+        if(tab && div)
+        {
+            tab.appendChild(dmButton);
+            div.appendChild(tabcont);
+            tabcont.appendChild(chat);
+            chat.appendChild(inbox);
+            const setChannel = document.getElementById(inbox.id);
+            if (setChannel)
             {
-                messageReciever(message, sender, setChannel);
-            }
-            else {
-                wssMessageSender("message", message, sender);
-                openChat("DirectMessage", event);
-                openDM(sender, event);
+                Channels.set(sender, setChannel);
+                if (type === "incoming")
+                {
+                    messageReciever(message, sender, setChannel);
+                }
+                else {
+                    wssMessageSender("message", message, sender);
+                    openChat(sender, event);
+                }
             }
         }
     }

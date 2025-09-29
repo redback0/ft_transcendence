@@ -18,6 +18,7 @@ export function LoginPostLoad(page: HTMLElement)
               password: password
             })
         });
+        window.location.reload();
     });
     const SignUpButton = document.getElementById('signupButton');
     SignUpButton?.addEventListener("click", async (event) => 
@@ -40,6 +41,7 @@ export function LoginPostLoad(page: HTMLElement)
               password: password
             })
         });
+        window.location.reload();
     });
 }
 
