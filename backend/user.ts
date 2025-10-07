@@ -6,7 +6,7 @@
 // TO DO: JACK - Implement cookie stuff
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { SESSION_ID_COOKIE_NAME, routeMakeNewCookie, validateSession } from "./cookie";
+import { SESSION_ID_COOKIE_NAME, routeCheckUserSession, routeClearCookie, routeMakeNewCookie, sidToUserIdAndName, sidToUserIdAndNameRequest, validateSession } from "./cookie";
 import { db } from "./database";
 import * as bcrypt from 'bcrypt-ts';
 
@@ -61,6 +61,8 @@ export async function registerRoutes(fastify: FastifyInstance)
 {
     fastify.post('/api/user', { schema: postCreateUser }, CreateUser);
     fastify.post('/api/user/session', { schema: getLogin },  LoginUser);
+    fastify.get('/api/user/session', sidToUserIdAndNameRequest);
+    fastify.delete('/api/user/session', routeClearCookie);
     fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
     fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
 }
