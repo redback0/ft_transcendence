@@ -279,7 +279,6 @@ footer .marquee a:hover {
 }
 
 #transvengence-logo > svg {
-    cursor: pointer;
     fill: var(--color1);
     transition: fill .1s ease-in-out;
     transition: scale .1s ease-in-out;
@@ -288,6 +287,14 @@ footer .marquee a:hover {
 #transvengence-logo > svg:hover {
     fill: #FFFFFF !important;
     scale: 1.025;
+}
+
+#login-status
+{
+    color: var(--color1);
+    position: absolute;
+    right: 100px;
+    font-weight: bold;
 }
 
 #chat-icon > svg {

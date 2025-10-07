@@ -93,6 +93,11 @@ export function IndexPostLoad(page: HTMLElement)
                 return;
             }
 
+            const usernameElement = document.getElementById("username");
+            if (usernameElement instanceof HTMLParagraphElement)
+                usernameElement.innerText = user;
+
+
             history.pushState({}, "", "/game");
             newPage()
         });

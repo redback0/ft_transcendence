@@ -80,6 +80,9 @@ export async function NavOnClick(e: MouseEvent)
     {
         console.log("attempting to log out");
         await fetch("/api/user/session", { method: "DELETE" });
+        const usernameElement = document.getElementById("username");
+        if (usernameElement instanceof HTMLParagraphElement)
+            usernameElement.innerText = "";
     }
 
     const newURL = e.target.href;
@@ -93,8 +96,17 @@ export async function NavOnClick(e: MouseEvent)
 document.body.onload = async () => {
     document.title = "Transvengence";
 
-    if ((await fetch("/api/user/session")).ok)
-        history.pushState({}, "", "/game");
+    const usernameElement = document.getElementById("username");
+    const sessionInfo = await fetch("/api/user/session");
+
+    if (sessionInfo.ok)
+    {
+        const userInfo = await sessionInfo.json();
+        if (usernameElement instanceof HTMLParagraphElement)
+            usernameElement.innerText = userInfo?.username;
+        if (document.location.pathname === "/")
+            history.pushState({}, "", "/game");
+    }
 
     newPage();
     history.replaceState(null, "", document.location.href);
