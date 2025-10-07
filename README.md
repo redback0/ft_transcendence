@@ -21,29 +21,22 @@
 
 - ✅ 0.5 Use a database for the backend -- Jack
 
-- 🔧 1 Standard user management, authentication, users across tournaments -- Nicole (Jack) (Beth)
+- ✅ 1 Standard user management, authentication, users across tournaments -- Nicole (Jack) (Beth)
 
 - ✅ 1 Remote players
 
-- 🔧 1 Live chat -- Beth
-
-- 🔧 1 Introduce an AI opponent -- Nate
-
-- 🔧 1 Designing the backend as microservices
-
-- 🔧 0.5 Expanding browser compatibility
+- ✅  0.5 Expanding browser compatibility
 
 - ✅ 1 Replace basic Pong with server-side Pong and implement an API
 
-- ❔ 0.5 User and game stats dashboards -- Nicole
+- 🔧 1 Live chat -- Beth
 
-- ❔ 0.5 Add accessibility features for visually impaired users
+- 🔧 0.5 Support on all devices -- Nate
 
-- ❔ 0.5 Multiple language support
+- ❔ 0.5 User and game stats dashboards -- Beth
 
-- ❔ 0.5 Support on all devices
+- ❔ 0.5 Multiple language support -- Nicole
 
-
-✅ 4/7
-🔧 4.5
+✅ 5.5/7
+🔧 1.5
 ❔ 2
