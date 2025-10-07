@@ -9,9 +9,9 @@
 
 - ✅ Pong
 
-- 🔧 Tournaments -- Coby
+- ✅ Tournaments -- Coby
 
-- 🔧 Basic Security -- Beth
+- ✅ Basic Security -- Beth/Nicole/Jack
 
 ## MODULES
 
@@ -21,7 +21,7 @@
 
 - ✅ 0.5 Use a database for the backend -- Jack
 
-- ✅ 1 Standard user management, authentication, users across tournaments -- Nicole (Jack) (Beth)
+- ✅ 1 Standard user management, authentication, users across tournaments -- Beth/Nicole/Jack
 
 - ✅ 1 Remote players
 
@@ -31,12 +31,25 @@
 
 - 🔧 1 Live chat -- Beth
 
-- 🔧 0.5 Support on all devices -- Nate
+- 🔧 0.5 Multiple language support -- Nicole
+  
+- ❔ 0.5 Support on all devices -- Nate
 
 - ❔ 0.5 User and game stats dashboards -- Beth
-
-- ❔ 0.5 Multiple language support -- Nicole
 
 ✅ 5.5/7
 🔧 1.5
 ❔ 2
+
+
+TO DO:
+- Live chat implementation on frontend -- Beth
+- Username in top left of nav bar when logged in -- Beth
+- Test frontend functionality for all tournament processes and pages -- Coby
+- Remove profile page & adjust associated processes -- Nate
+- Implement & test active status - Jack
+- Complete edit profile page & functionality -- Nicole & Jack
+- Upload & change avatars -- Nicole & Jack
+- Language implementation (Mandarin Chinese & Spanish) -- Nicole
+- Security pen testing (SQL injections/XSS attacks, cookie stuff) -- Beth
+- Functionality testing across the project -- Nate
