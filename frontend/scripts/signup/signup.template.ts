@@ -22,10 +22,5 @@ export class SignUpPage extends HTMLElement {
             `
     }
 }
-// taken out of error box, will be reimplemented in code
-// INVALID USERNAME/PASSWORD INPUT<br><br>
-// Minimum password requirements:<br>
-// - 12 characters, 1 lowercase, 1 uppercase, 1 symbol<br>
-// - Passwords must match
 
 customElements.define('signup-page', SignUpPage)
