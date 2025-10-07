@@ -44,9 +44,9 @@
 
 TO DO:
 - Live chat implementation on frontend -- Beth
-- Username in top left of nav bar when logged in -- Beth
+- ~~Username in top left of nav bar when logged in -- Nate~~
 - Test frontend functionality for all tournament processes and pages -- Coby
-- Remove profile page & adjust associated processes -- Nate
+- ~~Remove profile page & adjust associated processes -- Nate~~
 - Implement & test active status - Jack
 - Complete edit profile page & functionality -- Nicole & Jack
 - Upload & change avatars -- Nicole & Jack
