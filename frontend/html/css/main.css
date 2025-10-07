@@ -124,6 +124,98 @@ index-page {
     transform: translate(-50%, -60%);
 }
 
+
+/********************************************************/
+/**************          SETTINGS         ***************/
+/********************************************************/
+
+#warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    z-index: 1000;
+    overflow: hidden;
+    justify-content: space-between;
+    background-color: var(--color2);
+    transition: height .5s ease-in-out;
+}
+
+.deleteProfile-input {
+    background-color: var(--color1);
+    display: block;
+    height: 3vh;
+    width: 40vw;
+    text-indent: 10px;
+    color: var(--color2);
+    outline: none;
+}
+
+.deleteProfile-input::placeholder {
+    color: var(--color2);
+}
+
+#confirmDeleteButton {
+    font-weight: bold;
+    font-size: 3vh;
+    color: var(--color1);
+    text-align: left;
+}
+
+#confirmDeleteButton:hover {
+    color: var(--color2) !important;
+    background-color: var(--color1);
+    display: inline-block;
+}
+
+#warning.active {
+  height: 100vh;
+  overflow: visible;
+}
+
+#warning-exit > svg {
+    width: min(7vw, 30px);
+}
+
+#warning-exit:hover > svg {
+    scale: 1.2;
+    cursor: pointer;
+}
+
+#settings-main-content {
+    width: 100%;
+    min-height: 100vh;
+    display: block;
+    align-items: center;
+    text-align: left;
+    overflow: visible;
+    padding-top: 10vh;
+    padding-left: 15vw;
+    padding-right: 15vw;
+    padding-bottom: 10vh;
+}
+.settings-input {
+    background-color: var(--color2);
+    display: block;
+    height: 3vh;
+    width: 40vw;
+    text-indent: 10px;
+    color: var(--color1);
+    outline: none;
+}
+#changePwButton:hover, #changeAvatarButton:hover, #deleteProfileButton:hover {
+    color: var(--color1) !important;
+    background-color: var(--color2);
+    display: inline-block;
+}
+#changePwButton, #changeAvatarButton, #deleteProfileButton {
+    font-weight: bold;
+    font-size: 3vh;
+    color: var(--color2);
+    text-align: left;
+}
+
 /********************************************************/
 /*************          GAMESELECT         **************/
 /********************************************************/

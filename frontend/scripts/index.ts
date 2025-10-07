@@ -13,6 +13,7 @@ import { SignUpPage } from './signup/signup.template.js'
 import { SignUpPostLoad } from './signup/signup.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
+import { SettingsPage } from './settings/settings.template.js'
 import './navigation.js'
 
 type Page = {
@@ -30,7 +31,8 @@ const pages = new Map<string, Page>([
     // ['/chat', {builder: ChatPage}],
     ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
     ['/mypage', {builder: UserPage, title: "My Page"}],
-    ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}]
+    ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
+    ['/settings', {builder: SettingsPage, title: "Settings"}]
 ]);
 
 export let currPage : HTMLElement
