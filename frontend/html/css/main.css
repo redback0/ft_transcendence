@@ -87,11 +87,13 @@ img {
     gap: 0.5rem; 
     align-items: center; 
     border-radius: 0.5rem; 
-    width: 100%; 
+    width: auto; 
     text-align: left; 
     /* transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform; */
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 300ms; 
+    transition-duration: 300ms;
+    background-color: oklch(lightness chroma hue);
+    color: rgb(82, 79, 79);
 }
 
 .msg-top {

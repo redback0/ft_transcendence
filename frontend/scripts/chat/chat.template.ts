@@ -23,23 +23,26 @@ export class ChatPage extends HTMLElement
                         <div class="mb-4">
                             <h4 class="text-xs uppercase tracking-wide opacity-60 mb-2">Channels</h4>
                             <button class="flex items-center gap-2 w-full px-2 py-1 rounded-lg text-left bg-white/10 hover:bg-white/20 transition tablinks" id="default">
-                                <span class="opacity-70">#general</span>
+                                <span class="text-black-600">#general</span>
                         </div>
 
                         <!-- Direct Messages -->
                         <div id="tab">
                             <h4 class="text-xs uppercase tracking-wide opacity-60 mb-2">Direct Messages</h4>
                             <div id="inboxs">
-                                <button class="dm-button tablinks" id="aliceButton">
+                               <!-- <button class="dm-button tablinks" id="aliceButton">
                                     <img class="w-7 h-7 rounded-full" src="https://i.pravatar.cc/28?u=alice" alt="Alice">
                                     Alice
                                 </button>
                                 <button class="dm-button tablinks" id="bobButton">
                                     <img class="w-7 h-7 rounded-full" src="https://i.pravatar.cc/28?u=bob" alt="Bob">
                                     Bob
-                                </button>
+                                </button> -->
                             </div>
+                        </div>
                             <!-- DM Request Button -->
+                        <div>
+                         <h4 class="text-xs uppercase tracking-wide opacity-60 mb-2">DM Request</h4>
                             <div>
                                 <input type="text" class="form-control" id="dmreciever" placeholder="Username" required>
                                 <button
@@ -54,7 +57,7 @@ export class ChatPage extends HTMLElement
                         <div class="p-3 border-b font-semibold bg-gray-50"id="title">#general</div>
                     <!-- Header-->
                         <div id="pages" class="relative">
-                            <div id="General" class="tabcontent">
+                            <div id="#general" class="tabcontent">
                                 <div class="chat-body">
                                     <div class="inbox" id="general-inbox">
                                     </div>

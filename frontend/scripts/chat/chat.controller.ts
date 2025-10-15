@@ -20,18 +20,18 @@ export function ChatPostLoad(page: HTMLElement)
         ws = undefined;
     });
 
-    if (Channels.has('Alice') === false)
-    {
-        const generalInbox = document.getElementById('alice-inbox');
-        if (generalInbox)
-        {
-            Channels.set('Alice', generalInbox);
-        }
-        else
-        {
-            throw Error("Uh oh stinky");
-        }
-    }
+    // if (Channels.has('Alice') === false)
+    // {
+    //     const generalInbox = document.getElementById('alice-inbox');
+    //     if (generalInbox)
+    //     {
+    //         Channels.set('Alice', generalInbox);
+    //     }
+    //     else
+    //     {
+    //         throw Error("Uh oh stinky");
+    //     }
+    // }
     if( Channels.has('#general') === false)
     {
         const generalInbox = document.getElementById('general-inbox');
@@ -50,7 +50,7 @@ export function ChatPostLoad(page: HTMLElement)
     {
         MessageInput.onkeydown = (event) =>
         {
-            if (is_active === 'General' && event.key === "Enter")
+            if (is_active === '#general' && event.key === "Enter")
             {
                 const client = Channels.get('#general');
                 if (client)
@@ -64,45 +64,45 @@ export function ChatPostLoad(page: HTMLElement)
                     wssMessageSender("message", MessageInput.value, is_active); 
                 }
                 else
-                    console.log("is_active value is invalid");
+                    console.log("is_active value is invalid", is_active);
             }
         };
     }
     const defaultButton = document.getElementById('default');
     defaultButton?.addEventListener("click", async (event) =>
     { 
-        openChat("General", event);  
+        openChat("#general", event);  
     });
     // const dmButton = document.getElementById('direct');
     // dmButton?.addEventListener("click", async (event)=>
     // {
     //     openChat("DirectMessage", event);
     // });
-    const aliceButton = document.getElementById('aliceButton');
-    aliceButton?.addEventListener("click", async (event) => 
-    {
-        openChat("Alice", event);
-    })
+    // const aliceButton = document.getElementById('aliceButton');
+    // aliceButton?.addEventListener("click", async (event) => 
+    // {
+    //     openChat("Alice", event);
+    // })
 
-    //document.getElementById('default')?.click();
+    document.getElementById('default')?.click();
     // Sending text button
     const SendButton = document.getElementById('sendButton');
     SendButton?.addEventListener("click", async (event) =>
     {
         const messageInput = (document.getElementById('messageInput') as HTMLInputElement);
         const message = messageInput.value;
-        if ( is_active === "General")
+        if ( is_active === "#general")
         {
             wssMessageSender("message", message, "#general");
             SendButton.innerHTML = `<p> General</p>`;
         }
-        else if (is_active === "Alice")
-        {
-            wssMessageSender("message", message, "Alice")
-        }
+        // else if (is_active === "Alice")
+        // {
+        //     wssMessageSender("message", message, "Alice")
+        // }
        else 
        {
-            if (Channels.has(is_active) === true)
+            if (Channels.has(is_active) === true && is_active != undefined)
             {
                     wssMessageSender("message", message, is_active);
             }
@@ -112,7 +112,7 @@ export function ChatPostLoad(page: HTMLElement)
             }
             SendButton.innerHTML = `<p> DM </p>`;
         }
-       messageInput.value = "";
+       messageInput.value = '';
        //SendButton.innerHTML = `<p> Failed </p>`;
     });
 
@@ -128,7 +128,7 @@ export function ChatPostLoad(page: HTMLElement)
         const target = (document.getElementById('dmreciever')as HTMLInputElement);
         const reciever = target.value;
         const targetclient = friends.indexOf(reciever);
-        if (targetclient === -1 && reciever !== "")
+        if (targetclient === -1 && reciever !== "" && targetclient != undefined)
         {
             newDM("New Message Request", reciever, "outgoing");
             friends.push(reciever);
@@ -138,7 +138,7 @@ export function ChatPostLoad(page: HTMLElement)
             console.log("Inbox already exists.");
             console.log(friends);
         }
-        target.value = "";
+        target.value = '';
     });
 
     function connectWS()
@@ -157,24 +157,26 @@ export function ChatPostLoad(page: HTMLElement)
         {
             try {
                 const parsedMessage = JSON.parse(ev.data);
-                console.log(parsedMessage.sender, parsedMessage.payload, parsedMessage.type);
+                console.log(parsedMessage.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
                 //if (parsedMessage.username)
                 //    setUsername(parsedMessage.username);
+                const inbox = document.getElementById(parsedMessage.sender);
                 if (parsedMessage.channel)
                 {
                     const client = Channels.get('#general');
                     if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client)
+                        messageReciever(parsedMessage.payload, parsedMessage.sender, client);
                 }
-                else if (Channels.has(parsedMessage.sender) === true)
+                else if (Channels.has(parsedMessage.sender) === true && inbox)
                 {
-                    const client = Channels.get(parsedMessage.sender)
+                    const client = Channels.get(parsedMessage.sender);
                     if (client)
                         messageReciever(parsedMessage.payload, parsedMessage.sender, client);
                 }
                 else
                 {
                     newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
+                    friends.push(parsedMessage.sender);
                 }
                 console.log(friends);
             }
@@ -188,7 +190,7 @@ export function ChatPostLoad(page: HTMLElement)
             try
             {
                 //messageReciever("disconnected, attempting to reconnect", "Server", g, "info");
-                setTimeout(connectWS, 1000)
+                setTimeout(connectWS, 1000);
             }
             catch{}
         }   
@@ -314,6 +316,10 @@ const newDM = (message: string, sender: string, type: string) =>
         dmButton.textContent = sender;
         dmButton.classList.add('tablinks', 'dm-button');
         dmButton.id = sender + "Button";
+        const img = document.createElement("img") as HTMLImageElement;
+        img.classList.add('w-7', 'h-7', 'rounded-full');
+        img.src = getAvatar(sender);
+        dmButton.appendChild(img);
         dmButton.addEventListener("click", async (event) =>
         {
             event.preventDefault();
@@ -349,6 +355,8 @@ const newDM = (message: string, sender: string, type: string) =>
                     openChat(sender, event);
                 }
             }
+            // else if (setChannel)
+            //     messageReciever(message, sender, setChannel);
         }
     }
 }
@@ -364,3 +372,7 @@ const setUsername = (username: string) =>
     }
 }
 
+const getAvatar = (sender: string) =>
+{
+    return "path";
+}
