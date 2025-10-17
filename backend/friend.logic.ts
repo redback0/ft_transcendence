@@ -150,13 +150,19 @@ export async function setIUnblockThem(myId: string, theirId: string): Promise<bo
 // Let's make friends slowly 
 export async function checkAreTheyWaitingForFriendAproval(myId: string, theirId: string): Promise<boolean>
 {
+	console.log("checkAreTheyWaitingForFriendAproval");
 	try
 	{
-		const statement = db.prepare(`SELECT 1 FROM friend WHERE my_id = ? AND friend_id = ? AND friend_status = 0 LIMIT 1;`);
+		const statement = db.prepare(`SELECT 1 FROM friend WHERE my_id = ? AND friend_id = ? LIMIT 1;`);
 		const result = statement.get(theirId, myId);
+		console.log(`result: ${result}`);
 		if (result)
+		{
+			console.log(`result is true`);
 			return (true);
-		return (false);
+		}
+			console.log(`result is false`);
+			return (false);
 	}
 	catch (error)
 	{
@@ -194,9 +200,11 @@ export async function requestFriendship(myId: string, theirId: string): Promise<
 export async function tryToApproveFriendship(myId: string, theirId: string): Promise<boolean>
 {
 	// Check they are ready for the next level with you. 
-	if (!checkAreTheyWaitingForFriendAproval(myId, theirId))
+	if (await checkAreTheyWaitingForFriendAproval(myId, theirId) === false)
+	{
+		console.log(`false yay`);
 		return (false);
-
+	}
 	try
 	{
 		db.prepare('BEGIN TRANSACTION').run();

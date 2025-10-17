@@ -34,6 +34,8 @@ export function renderFriendsTable(friends: Friend[])
 						<!-- Block/Unblock button label and action are dynamic based on friend.blocked -->
 						<button class="px-3 py-0.7 rounded-lg bg-[#DED19C] text-[#520404] text-0.5rem hover:bg-[#b8b8b8] hover:font-bold" data-userid="${friend.user_id}" data-action="${friend.blocked_by_me ? 'unblock' : 'block'}">${friend.blocked_by_me ? 'UNBLOCK' : 'BLOCK'} -></button>
 						<button class="px-3 py-0.7 rounded-lg bg-[#DED19C] text-[#520404] text-0.5rem hover:bg-[#b8b8b8] hover:font-bold" data-userid="${friend.user_id}" data-action="defriend">UNFRIEND -></button>
+						<p id="pend-recp" hidden text-[#DED19C]" style="font-size:1.25rem">Pending Reciprocation</p>
+
 						
 				</div>
 			</div>

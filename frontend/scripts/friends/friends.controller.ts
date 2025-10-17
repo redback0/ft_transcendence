@@ -70,10 +70,15 @@ export async function fetchFriends(): Promise <any[]>
 export async function routeRequestFriendship()
 {
 	const input = document.getElementById('friends-user-search') as HTMLInputElement;
+	const errorMsg = document.getElementById('friend-error');
+	const successMsg = document.getElementById('friend-success');
+
+	if (errorMsg) errorMsg.style.display = 'none';
+	if (successMsg) successMsg.style.display = 'none';
 	if (!input)
 		return ;
-	const friendUsername = input.value;
 
+	const friendUsername = input.value;
 	try
 	{
 		const response = await fetch(`/api/friends/request`, {
@@ -83,12 +88,21 @@ export async function routeRequestFriendship()
 		});
 		if (!response.ok)
 		{
+			if (errorMsg) errorMsg.style.display = '';
 			return ;
+		}
+		if (successMsg) {
+			successMsg.style.display = '';
+			setTimeout(() => {
+				const againSuccess = document.getElementById('friend-success');
+				if (againSuccess) againSuccess.style.display = 'none';
+			}, 5000);
 		}
 		input.value = '';
 	}
 	catch (error)
 	{
+		if (errorMsg) errorMsg.style.display = '';
 		return ;
 	}
 }
