@@ -139,10 +139,10 @@
 		</footer>
 
         <div id="chat-widget"
-            class="hidden absolute top-[56px] bottom-[5vh] right-0 w-200 flex flex-col overflow-hidden z-100">
+            class="hidden fixed top-[56px] bottom-[5vh] right-0 w-200 flex flex-col overflow-hidden z-100">
 
             <div class="flex flex-1">
-                <aside class="w-60 bg-(--color2) text-(--color1) flex flex-col p-4">
+                <aside class="w-60 bg-(--color2) text-(--color1) flex flex-col p-4 overflow-y-scroll h-[calc(95vh-56px)]">
                     <h2 class="text-lg font-bold mb-4">Workspace</h2>
 
                     <!-- Channels -->
@@ -185,7 +185,7 @@
                     <div id="pages" class="relative">
                         <div id="#general" class="tabcontent">
                             <div class="chat-body">
-                                <div class="inbox h-[calc(95vh-200px)] overflow-y-scroll" id="general-inbox">
+                                <div class="inbox h-[calc(95vh-200px)] overflow-y-scroll flex flex-col-reverse" id="general-inbox">
                                 </div>
                             </div>
                         </div>

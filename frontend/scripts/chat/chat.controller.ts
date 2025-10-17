@@ -215,7 +215,7 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     {
         send.classList.add('italic', 'var(--color-gray-500)');
     }
-    inbox.appendChild(bubble);
+    inbox.insertBefore(bubble, inbox.children[0])
     bubble.appendChild(header);
     header.appendChild(head);
     bubble.appendChild(message);
@@ -240,6 +240,7 @@ const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "
                 send.style.color = "var(color-pink-500)";
             }
             client.appendChild(bubble);
+            client.insertBefore(bubble, client.children[0])
             bubble.appendChild(message);
             message.appendChild(send);
         }
@@ -332,7 +333,7 @@ const newDM = (message: string, sender: string, type: string) =>
         let chat = document.createElement("div");
         chat.classList.add('chat-body');
         const inbox = document.createElement("div");
-        inbox.classList.add('inbox', 'h-[calc(95vh-200px)]', 'overflow-y-scroll');
+        inbox.classList.add('inbox', 'h-[calc(95vh-200px)]', 'overflow-y-scroll', 'flex', 'flex-col-reverse');
         inbox.id = sender + "-inbox";
 
         if(tab && div)
