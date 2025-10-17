@@ -84,6 +84,12 @@ img {
   background-color: #ccc;
 } */
 
+#dmreqbutton:hover {
+    color: var(--color2);
+    background-color: var(--color1);
+    cursor: pointer;
+}
+
 .dm-button {
     display: flex; 
     padding-top: 0.25rem;
@@ -99,7 +105,6 @@ img {
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 300ms;
     background-color: oklch(lightness chroma hue);
-    color: rgb(82, 79, 79);
 }
 
 .msg-top {
@@ -127,7 +132,6 @@ img {
 }
 
 .active {
-    color: rgb(211, 61, 186);
     font-weight: bold;
 }
 
@@ -140,8 +144,7 @@ img {
     margin-top: 0.875rem; 
     flex: 1 1 0%; 
     background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
-    background-color: #ffffff; 
-    background-color: #F9FAFB; 
+    background-color: var(--color1);
     max-height: calc(90vh-8rem);
 }
 
@@ -185,7 +188,7 @@ img {
     font-size: 1rem;
     line-height: 1.5;
     color: rgb(0, 0, 0);
-    background-color: #dbd7d7;
+    background-color: var(--color1);
     background-clip: padding-box;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 }
@@ -237,18 +240,15 @@ input:focus {
 }
 
 .received-msg p {
-    background: #efefef none repeat scroll 0 0;
+    background: var(--color2);
+    color: var(--color1);
     border-radius: 10px;
-    color: #646464;
     font-size: 14px;
     margin-left: 1rem;
     padding: 1rem;
     width: 100%;
-    box-shadow: rgb(0 0 0 / 25%) 0px 5px 5px 2px;
 }
-    p {
-        overflow-wrap: break-word;
-}
+
 .received-msg {
     float: left;
     width: auto;
@@ -267,16 +267,14 @@ input:focus {
 }
 
 .outgoing-msg p {
-    background-color: #3a12ff;
     background-image: linear-gradient(45deg, #ee087f 0%, #DD2A7B 25%, #9858ac 50%, #8134AF 75%, #515BD4 100%);
-    color: #fff;
+    background: var(--color2);
+    color: var(--color1);
     border-radius: 10px;
     font-size: 14px;
-    color: #fff;
     padding: 5px 10px 5px 12px;
     width: 100%;
     padding: 1rem;
-    box-shadow: rgb(0 0 0/ 25%) 0px 2px 5px 2px;
 }
 
 .outgoing-msg {

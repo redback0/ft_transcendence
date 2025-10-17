@@ -32,7 +32,7 @@ export function initChat()
             console.log(parsedMessage.type);
             if (parsedMessage.type === 'message' && parsedMessage.reciever && parsedMessage.payload)
             {
-                console.log( parsedMessage.type, parsedMessage.reciever, parsedMessage.message);
+                console.log( parsedMessage.type, parsedMessage.reciever, parsedMessage.payload);
                 if (parsedMessage.reciever[0] === '#')
                 {
                     clients.forEach(client => {
@@ -104,7 +104,9 @@ export function initChat()
             console.log('WebSocket Error: ', error);
         };
 
-    const interval = setInterval(() =>
+    })
+
+    setInterval(() =>
     {
         chatWebSocketServer.clients.forEach(ws => {
             if ((<any>ws).isAlive === false)
@@ -115,7 +117,6 @@ export function initChat()
             ws.isAlive = false;
             ws.ping();
         })
-    }, 30000)
-    }
-)};
+    }, 30000);
+};
 

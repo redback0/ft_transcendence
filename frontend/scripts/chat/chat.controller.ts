@@ -6,13 +6,19 @@ let friends: string[] = [];
 const Channels: Map<string, HTMLElement> = new Map();
 let is_active: string;
 
+export function closeChat()
+{
+    const widget = document.getElementById('chat-widget');
+    widget?.classList.add('hidden');
+}
+
 export function ChatPostLoad(page: HTMLElement)
 { 
     const chatButton = document.getElementById('chat-icon');
     chatButton?.addEventListener('click', async (event) => 
     {
         const widget = document.getElementById('chat-widget')
-        widget?.classList.toggle('hidden'); 
+        widget?.classList.toggle('hidden');
     });
     onPageChange(() =>
     {
@@ -44,31 +50,26 @@ export function ChatPostLoad(page: HTMLElement)
             throw Error("Uh oh stinky");
         }
     }
-    document.getElementById('default')?.click();
     const MessageInput = (document.getElementById('messageInput') as HTMLInputElement);
     if (MessageInput)
     {
         MessageInput.onkeydown = (event) =>
         {
-            if (is_active === '#general' && event.key === "Enter")
+            if (event.key === "Enter")
             {
-                const client = Channels.get('#general');
-                if (client)
-                    wssMessageSender("message", MessageInput.value, "#general");
-            }
-            else 
-            {
+                event.preventDefault();
                 const active = Channels.get(is_active);
-                if (active && event.key === "Enter")
+                if (active)
                 {
-                    wssMessageSender("message", MessageInput.value, is_active); 
+                    wssMessageSender("message", MessageInput.value, is_active);
                 }
                 else
                     console.log("is_active value is invalid", is_active);
+                MessageInput.value = "";
             }
         };
     }
-    const defaultButton = document.getElementById('default');
+    const defaultButton = document.getElementById('#generalButton');
     defaultButton?.addEventListener("click", async (event) =>
     { 
         openChat("#general", event);  
@@ -84,7 +85,7 @@ export function ChatPostLoad(page: HTMLElement)
     //     openChat("Alice", event);
     // })
 
-    document.getElementById('default')?.click();
+    defaultButton?.click();
     // Sending text button
     const SendButton = document.getElementById('sendButton');
     SendButton?.addEventListener("click", async (event) =>
@@ -94,7 +95,6 @@ export function ChatPostLoad(page: HTMLElement)
         if ( is_active === "#general")
         {
             wssMessageSender("message", message, "#general");
-            SendButton.innerHTML = `<p> General</p>`;
         }
         // else if (is_active === "Alice")
         // {
@@ -110,7 +110,6 @@ export function ChatPostLoad(page: HTMLElement)
             {
                 console.log("reciever doesnt exist");
             }
-            SendButton.innerHTML = `<p> DM </p>`;
         }
        messageInput.value = '';
        //SendButton.innerHTML = `<p> Failed </p>`;
@@ -202,9 +201,9 @@ export function ChatPostLoad(page: HTMLElement)
 const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: "normal" | "info" = "normal") =>
 {
     let bubble = document.createElement("div");
-    bubble.classList.add('received-chats');
+    bubble.classList.add('received-chats', 'mb-2');
     let header = document.createElement("div");
-    header.classList.add('received-chats-sender');
+    header.classList.add('received-chats-sender', 'text-(--color2)');
     let head = document.createElement("p");
     head.innerText = sender;
     let message = document.createElement("div");
@@ -214,8 +213,7 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
 
     if (type === "info")
     {
-        send.style.fontStyle = "italic";
-        send.style.color = "var(--color-gray-500)";
+        send.classList.add('italic', 'var(--color-gray-500)');
     }
     inbox.appendChild(bubble);
     bubble.appendChild(header);
@@ -231,7 +229,7 @@ const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "
         if (client)
         {
             const bubble = document.createElement("div")
-            bubble.classList.add('received-chats');
+            bubble.classList.add('received-chats', 'mb-2');
             const message = document.createElement("div");
             message.classList.add('outgoing-msg');
             const send = document.createElement("p");
@@ -279,11 +277,12 @@ const openChat = (chatName: string, event: any) =>
     }
     tablinks = document.getElementsByClassName("tablinks");
     for(index = 0; index < tablinks.length; index++) {
-        tablinks[index].className = tablinks[index].className.replace(" active", "");
+        tablinks[index].classList.remove('active', 'bg-white/10');
     }
     const tab = (document.getElementById(chatName) as HTMLElement);
     tab.style.display = "block";
-    (event.currentTarget as HTMLElement).className += " active";
+    const tabButton = (document.getElementById(chatName + "Button") as HTMLElement);
+    tabButton.classList.add('active', 'bg-white/10');
     is_active = chatName;
     const title = (document.getElementById("title") as HTMLElement);
     title.innerText = chatName;
@@ -313,13 +312,13 @@ const newDM = (message: string, sender: string, type: string) =>
     {
         const tab = document.getElementById('inboxs');
         let dmButton = document.createElement("button");
-        dmButton.textContent = sender;
         dmButton.classList.add('tablinks', 'dm-button');
         dmButton.id = sender + "Button";
         const img = document.createElement("img") as HTMLImageElement;
         img.classList.add('w-7', 'h-7', 'rounded-full');
         img.src = getAvatar(sender);
         dmButton.appendChild(img);
+        dmButton.textContent += sender;
         dmButton.addEventListener("click", async (event) =>
         {
             event.preventDefault();

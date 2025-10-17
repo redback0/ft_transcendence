@@ -6,7 +6,7 @@ import { GamePage, GamePostLoad } from './game/game.template.js'
 import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
-import { ChatPostLoad } from './chat/chat.controller.js'
+import { ChatPostLoad, closeChat } from './chat/chat.controller.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { SignUpPage } from './signup/signup.template.js'
@@ -129,6 +129,8 @@ window.addEventListener("popstate", (e) =>
 
 export function newPage()
 {
+    closeChat();
+
     cleanupFuncs.forEach((v) =>
     {
         v();
