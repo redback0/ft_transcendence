@@ -9,7 +9,6 @@ export class GamePage extends HTMLElement {
             `
             <ul>
                 <li><button id="gameselect-tourn" class="gameselect-redHover">TOURNAMENT -></a></li>
-                <li><button id="gameselect-local" class="gameselect-redHover">LOCAL -></a></li>
                 <li><button id="gameselect-online" class="gameselect-redHover">ONLINE -></a></li>
             </ul>
             `
@@ -42,14 +41,13 @@ export class GamePage extends HTMLElement {
 export function GamePostLoad(page: HTMLElement)
 {
     const createTournBtn = document.getElementById('gameselect-tourn');
-    const createLocalBtn = document.getElementById('gameselect-local');
     const createOnlineBtn = document.getElementById('gameselect-online');
 
     // set tournament onclick
-    if (createLocalBtn) createLocalBtn.onclick = GameCtrl.LocalGame;
-    else console.log("FAILED LOCAL BUTTON");
-    if (createOnlineBtn) createOnlineBtn.onclick = GameCtrl.CreateOnlineGame;
-    else console.log("FAILED ONLINE BUTTON");
+    if (createOnlineBtn)
+        createOnlineBtn.onclick = GameCtrl.CreateOnlineGame;
+    else
+        console.log("FAILED ONLINE BUTTON");
 }
 
 customElements.define('game-page', GamePage)
