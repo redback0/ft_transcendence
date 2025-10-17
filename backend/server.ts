@@ -1,6 +1,7 @@
 
 import Fastify, { FastifyInstance, RouteShorthandOptions } from 'fastify'
 //import { initChat, chatWebSocketServer } from './chat.js';
+import * as Chat from './betterchat.js';
 import cookie, { fastifyCookie } from '@fastify/cookie';
 import * as Game from './game.js';
 import { registerCookieRoutes, sidToUserIdAndName, validateSession } from './cookie.js';
@@ -27,7 +28,7 @@ const start = async () =>
 {
     try
     {
-        // initChat();
+        Chat.initChat();
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }
@@ -52,14 +53,16 @@ fastify.server.on("upgrade", async function (req, socket, head)
         undefined;
     const user_info = sid_cookie? await sidToUserIdAndName(sid_cookie): undefined;
 
-    // if (req.url === '/wss/chat')
-    // {
-    //     chatWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
-    //     {
-    //         chatWebSocketServer.emit('connection', ws, req);
-    //     });
-    // }
-    if (req.url?.startsWith('/wss/game'))
+    if (req.url === '/wss/chat')
+    {
+         Chat.chatWebSocketServer.handleUpgrade(req, socket, head, function done(ws)
+         {
+            (ws as Chat.HBWebSocket).uid = user_info?.user_id;
+            (ws as Chat.HBWebSocket).username = user_info?.username;
+             Chat.chatWebSocketServer.emit('connection', ws, req);
+         });
+    }
+    else if (req.url?.startsWith('/wss/game'))
     {
         const id = req.url.substring("/wss/game/".length)
         if (id === "")
