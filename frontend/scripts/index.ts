@@ -34,6 +34,7 @@ const pages = new Map<string, Page>([
     ['/mypage', {builder: UserPage, title: "My Page"}],
     ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
 	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]]
+]
 );
 
 export let currPage : HTMLElement

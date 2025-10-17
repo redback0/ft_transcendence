@@ -162,6 +162,51 @@ game-page {
     margin-right: 20vw;
     margin-bottom: 20vh;
     color: var(--color2);
+    max-width: 60rem; /* widen container */
+    margin: 0 auto;
+}
+.friend-row {
+	display: flex;
+	flex-direction: column; /* default stacked for narrow/mobile */
+	padding: 8px 4px;
+	border-bottom: 1px solid #ccc;
+}
+.friend-row .friend-main {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 1rem;
+}
+.friend-row.long-name .friend-main {
+	flex-direction: column; /* stack when name flagged long */
+	align-items: flex-start;
+	gap: 0.4rem;
+}
+.friend-name {
+	font-weight: 600;
+	max-width: 20ch; /* show up to ~20 characters in one line */
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+.friend-actions {
+	display: flex;
+	flex-direction: row;
+	gap: 0.5rem;
+}
+.friend-row.long-name .friend-actions {
+	width: 100%;
+}
+.friend-btn {
+	background: var(--color2);
+	color: var(--color1);
+	border: none;
+	padding: 4px 10px;
+	cursor: pointer;
+	font-size: 0.85rem;
+	border-radius: 4px;
+}
+.friend-btn:hover {
+	filter: brightness(1.15);
 }
 .profile-container:hover .profile-name {
     color: var(--color2) !important;

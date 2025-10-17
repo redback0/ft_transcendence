@@ -38,11 +38,18 @@ async function routeRequestFriendship(request: FastifyRequest, reply: FastifyRep
 		reply.code(404).send({ error: `User not found` });
 		return ;
 	}
+
+	if (myUserId === friendDbObject.user_id)
+	{
+		reply.code(401).send({ error: `Cannot make friends with yourself` });
+		return ;
+	}
+	
 	const result = await requestFriendship(myUserId, friendDbObject.user_id);
 	if (result)
 		reply.send({ message: `Friend request sent, but why?` });
 	else
-		reply.code(400).send({ error: `Person doesn't exist or you are blocked from friending this person.` });
+		reply.code(401).send({ error: `Person doesn't exist or you are blocked from friending this person.` });
 }
 
 // Block a friend

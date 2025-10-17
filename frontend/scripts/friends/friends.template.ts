@@ -4,7 +4,7 @@ export class FriendsPage extends HTMLElement
         super();
         this.innerHTML = 
             ` 
-		<script defer src="./friends.js"></script>
+		<!-- Removed obsolete friends.js include (logic now handled via SPA controller FriendsPostLoad) -->
 		<!-- TO DO: ADD ERROR FUNCTIONALITY -->
 		<!-- TO DO: 'ADD' FUNCTIONALITY : API POST REQUEST -->
 		<!-- Main Content -->
@@ -14,12 +14,20 @@ export class FriendsPage extends HTMLElement
 				<p style="font-size:2vh; color:#520404; margin-top:1vh; font-weight:bold">ADD FRIENDS:</p>
 				<input id="friends-user-search" type="text" name="username" placeholder="ENTER USERNAME" autocomplete="off" style="color:#DED19C;" required>
 				<h1 style="font-weight:bold; font-size:1.5vh; color:red">USER DOES NOT EXIST/USER ADDED!</h1>
-				<!--<h1 id="friends-redHover" onclick="submitForm()" style="font-weight:bold; font-size:5vh; color:#520404;">ADD -></h1>-->
-				<button type="button" id="addFriendButton" style="font-weight:bold; font-size:5vh; color:#520404;>Add Friend</button>
+				<h1 id="friends-redHover" style="font-weight:bold; font-size:5vh; color:#520404; cursor:pointer; user-select:none;">ADD -></h1>
+				<!--button type="button" id="addFriendButton" style="font-weight:bold; font-size:5vh; color:#520404;>Add Friend</button>-->
+			</form>
+			
 
-				</form>
+			<!-- Table of Friends -->
+			<!-- TO DO: IF SQL GET NUMBER OF FRIENDS = 0, "YOU HAVE NO FRIENDS" ELSE: -->
+			<div style="margin-top: 3vh;">
+				<h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">YOUR FRIENDS:</h1>
+				<div id="table-friends"><p style="text-align:center; color:#520404; opacity:0.7;">Loading friends...</p></div>
+			</div>
 		</div>
 
+		<!--
 		<div id="down-arrow">
 			<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18vh" zoomAndPan="magnify" viewBox="0 0 375 374.999991" height="18vh" preserveAspectRatio="xMidYMid meet" version="1.2">
 				<defs>
@@ -43,11 +51,7 @@ export class FriendsPage extends HTMLElement
 				</g>
 			</svg>
 		</div>
-
-		<!-- Table of Friends -->
-		<!-- TO DO: IF SQL GET NUMBER OF FRIENDS = 0, "YOU HAVE NO FRIENDS" ELSE: -->
-		<h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">*USERNAME*'S FRIENDS:</h1>
-		<div id="table-friends"></div>
+		-->
             `;
     }
 }

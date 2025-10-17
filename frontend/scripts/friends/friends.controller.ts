@@ -1,29 +1,58 @@
-import { formatDiagnostic } from "typescript";
+import { renderFriendsTable } from "./friends.render.js";
 
-export function FriendsPostLoad(page: HTMLElement)
+export async function refreshFriendsTable()
 {
-	fetchFriends();
-	// TODO: Load friends into id="table-friends"
+	const tableContainer = document.getElementById('table-friends');
+	if (!tableContainer) return;
 
-
+	const friends = await fetchFriends();
+	if (friends.length > 0)
+		{
+		renderFriendsTable(friends);
+		attachBlockListeners();
+	} else {
+		tableContainer.innerHTML = '<p style="text-align:center; color:#520404;">You have no friends yet.</p>';
+	}
 }
 
-// TODO
-// export function messageUserButtonClick(user: string) {}
-
-// TODO
-// export function blockUserButtonClick (me: string, them: string) {}
-
-// TODO
-// export function defriendButtonClick (me: string, them: string) {}
-
-// TODO or posibly remove. 
-// export function playGameWithUserClick (user: string) {}
-
-export async function fetchFriends(): Promise <any[]> {
+export async function FriendsPostLoad(page: HTMLElement)
+{
 	try
 	{
-		const response = await fetch('/api/friends');
+		window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+
+		await refreshFriendsTable();
+		const addBtn = document.getElementById('friends-redHover');
+		if (addBtn) {
+			addBtn.addEventListener('click', async () => {
+				await routeRequestFriendship();
+				await refreshFriendsTable();
+			});
+		}
+
+		const form = document.getElementById('addFriend') as HTMLFormElement;
+		if (form)
+		{
+			form.addEventListener('submit', async (event) => {
+				event.preventDefault();
+				await routeRequestFriendship();
+				await refreshFriendsTable();
+			});
+		}
+	}
+	catch (err)
+	{
+		console.error('[FriendsPostLoad] initialization failed', err);
+	}
+}
+
+export async function fetchFriends(): Promise <any[]>
+{
+	try
+	{
+		const response = await fetch('/api/friends', {
+			headers: { 'Cache-Control': 'no-store' }
+		});
 		if (!response.ok)
 		{
 			throw new Error(`Cannot find friends`);
@@ -56,6 +85,7 @@ export async function routeRequestFriendship()
 		{
 			return ;
 		}
+		input.value = '';
 	}
 	catch (error)
 	{
@@ -77,6 +107,7 @@ export async function blockFriend(friendUserId: string)
 			console.error(`Error: cannot block user`);
 			return; 
 		}
+		await refreshFriendsTable();
 	}
 	catch (error)
 	{
@@ -98,6 +129,7 @@ export async function unblockFriend(friendUserId: string)
 			console.error(`Error: cannot unblock user`);
 			return; 
 		}
+		await refreshFriendsTable();
 	}
 	catch (error)
 	{
@@ -107,6 +139,7 @@ export async function unblockFriend(friendUserId: string)
 
 export async function defriendFriend(friendUserId: string)
 {
+	console.log(`DEFRIEND: Their userid is: ${friendUserId}`);
 	try
 	{
 		const response = await fetch('/api/friends/defriend', {
@@ -119,6 +152,7 @@ export async function defriendFriend(friendUserId: string)
 			console.error(`Error: cannot defriend user`);
 			return; 
 		}
+		await refreshFriendsTable();
 	}
 	catch (error)
 	{
@@ -135,15 +169,6 @@ export async function defriendFriend(friendUserId: string)
 	// 		if (client.user_info)
 	// 			clients.push(client.user_info);
 	// 	});
-
-document.addEventListener('DOMContentLoaded', async () => {
-	const friends = await fetchFriends();
-	
-	const addBtn = document.getElementById('friends-redHover');
-	if (addBtn)
-		addBtn.addEventListener('click', routeRequestFriendship);
-
-});
 
 export function attachBlockListeners()
 {

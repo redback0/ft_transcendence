@@ -45,7 +45,7 @@ export async function getFriendsFromDatabase(myId: string): Promise<Friend[] | n
 {
 	try
 	{
-		const statement = db.prepare(`SELECT u.user_id, u.username, f.blocked_by_me, f.profile_picture FROM users as u INNER JOIN friend as f ON u.user_id = f.friend_id WHERE f.my_id = ? AND f.friend_status = 1;`);
+		const statement = db.prepare(`SELECT u.user_id, u.username, f.blocked_by_me FROM users as u INNER JOIN friend as f ON u.user_id = f.friend_id WHERE f.my_id = ? AND f.friend_status = 1;`);
 		const friends = statement.all(myId) as Friend[];
 		return (friends);
 	}
