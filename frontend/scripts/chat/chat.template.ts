@@ -1,4 +1,6 @@
 
+// DEPRECATED
+
 let ws: WebSocket | undefined;
 
 export class ChatPage extends HTMLElement
@@ -8,12 +10,8 @@ export class ChatPage extends HTMLElement
         super();
         this.innerHTML =
         `
-            <button id="chat-toggle"
-                class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white text-2xl flex items-center justify-center shadow-lg transition z-50">
-                💬
-            </button>
-            <div id="chatWidget"
-                class="hidden fixed bottom-28 right-6 w-[80vh] h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-40">
+            <div id="chat-widget"
+                class="hidden fixed bottom-28 right-6 w-[40vw] h-[90vh] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-40">
                 
                 <div class="flex flex-1">
                     <aside class="w-60 bg-gray-800 text-white flex flex-col p-4">

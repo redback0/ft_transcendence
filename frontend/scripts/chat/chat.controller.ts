@@ -8,10 +8,10 @@ let is_active: string;
 
 export function ChatPostLoad(page: HTMLElement)
 { 
-    const chatButton = document.getElementById('chat-toggle');
+    const chatButton = document.getElementById('chat-icon');
     chatButton?.addEventListener('click', async (event) => 
     {
-        const widget = document.getElementById('chatWidget')
+        const widget = document.getElementById('chat-widget')
         widget?.classList.toggle('hidden'); 
     });
     onPageChange(() =>
@@ -333,7 +333,7 @@ const newDM = (message: string, sender: string, type: string) =>
         let chat = document.createElement("div");
         chat.classList.add('chat-body');
         const inbox = document.createElement("div");
-        inbox.classList.add('inbox');
+        inbox.classList.add('inbox', 'h-[calc(95vh-200px)]', 'overflow-y-scroll');
         inbox.id = sender + "-inbox";
 
         if(tab && div)
