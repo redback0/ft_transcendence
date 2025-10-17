@@ -2,35 +2,38 @@
 //import { Fastify } from "fastify";
 import { api } from './api.js'
 import { IndexPage, IndexPostLoad } from './index.template.js'
-import { GamePage } from './game/game.template.js'
+import { GamePage, GamePostLoad } from './game/game.template.js'
 import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPage } from './chat/chat.template.js'
 import { ChatPostLoad } from './chat/chat.controller.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
-import { AddNavigation } from './navigation.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
-import { LoginPage } from './login/login.template.js'
-import { LoginPostLoad } from './login/login.controller.js'
+import { SignUpPage } from './signup/signup.template.js'
+import { SignUpPostLoad } from './signup/signup.controller.js'
 import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
+import { SettingsPage } from './settings/settings.template.js'
+import './navigation.js'
 
 type Page = {
     builder: typeof HTMLElement,
-    postLoad?: ((page: HTMLElement) => any)
+    postLoad?: ((page: HTMLElement) => any),
+    title?: string
 }
 const pages = new Map<string, Page>([
-    ['/', {builder: IndexPage, postLoad: IndexPostLoad}],
-    ['/game', {builder: GamePage}],
+    ['/', {builder: IndexPage, postLoad: IndexPostLoad, title: "Login"}],
+    ['/game', {builder: GamePage, postLoad: GamePostLoad, title: "Game Select"}],
     ['/game/local', {builder: LocalGamePage}],
-    ['/game/online', {builder: OnlineGamePage}],
-    ['/lobby', {builder: LobbyNavPage}],
-    ['/lobby/join', {builder: LobbyJoinPage}],
-    ['/chat', {builder: ChatPage, postLoad: ChatPostLoad}],
-    ['/login', {builder: LoginPage, postLoad: LoginPostLoad}],
-    ['/mypage', {builder: UserPage}],
-    ['/tournament/bracket', {builder: TournamentPage}]
+    ['/game/online', {builder: OnlineGamePage, title: "Play Pong"}],
+    ['/lobby', {builder: LobbyNavPage, title: "Tournament Lobby"}],
+    ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
+    ['/chat', {builder: ChatPage}],
+    ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
+    ['/mypage', {builder: UserPage, title: "My Page"}],
+    ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
+    ['/settings', {builder: SettingsPage, title: "Settings"}]
 ]);
 
 export let currPage : HTMLElement
@@ -68,14 +71,55 @@ export function onPageChange(func: cleanupFunc)
     cleanupFuncs.push(func);
 }
 
-document.body.onload = () => {
-    document.title = "Code defined title!";
+export async function NavOnClick(e: MouseEvent)
+{
+    e.preventDefault();
 
-    AddNavigation();
+    closeMenu();
+    if (!(e.target instanceof HTMLAnchorElement))
+        return;
+
+    if (e.target.id === "logout")
+    {
+        console.log("attempting to log out");
+        await fetch("/api/user/session", { method: "DELETE" });
+        const usernameElement = document.getElementById("username");
+        if (usernameElement instanceof HTMLParagraphElement)
+            usernameElement.innerText = "";
+    }
+
+    const newURL = e.target.href;
+
+    history.pushState({}, "", newURL);
+
+    newPage();
+}
+
+
+document.body.onload = async () => {
+    document.title = "Transvengence";
+
+    const usernameElement = document.getElementById("username");
+    const sessionInfo = await fetch("/api/user/session");
+
+    if (sessionInfo.ok)
+    {
+        const userInfo = await sessionInfo.json();
+        if (usernameElement instanceof HTMLParagraphElement)
+            usernameElement.innerText = userInfo?.username;
+        if (document.location.pathname === "/")
+            history.pushState({}, "", "/game");
+    }
 
     newPage();
     history.replaceState(null, "", document.location.href);
 
+    const navButtons = document.getElementsByClassName("nav-button");
+
+    for (let navButton of navButtons)
+    {
+        if (navButton instanceof HTMLElement) navButton.onclick = NavOnClick;
+    }
 }
 
 window.addEventListener("popstate", (e) =>
@@ -85,8 +129,6 @@ window.addEventListener("popstate", (e) =>
 
 export function newPage()
 {
-    document.title = "page is changing!";
-
     cleanupFuncs.forEach((v) =>
     {
         v();
@@ -112,6 +154,11 @@ export function newPage()
         currPage = new ErrorPage;
     }
     document.body.appendChild(currPage);
+
+    if (pageBuilder?.title)
+        document.title = pageBuilder.title + " - Transvengence";
+    else
+        document.title = "Transvengence";
 
     if (pageBuilder?.postLoad)
         pageBuilder.postLoad(currPage);

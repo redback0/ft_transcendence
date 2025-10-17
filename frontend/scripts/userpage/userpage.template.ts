@@ -1,4 +1,5 @@
-//Authored by Bethany Milford 19/07/2025
+// Authored by Bethany Milford 19/07/2025
+// DEPRECATED
 
 export class UserPage extends HTMLElement 
 {

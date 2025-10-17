@@ -49,6 +49,7 @@ export class Lobby {
 		this.setPingInterval(1000);
 	} //end contructor
 
+	// Turn the lobby into a tourney
 	intoTournament = () => {
 		// tells lobby websockets to go to tournament in constructor
 		new Tournament(this, NewID(8));
@@ -56,7 +57,7 @@ export class Lobby {
 	}
 
 	wssOnConnection = (ws: TournamentWebSocket) => {
-		console.log("new client in lobby !!1!!! yay");
+	console.log(`${ws.user_info?.username} is in the lobby !!1!!! yay`);
 		if (this.timeout) {
 			clearTimeout(this.timeout);
 			this.timeout = undefined;
