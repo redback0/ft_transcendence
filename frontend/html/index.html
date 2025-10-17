@@ -22,9 +22,9 @@
 			</nav>
 			<div class="menu-items syne-header">
 				<ul>
-					<li><a class="nav-button" href="/mypage">PROFILE</a></li>
-					<li><a class="nav-button" href="/game">PLAY -></a></li>
+                    <li><a class="nav-button" href="/game">PLAY -></a></li>
 					<li><a class="nav-button" href="/friends">FRIENDS</a></li>
+					<li><a class="nav-button" href="/setttings">SETTINGS</a></li>
 					<!-- below button says log out, so it should have more action than just change page -->
 					<li><a id="logout" class="nav-button" href="/">LOG OUT</a></li>
 				</ul>
@@ -41,7 +41,7 @@
 				</svg>
 			</div>
 
-			<div id="transvengence-logo" onclick="window.location.href='./play.html';" onmouseover="this.style.fill='#520404';">
+			<div id="transvengence-logo">
 					<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" zoomAndPan="magnify" viewBox="0 0 300 30.000001" height="40" preserveAspectRatio="xMidYMid meet" version="1.2">
 						<defs>
 							<clipPath id="31cabe56e6">
@@ -104,7 +104,12 @@
 					</svg>
 			</div>
 
-			<!-- BETH: Add onClick="FUNCTION" to open the chat etc -->
+            <div id="login-status">
+                <p id="username"></p>
+            </div>
+
+			<!-- BETH: Add onClick="FUNCTION" to open the chat etc
+                ehehe it's not that simple -- Nate -->
 			<div id="chat-icon" onclick="openChat()">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 576 512" fill="#DED19C">
 					<path

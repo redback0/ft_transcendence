@@ -177,6 +177,27 @@ export async function validateSession(sessionId: string): Promise<string | null>
     }
 }
 
+export async function sidToUserIdAndNameRequest(request: FastifyRequest, reply: FastifyReply)
+{
+    const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
+
+    if (!sessionId)
+    {
+        reply.code(403).send({ error: 'Failed to read cookie.' });
+        return;
+    }
+
+    const username = await sidToUserIdAndName(sessionId);
+
+    if (!username)
+    {
+        reply.code(401).send({ error: 'Session invalid' });
+        return;
+    }
+
+    reply.send(username);
+}
+
 export async function sidToUserIdAndName(sessionId: string): Promise<{ user_id: UserID, username: string } | undefined>
 {
     try
