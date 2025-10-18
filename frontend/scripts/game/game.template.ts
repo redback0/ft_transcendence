@@ -1,6 +1,7 @@
 
 import { api } from "../api.js";
 import * as GameCtrl from "./game.controller.js"
+import * as LobbyCtrl from "../tournament/lobbynav.controller.js"
 
 export class GamePage extends HTMLElement {
     constructor() {
@@ -46,6 +47,8 @@ export function GamePostLoad(page: HTMLElement)
     const createOnlineBtn = document.getElementById('gameselect-online');
 
     // set tournament onclick
+    if (createTournBtn) createTournBtn.onclick = LobbyCtrl.CreateLobby;
+    else console.error("FAILED TOURNAMENT BUTTON");
     if (createLocalBtn) createLocalBtn.onclick = GameCtrl.LocalGame;
     else console.log("FAILED LOCAL BUTTON");
     if (createOnlineBtn) createOnlineBtn.onclick = GameCtrl.CreateOnlineGame;
