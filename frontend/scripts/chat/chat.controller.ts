@@ -1,5 +1,6 @@
 //Authored by Bethany Milford 29/07/25
 import { onPageChange } from "../index.js";
+import { fetchBlockedFriends, fetchBlockedStatus } from "../friends/friends.controller.js";
 
 let ws:  WebSocket | undefined;
 let friends: string[] = [];
@@ -152,32 +153,41 @@ export function ChatPostLoad(page: HTMLElement)
                 wssMessageSender("message", "New Client Connected", '#general');
             }
         }
-        ws.onmessage = function (ev: MessageEvent)
+        ws.onmessage = async function (ev: MessageEvent)
         {
             try {
                 const parsedMessage = JSON.parse(ev.data);
                 console.log(parsedMessage.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
                 //if (parsedMessage.username)
                 //    setUsername(parsedMessage.username);
-                const inbox = document.getElementById(parsedMessage.sender);
-                if (parsedMessage.channel)
+                const blockstatus = await checkIfBlocked(parsedMessage.sender);
+                if (blockstatus === 0)
                 {
-                    const client = Channels.get('#general');
-                    if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client);
+                    const inbox = document.getElementById(parsedMessage.sender);
+                    if (parsedMessage.channel)
+                    {
+                        const client = Channels.get('#general');
+                        if (client)
+                            messageReciever(parsedMessage.payload, parsedMessage.sender, client);
+                    }
+                    else if (Channels.has(parsedMessage.sender) === true && inbox)
+                    {
+                        const client = Channels.get(parsedMessage.sender);
+                        if (client)
+                            messageReciever(parsedMessage.payload, parsedMessage.sender, client);
+                        console.log(Channels);
+                    }
+                    else if (parsedMessage.sender !== undefined)
+                    {
+                        newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
+                        friends.push(parsedMessage.sender);
+                    }
+                    console.log(friends);
                 }
-                else if (Channels.has(parsedMessage.sender) === true && inbox)
-                {
-                    const client = Channels.get(parsedMessage.sender);
-                    if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client);
-                }
+                else if (blockstatus === -1)
+                    console.log("this is a blocked message");
                 else
-                {
-                    newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
-                    friends.push(parsedMessage.sender);
-                }
-                console.log(friends);
+                    console.log("unknown other block status error");
             }
             catch (e)
             {
@@ -375,4 +385,22 @@ const setUsername = (username: string) =>
 const getAvatar = (sender: string) =>
 {
     return "path";
+}
+
+async function checkIfBlocked(username: string)
+{
+    const blockedlist = await fetchBlockedFriends();
+    if (blockedlist)
+    {
+        if(blockedlist.indexOf(username) !== -1)
+        {
+            return (-1);
+        }
+    }
+    const ifblocked = await fetchBlockedStatus(username);
+    if (ifblocked === true)
+    {
+        return (-1);
+    }
+    return 0;
 }
