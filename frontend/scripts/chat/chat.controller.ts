@@ -1,5 +1,6 @@
 //Authored by Bethany Milford 29/07/25
 import { onPageChange } from "../index.js";
+import { ChatClientSendMessage, ChatClientMessage, ChatServerMessage } from '../chat.schema.js';
 
 let ws:  WebSocket | undefined;
 let friends: string[] = [];
@@ -61,7 +62,7 @@ export function ChatPostLoad(page: HTMLElement)
                 const active = Channels.get(is_active);
                 if (active)
                 {
-                    wssMessageSender("message", MessageInput.value, is_active);
+                    wssMessageSender({ type: "send_message", data: { payload: MessageInput.value, reciever: is_active }});
                 }
                 else
                     console.log("is_active value is invalid", is_active);
@@ -94,7 +95,7 @@ export function ChatPostLoad(page: HTMLElement)
         const message = messageInput.value;
         if ( is_active === "#general")
         {
-            wssMessageSender("message", message, "#general");
+            wssMessageSender({ type: "send_message", data: { payload: message, reciever: "#general" }});
         }
         // else if (is_active === "Alice")
         // {
@@ -104,7 +105,7 @@ export function ChatPostLoad(page: HTMLElement)
        {
             if (Channels.has(is_active) === true && is_active != undefined)
             {
-                    wssMessageSender("message", message, is_active);
+                    wssMessageSender({ type: "send_message", data: { payload: message, reciever: is_active }});
             }
             else 
             {
@@ -149,33 +150,36 @@ export function ChatPostLoad(page: HTMLElement)
             if (client)
             {
                 messageReciever("connected to chat", "Server", client, "info");
-                wssMessageSender("message", "New Client Connected", '#general');
+                wssMessageSender({ type: "send_message", data: { payload: "New Client Connected", reciever: '#general' }});
             }
         }
         ws.onmessage = function (ev: MessageEvent)
         {
             try {
-                const parsedMessage = JSON.parse(ev.data);
-                console.log(parsedMessage.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
+                const parsedMessage: ChatServerMessage = JSON.parse(ev.data);
+                //console.log(parsedMessage.data.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
                 //if (parsedMessage.username)
                 //    setUsername(parsedMessage.username);
-                const inbox = document.getElementById(parsedMessage.sender);
-                if (parsedMessage.channel)
+
+                if (parsedMessage.type === "recieve_channel_message")
                 {
                     const client = Channels.get('#general');
                     if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client);
+                        messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client);
                 }
-                else if (Channels.has(parsedMessage.sender) === true && inbox)
+                else if (parsedMessage.type === "recieve_direct_message")
                 {
-                    const client = Channels.get(parsedMessage.sender);
-                    if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client);
-                }
-                else
-                {
-                    newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
-                    friends.push(parsedMessage.sender);
+                    const inbox = document.getElementById(parsedMessage.data.sender);
+                    if (inbox) {
+                        const client = Channels.get(parsedMessage.data.sender);
+                        if (client)
+                            messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client);
+                    }
+                    else
+                    {
+                        newDM(parsedMessage.data.payload, parsedMessage.data.sender, "incoming");
+                        friends.push(parsedMessage.data.sender);
+                    }
                 }
                 console.log(friends);
             }
@@ -250,22 +254,18 @@ const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "
 
 }
 
-const wssMessageSender = (type: string, message: string, reciever: string) =>
+const wssMessageSender = (msg: ChatClientSendMessage) =>
 {
     if (!ws || ws.readyState === ws.CLOSED)
         return;
-    if (!message.length)
+    if (!msg.data.payload.length)
         return;
-    if (message.length > 0)
+    if (msg.data.payload.length > 0)
     {
-        ws?.send(JSON.stringify({
-            type: type,
-            payload: message,
-            reciever: reciever
-        }));
+        ws?.send(JSON.stringify(msg));
     }
-   outgoingMessage(message, reciever);
-   console.log(type, message, reciever);
+   outgoingMessage(msg.data.payload, msg.data.reciever);
+   console.log(msg.type, msg.data.payload, msg.data.reciever);
 }
 
 const openChat = (chatName: string, event: any) =>
@@ -351,7 +351,7 @@ const newDM = (message: string, sender: string, type: string) =>
                     messageReciever(message, sender, setChannel);
                 }
                 else {
-                    wssMessageSender("message", message, sender);
+                    wssMessageSender({ type: "send_message", data: { payload: message, reciever: sender }});
                     openChat(sender, event);
                 }
             }

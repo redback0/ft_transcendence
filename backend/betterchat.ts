@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { FastifyInstance } from 'fastify';
 import { UserID } from './lobby.schema';
+import { ChatClientMessage, ChatServerMessage } from './chat.schema';
 
 
 export class HBWebSocket extends WebSocket
@@ -23,57 +24,62 @@ export function initChat()
 
     chatWebSocketServer.on("connection", function (ws: HBWebSocket)
     {
-        ws.send(JSON.stringify({ username: ws.username}));
         console.log('New Client Connected');
-        if (ws.username)
+        if (ws.username) {
             clients.set(ws.username, ws);
+            send(ws, { type: "your_name", data: { ya_name: ws.username }});
+        }
         ws.on("message", (message: string) => {
-            const parsedMessage = JSON.parse(message);
+            const parsedMessage: ChatClientMessage = JSON.parse(message);
             console.log(parsedMessage.type);
-            if (parsedMessage.type === 'message' && parsedMessage.reciever && parsedMessage.payload)
+            if (parsedMessage.type === 'send_message' && parsedMessage.data && parsedMessage.data.reciever && parsedMessage.data.payload)
             {
-                console.log( parsedMessage.type, parsedMessage.reciever, parsedMessage.payload);
-                if (parsedMessage.reciever[0] === '#')
+                console.log( parsedMessage.type, parsedMessage.data.reciever, parsedMessage.data.payload);
+                if (parsedMessage.data.reciever[0] === '#')
                 {
                     clients.forEach(client => {
-                        if (client !== ws && client.readyState === WebSocket.OPEN)
+                        if (client !== ws && client.readyState === WebSocket.OPEN && ws.username)
                         {
-                            client.send(JSON.stringify({
-                                type: "message",
-                                channel: "general",
-                                sender: ws.username,
-                                payload: parsedMessage.payload
-                            }));
+                            send(client, {
+                                type: "recieve_channel_message",
+                                data: {
+                                    channel: "general",
+                                    sender: ws.username,
+                                    payload: parsedMessage.data.payload
+                                }
+                            })
                         }
                     });
                 }
-                else if (clients.has(parsedMessage.reciever) === true)
+                else if (clients.has(parsedMessage.data.reciever) === true)
                 {
-                   const client = clients.get(parsedMessage.reciever);
-                   if (client && client.readyState === WebSocket.OPEN)
+                   const client = clients.get(parsedMessage.data.reciever);
+                   if (client && client.readyState === WebSocket.OPEN && ws.username)
                    {
-                    client.send(JSON.stringify({
-                        type: "message",
-                        sender: ws.username,
-                        payload: parsedMessage.payload
-                    }));
+                    send(client, {
+                        type: "recieve_direct_message",
+                        data: {
+                            sender: ws.username,
+                            payload: parsedMessage.data.payload,
+                        }
+                    })
                    }
                 }
                 else
                 {
-                    console.log(`User ${parsedMessage.reciever} not found.`);
+                    console.log(`User ${parsedMessage.data.reciever} not found.`);
                 }
 
             // }
-            // else if (parsedMessage.type === 'directMessage' && parsedMessage.reciever && parsedMessage.payload)
+            // else if (parsedMessage.type === 'directMessage' && parsedMessage.data.reciever && parsedMessage.data.payload)
             // {
-            //    const targetClient = clients.get(parsedMessage.reciever);
+            //    const targetClient = clients.get(parsedMessage.data.reciever);
             //     if (targetClient && targetClient.ws.readyState === WebSocket.OPEN)
             //     {
             //         targetClient.ws.send(JSON.stringify({
             //             type: "directmessage",
             //             sender: ws.uid,
-            //             payload: parsedMessage.payload
+            //             payload: parsedMessage.data.payload
             //         }));
             //         console.log("DM sent successfully");
             //     }
@@ -118,5 +124,9 @@ export function initChat()
             ws.ping();
         })
     }, 30000);
+
+    function send(ws: HBWebSocket, msg: ChatServerMessage) {
+        ws.send(JSON.stringify(msg));
+    }
 };
 
