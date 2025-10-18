@@ -4,8 +4,6 @@ import { Friend } from "./friend.schema";
 import  { getFriendsFromDatabase, setIBlockThem, defriend, getFriendsIBlockedFromDatabase, getDidIBlockThemFromDatabase, getDidTheyBlockMeFromDatabase, requestFriendship, setIUnblockThem }  from "./friend.logic";
 import { SESSION_ID_COOKIE_NAME, sidToUserIdAndName, getUserInfo } from "./cookie";
 
-
-
 // Get list of friends
 async function routeGetFriends(request: FastifyRequest, reply: FastifyReply)
 {
@@ -118,6 +116,39 @@ async function routeDefriendFriends(request: FastifyRequest, reply: FastifyReply
 		reply.code(500).send({ error: `Failed to defriend user ${friendUserId}. Seek counciling` });
 }
 
+async function routeGetBlockStatusBoolean(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const { friendUserId } = request.body as { friendUserId: string };
+	if (!friendUserId)
+	{
+		reply.code(400).send({ error: "Friend id doesnot exist." });
+		return;
+	}
+	const friendIBlocked = await getDidIBlockThemFromDatabase(myUserId, friendUserId);
+	const friendWhomBlockedMe = await getDidTheyBlockMeFromDatabase(myUserId, friendUserId);
+	reply.send({ friendIBlocked, friendWhomBlockedMe });
+}
+
+
+
+async function routeGetBlockFriendsArray(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const blockedFriends = 	await getFriendsIBlockedFromDatabase(myUserId);
+	reply.send({ blockedFriends });
+}
+
 export async function registerRoutes(fastify: FastifyInstance)
 {
 	fastify.get('/api/friends', routeGetFriends);
@@ -125,4 +156,6 @@ export async function registerRoutes(fastify: FastifyInstance)
 	fastify.post('/api/friends/block', routeBlockFriends);
 	fastify.post('/api/friends/unblock', routeUnblockFriends);
 	fastify.post('/api/friends/defriend', routeDefriendFriends);
+	fastify.get('/api/friends/getBlockStatusBoolean', routeGetBlockStatusBoolean);
+	fastify.get('/api/friends/getBlockStatusArray', routeGetBlockFriendsArray);
 }

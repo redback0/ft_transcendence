@@ -151,6 +151,68 @@ export async function unblockFriend(friendUserId: string)
 	}
 }
 
+
+
+/*
+const status = await fetchBlockStatus('friend_id');
+if (status)
+{
+	console.log('I blocked them:', status.friendsIBlocked);
+	console.log('They blocked me:', status.friendsWhomBlockedMe);
+}
+ */
+export async function fetchBlockedStatus(friendUserId: string)
+{
+	console.log(`getBlockedStatus() of userid: ${friendUserId}`);
+	try
+	{
+		const response = await fetch('/api/friends/getBlockStatusBoolean', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ friendUserId })
+		});
+		if (!response.ok)
+		{
+			console.error(`Error: cannot find "friend", are they imaginary?.`);
+			return ;
+		}
+		return await response.json();
+	}
+	catch (error)
+	{
+		console.error(`Error: Cannot getBlockedStatus().`);
+		return ;
+	}
+}
+
+
+/*
+ * 
+Use:
+const data = await response.json();
+return data.blockedFriends;
+ */
+export async function fetchBlockedFriends()
+{
+		console.log(`fetchBlockedFriends()`);
+	try
+	{
+		const response = await fetch('/api/friends/getBlockStatusArray');
+		if (!response.ok)
+		{
+			console.error(`Error: cannot find "friend", are they imaginary?.`);
+			return [];
+		}
+		const data = await response.json();
+		return data.blockedFriends;
+	}
+	catch (error)
+	{
+		console.error(`Error: Cannot fetchBlockedFriends().`);
+		return [];
+	}
+}
+
 export async function defriendFriend(friendUserId: string)
 {
 	console.log(`DEFRIEND: Their userid is: ${friendUserId}`);
