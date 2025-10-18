@@ -6,7 +6,7 @@ import { GamePage, GamePostLoad } from './game/game.template.js'
 import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
-import { ChatPage } from './chat/chat.template.js'
+import { ChatPostLoad, closeChat } from './chat/chat.controller.js'
 import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { SignUpPage } from './signup/signup.template.js'
@@ -30,7 +30,6 @@ const pages = new Map<string, Page>([
     ['/game/online', {builder: OnlineGamePage, title: "Play Pong"}],
     ['/lobby', {builder: LobbyNavPage, title: "Tournament Lobby"}],
     ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
-    // ['/chat', {builder: ChatPage}],
     ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
     ['/mypage', {builder: UserPage, title: "My Page"}],
     ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
@@ -122,6 +121,8 @@ document.body.onload = async () => {
     {
         if (navButton instanceof HTMLElement) navButton.onclick = NavOnClick;
     }
+
+    ChatPostLoad(currPage);
 }
 
 window.addEventListener("popstate", (e) =>
@@ -131,6 +132,8 @@ window.addEventListener("popstate", (e) =>
 
 export function newPage()
 {
+    closeChat();
+
     cleanupFuncs.forEach((v) =>
     {
         v();
