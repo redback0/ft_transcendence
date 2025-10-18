@@ -25,11 +25,6 @@ export function initChat()
     chatWebSocketServer.on("connection", function (ws: HBWebSocket)
     {
         ws.send(JSON.stringify({ username: ws.username}));
-        if (ws.uid)
-        {
-            const friends = getFriendsFromDatabase(ws.uid);
-            ws.send(JSON.stringify({table: friends}));
-        }
         console.log('New Client Connected');
         if (ws.username)
             clients.set(ws.username, ws);
