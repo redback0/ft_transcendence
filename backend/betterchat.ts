@@ -30,7 +30,7 @@ export function initChat()
         ws.on("message", (message: string) => {
             const parsedMessage = JSON.parse(message);
             console.log(parsedMessage.type);
-            if (parsedMessage.type === 'message' && parsedMessage.reciever && parsedMessage.payload)
+            if ((parsedMessage.type === "message" || parsedMessage.type === "invite") && parsedMessage.reciever && parsedMessage.payload)
             {
                 console.log( parsedMessage.type, parsedMessage.reciever, parsedMessage.payload);
                 if (parsedMessage.reciever[0] === '#')
@@ -39,8 +39,8 @@ export function initChat()
                         if (client !== ws && client.readyState === WebSocket.OPEN)
                         {
                             client.send(JSON.stringify({
-                                type: "message",
-                                channel: "general",
+                                type: parsedMessage.type,
+                                channel: parsedMessage.reciever,
                                 sender: ws.username,
                                 payload: parsedMessage.payload
                             }));
@@ -53,7 +53,7 @@ export function initChat()
                    if (client && client.readyState === WebSocket.OPEN)
                    {
                     client.send(JSON.stringify({
-                        type: "message",
+                        type: parsedMessage.type,
                         sender: ws.username,
                         payload: parsedMessage.payload
                     }));

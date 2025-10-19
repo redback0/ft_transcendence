@@ -115,6 +115,17 @@ export function ChatPostLoad(page: HTMLElement)
        //SendButton.innerHTML = `<p> Failed </p>`;
     });
 
+    const InviteButton = document.getElementById('inviteButton');
+    InviteButton?.addEventListener("click", async (event) =>
+    {
+        const url = document.location.href;
+        if (url.includes("/game/online")|| url.includes("/tournaments/"))
+            wssMessageSender("invite", url, is_active);
+        else 
+            console.log("Not on an applciable url");
+        console.log(url);
+    });
+
     window.addEventListener("popstate", function disconnectChat(e)
     {
         ws?.close();
@@ -162,15 +173,15 @@ export function ChatPostLoad(page: HTMLElement)
                 const inbox = document.getElementById(parsedMessage.sender);
                 if (parsedMessage.channel)
                 {
-                    const client = Channels.get('#general');
+                    const client = Channels.get(parsedMessage.channel);
                     if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client);
+                        messageReciever(parsedMessage.payload, parsedMessage.sender, client, parsedMessage.type);
                 }
                 else if (Channels.has(parsedMessage.sender) === true && inbox)
                 {
                     const client = Channels.get(parsedMessage.sender);
                     if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client);
+                        messageReciever(parsedMessage.payload, parsedMessage.sender, client, parsedMessage.type);
                 }
                 else
                 {
@@ -198,7 +209,7 @@ export function ChatPostLoad(page: HTMLElement)
 
 }
 
-const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: "normal" | "info" = "normal") =>
+const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: "normal" | "info" | "invite" = "normal") =>
 {
     let bubble = document.createElement("div");
     bubble.classList.add('received-chats', 'mb-2');
@@ -208,18 +219,29 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     head.innerText = sender;
     let message = document.createElement("div");
     message.classList.add('received-msg');
-    let send = document.createElement("p");
-    send.innerText = msg;
-
-    if (type === "info")
+    const invite = document.createElement("button");
+    const send = document.createElement("p");
+    if (type === "invite")
     {
-        send.classList.add('italic', 'var(--color-gray-500)');
+        const url = document.createElement("a");
+        url.href = msg;
+        invite.innerText = msg;
+        invite.addEventListener("click", async (event) =>
+        {   event.preventDefault(); });
+        invite.appendChild(url);
+    }
+    else
+    {
+        send.innerText = msg;
+        if (type === "info")
+            send.classList.add('italic', 'var(--color-gray-500)');
     }
     inbox.insertBefore(bubble, inbox.children[0])
     bubble.appendChild(header);
     header.appendChild(head);
     bubble.appendChild(message);
     message.appendChild(send);
+    message.appendChild(invite);
 }
 const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "normal") =>
 {   
