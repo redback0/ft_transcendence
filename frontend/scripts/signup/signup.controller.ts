@@ -75,7 +75,7 @@ export function SignUpPostLoad(page: HTMLElement)
                 return;
             }
 
-            history.pushState({}, "", "/game");
+            history.pushState({}, "", "/");
             newPage();
         });
     });
