@@ -23,7 +23,7 @@ export function initChat()
 
     chatWebSocketServer.on("connection", function (ws: HBWebSocket)
     {
-        ws.send(JSON.stringify({ username: ws.username}));
+        //ws.send(JSON.stringify({ username: ws.username}));
         console.log('New Client Connected');
         if (ws.username)
             clients.set(ws.username, ws);
@@ -52,16 +52,24 @@ export function initChat()
                    const client = clients.get(parsedMessage.reciever);
                    if (client && client.readyState === WebSocket.OPEN)
                    {
-                    client.send(JSON.stringify({
-                        type: parsedMessage.type,
-                        sender: ws.username,
-                        payload: parsedMessage.payload
-                    }));
+                        client.send(JSON.stringify({
+                            type: parsedMessage.type,
+                            sender: ws.username,
+                            payload: parsedMessage.payload
+                        }));
                    }
                 }
                 else
                 {
                     console.log(`User ${parsedMessage.reciever} not found.`);
+                    if (ws && ws.readyState === WebSocket.OPEN)
+                    {
+                        ws.send(JSON.stringify({
+                            type: parsedMessage.type,
+                            sender: parsedMessage.reciever,
+                            payload: "Error: User does not exist/ is currently not online"
+                        }));
+                    }
                 }
 
             // }
