@@ -7,10 +7,12 @@ export async function refreshFriendsTable()
 
 	const friends = await fetchFriends();
 	if (friends.length > 0)
-		{
+	{
 		renderFriendsTable(friends);
 		attachBlockListeners();
-	} else {
+	}
+	else
+	{
 		tableContainer.innerHTML = '<p style="text-align:center; color:#520404;">You have no friends yet.</p>';
 	}
 }
@@ -151,7 +153,27 @@ export async function unblockFriend(friendUserId: string)
 	}
 }
 
-
+export async function getUserIdFromUsername(username: string): Promise<string | null>
+{
+	try {
+		const response = await fetch('/api/friends/getUserIdFromUsername', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ username })
+		});
+		if (!response.ok)
+		{
+			return null;
+		}
+		const data = await response.json();
+		return data.user_id || null;
+	}
+	catch (error)
+	{
+		console.error('Cannot return user_id from username:', error);
+		return null;
+	}
+}
 
 /*
 const status = await fetchBlockStatus('friend_id');

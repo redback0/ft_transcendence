@@ -20,6 +20,23 @@ async function routeGetFriends(request: FastifyRequest, reply: FastifyReply)
 			reply.code(500).send({ error: `Cannot find friends` });
 }
 
+async function routeGetUserIdFromUsername(request: FastifyRequest, reply: FastifyReply)
+{
+	const { username } = request.body as { username: string };
+	if (!username || typeof username !== 'string')
+	{
+		reply.code(400).send({ error: 'Username not given.' });
+		return ;
+	}
+	const user = db.getUserIdFromUsername.get(username) as { user_id: string } | undefined;
+	if (!user)
+	{
+		reply.code(404).send({ error: 'User not found.' });
+		return ;
+	}
+	reply.send({ user_id: user.user_id });
+}
+
 async function routeRequestFriendship(request: FastifyRequest, reply: FastifyReply)
 {
 	const myUserId = await getUserInfo(request);
@@ -158,4 +175,5 @@ export async function registerRoutes(fastify: FastifyInstance)
 	fastify.post('/api/friends/defriend', routeDefriendFriends);
 	fastify.get('/api/friends/getBlockStatusArray', routeGetBlockFriendsArray);
 	fastify.post('/api/friends/getBlockStatusBoolean', routeGetBlockStatusBoolean);
+    fastify.post('/api/friends/getUserIdFromUsername', routeGetUserIdFromUsername);
 }

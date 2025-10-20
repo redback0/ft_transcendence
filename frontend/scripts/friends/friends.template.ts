@@ -14,18 +14,15 @@ export class FriendsPage extends HTMLElement
 				<p style="font-size:2vh; color:#520404; margin-top:1vh; font-weight:bold">ADD FRIENDS:</p>
 				<input id="friends-user-search" type="text" name="username" placeholder="ENTER USERNAME" autocomplete="off" style="color:#DED19C;" required>
 				<h1 id="friend-error" style="font-weight:bold; font-size:1.5vh; color:red; display:none;">USER DOES NOT EXIST</h1>
-				<h1 id="friend-success" style="font-weight:bold; font-size:1.5vh; color:green; display:none;">REQUESTED, THEY NEED TO RECIPROCATE</h1>
 				<h1 id="friends-redHover" style="font-weight:bold; font-size:5vh; color:#520404; cursor:pointer; user-select:none;">ADD -></h1>
 				<!--button type="button" id="addFriendButton" style="font-weight:bold; font-size:5vh; color:#520404;>Add Friend</button>-->
 			</form>
-			
 
-			<!-- Table of Friends -->
-			<!-- TO DO: IF SQL GET NUMBER OF FRIENDS = 0, "YOU HAVE NO FRIENDS" ELSE: -->
 			<div style="margin-top: 3vh;">
 				<h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">YOUR FRIENDS:</h1>
 				<div id="table-friends"><p style="text-align:center; color:#520404; opacity:0.7;">Loading friends...</p></div>
 			</div>
+
 		</div>
 
 		<!--

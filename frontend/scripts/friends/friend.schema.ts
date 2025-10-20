@@ -4,4 +4,5 @@ export interface Friend {
 	profilePicture: string;
 	blocked_by_me: number;
 	avatar: string;
+	friend_status: number;
 };

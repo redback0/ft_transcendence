@@ -45,7 +45,7 @@ export async function getFriendsFromDatabase(myId: string): Promise<Friend[] | n
 {
 	try
 	{
-		const statement = db.prepare(`SELECT u.user_id, u.username, f.blocked_by_me FROM users as u INNER JOIN friend as f ON u.user_id = f.friend_id WHERE f.my_id = ? AND f.friend_status = 1;`);
+		const statement = db.prepare(`SELECT u.user_id, u.username, f.blocked_by_me, f.friend_status FROM users as u INNER JOIN friend as f ON u.user_id = f.friend_id WHERE f.my_id = ?;`);
 		const friends = statement.all(myId) as Friend[];
 		return (friends);
 	}
@@ -172,21 +172,24 @@ export async function checkAreTheyWaitingForFriendAproval(myId: string, theirId:
 
 export async function requestFriendship(myId: string, theirId: string): Promise<boolean>
 {
-	await setupFriendRecordIfNotExist(myId, theirId);
+	// Don't need anymore. 
+	// if (await getDidTheyBlockMeFromDatabase(myId, theirId) === true)
+	// {
+	// 	console.log(`There will be cake.`);
+	// 	return (false);
+	// }
 
-	if (await getDidTheyBlockMeFromDatabase(myId, theirId) === true)
-	{
-		console.log(`There will be cake.`);
-		return (false);
-	}
+	await setupFriendRecordIfNotExist(myId, theirId);
+	await setupFriendRecordIfNotExist(theirId, myId);
 	try
 	{
 		db.prepare(`BEGIN TRANSACTION`).run();
-		const statement = db.prepare(`UPDATE friend set friend_status = 0, blocked_by_me = 0 WHERE my_id = ? AND friend_id = ?;`);
+		const statement = db.prepare(`UPDATE friend SET friend_status = 1, blocked_by_me = 0 WHERE my_id = ? AND friend_id = ?;`);
 		statement.run(myId, theirId);
+		statement.run(theirId, myId);
 		db.prepare('COMMIT').run();
 		console.log(`Friend request success.`);
-		tryToApproveFriendship(myId, theirId);
+		// tryToApproveFriendship(myId, theirId);
 		return (true);
 	}
 	catch (error)
@@ -197,14 +200,16 @@ export async function requestFriendship(myId: string, theirId: string): Promise<
 	}
 }
 
+// No longer using
 export async function tryToApproveFriendship(myId: string, theirId: string): Promise<boolean>
 {
+	// No longer using. 
 	// Check they are ready for the next level with you. 
-	if (await checkAreTheyWaitingForFriendAproval(myId, theirId) === false)
-	{
-		console.log(`false yay`);
-		return (false);
-	}
+	// if (await checkAreTheyWaitingForFriendAproval(myId, theirId) === false)
+	// {
+	// 	console.log(`false yay`);
+	// 	return (false);
+	// }
 	try
 	{
 		db.prepare('BEGIN TRANSACTION').run();
@@ -223,30 +228,15 @@ export async function tryToApproveFriendship(myId: string, theirId: string): Pro
 	}
 }
 
+
 export async function defriend(myId: string, theirId: string): Promise<boolean>
 {
-	const statement = db.prepare(`SELECT 1 FROM friend WHERE my_id = ? AND friend_id = ? LIMIT 1;`);
-	const result = statement.get(theirId, myId);
-	if (result)
-	{
-		try
-		{
-			db.prepare('BEGIN TRANSACTION').run();
-			let statement = db.prepare(`UPDATE friend SET friend_status = 0 WHERE my_id = ? AND friend_id = ?;`);
-			statement.run(theirId, myId);
-			db.prepare('COMMIT').run();
-		}
-		catch (error)
-		{
-			db.prepare('ROLLBACK').run();
-			console.error(`Cannot set friend status to 0 on reciprocal user, they may not have added you as a friend. Their id: ${theirId}: `, error);
-		}
-	}
 	try
 	{
 		db.prepare('BEGIN TRANSACTION').run();
 		let statement = db.prepare(`DELETE FROM friend WHERE my_id = ? AND friend_id = ?`);
 		statement.run(myId, theirId);
+		statement.run(theirId, myId);
 		db.prepare('COMMIT').run();
 		return (true);
 	}
