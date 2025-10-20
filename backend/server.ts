@@ -10,6 +10,7 @@ export const fastify: FastifyInstance = Fastify({ logger: true });
 import * as User from './user.js';
 import * as Lobby from './lobby.js';
 import { SESSION_ID_COOKIE_NAME } from './cookie';
+import { registerAvatars } from './avatar.js';
 import * as Tournament from './tournament.js';
 import * as Friend from './friend.js';
 import { cleanupExpiredUsers } from './userStatus.js';
@@ -26,6 +27,7 @@ fastify.register(Game.gameInit);
 fastify.register(Lobby.lobbyInit);
 fastify.register(cookie);
 fastify.register(registerCookieRoutes);
+fastify.register(registerAvatars);
 fastify.register(User.registerRoutes);
 fastify.register(Friend.registerRoutes);
 
