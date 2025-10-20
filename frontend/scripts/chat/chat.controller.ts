@@ -38,17 +38,18 @@ export function ChatPostLoad(page: HTMLElement)
     //         throw Error("Uh oh stinky");
     //     }
     // }
-    if( Channels.has('#general') === false)
+    if( Channels.has('#general') === false && Channels.has('#tournament') === false)
     {
         const generalInbox = document.getElementById('general-inbox');
+        const tourInbox = document.getElementById('tournament-inbox');
         if (generalInbox)
-        {
             Channels.set('#general', generalInbox);
-        }
         else
-        {
             throw Error("Uh oh stinky");
-        }
+        if (tourInbox)
+            Channels.set('#tournament', tourInbox);
+        else
+            throw Error("Uh oh stinky");
     }
     const MessageInput = (document.getElementById('messageInput') as HTMLInputElement);
     if (MessageInput)
@@ -73,6 +74,11 @@ export function ChatPostLoad(page: HTMLElement)
     defaultButton?.addEventListener("click", async (event) =>
     { 
         openChat("#general", event);  
+    });
+    const tourButton = document.getElementById('#tournamentButton');
+    tourButton?.addEventListener("click", async (event) =>
+    { 
+        openChat("#tournament", event);  
     });
     // const dmButton = document.getElementById('direct');
     // dmButton?.addEventListener("click", async (event)=>
@@ -223,13 +229,8 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     const send = document.createElement("p");
     if (type === "invite")
     {
-        //const button = document.createElement("button");
         a.href = msg;
         send.innerText = "You've been invited to play a game"
-        //button.innerText = "Invitation";
-        //button.addEventListener("click", async (event) =>
-        //{   event.preventDefault(); });
-        //a.appendChild(button);
         a.appendChild(send);
     }
     else
