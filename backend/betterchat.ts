@@ -115,7 +115,7 @@ export function initChat()
     setInterval(() =>
     {
         chatWebSocketServer.clients.forEach(ws => {
-            if ((<any>ws).isAlive === false)
+            if (ws.isAlive === false)
             {
                 console.debug("client failed to ping (chat)");
                 return ws.terminate();
