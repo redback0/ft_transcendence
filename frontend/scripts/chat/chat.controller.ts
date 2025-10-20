@@ -221,10 +221,17 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     bubble.classList.add('received-chats', 'mb-2');
     let header = document.createElement("div");
     header.classList.add('received-chats-sender', 'text-(--color2)');
+
+    let userlink = document.createElement("a");
+    userlink.href = 'https://localhost/users/' + sender;
+    console.log(userlink.href);
     let head = document.createElement("p");
     head.innerText = sender;
+    userlink.appendChild(head);
+
     let message = document.createElement("div");
     message.classList.add('received-msg');
+
     const a = document.createElement("a");
     const send = document.createElement("p");
     if (type === "invite")
@@ -237,11 +244,14 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     {
         send.innerText = msg;
         if (type === "info")
+        {
             send.classList.add('italic', 'var(--color-gray-500)');
+            userlink.href = "";
+        }
     }
     inbox.insertBefore(bubble, inbox.children[0])
     bubble.appendChild(header);
-    header.appendChild(head);
+    header.appendChild(userlink);
     bubble.appendChild(message);
     if (type === "invite")
         message.appendChild(a);
