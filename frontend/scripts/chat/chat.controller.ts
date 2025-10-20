@@ -160,7 +160,7 @@ export function ChatPostLoad(page: HTMLElement)
             if (client)
             {
                 messageReciever("connected to chat", "Server", client, "info");
-                wssMessageSender("message", "New Client Connected", '#general');
+                wssMessageSender("message", "New Client Connected", "#general");
             }
         }
         ws.onmessage = function (ev: MessageEvent)
@@ -183,7 +183,7 @@ export function ChatPostLoad(page: HTMLElement)
                     if (client)
                         messageReciever(parsedMessage.payload, parsedMessage.sender, client, parsedMessage.type);
                 }
-                else
+                else if (parsedMessage.sender !== undefined)
                 {
                     newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
                     friends.push(parsedMessage.sender);
@@ -209,7 +209,7 @@ export function ChatPostLoad(page: HTMLElement)
 
 }
 
-const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: "normal" | "info" | "invite" = "normal") =>
+const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: "message" | "info" | "invite" = "message") =>
 {
     let bubble = document.createElement("div");
     bubble.classList.add('received-chats', 'mb-2');
@@ -219,16 +219,18 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     head.innerText = sender;
     let message = document.createElement("div");
     message.classList.add('received-msg');
-    const invite = document.createElement("button");
+    const a = document.createElement("a");
     const send = document.createElement("p");
     if (type === "invite")
     {
-        const url = document.createElement("a");
-        url.href = msg;
-        invite.innerText = msg;
-        invite.addEventListener("click", async (event) =>
-        {   event.preventDefault(); });
-        invite.appendChild(url);
+        //const button = document.createElement("button");
+        a.href = msg;
+        send.innerText = "You've been invited to play a game"
+        //button.innerText = "Invitation";
+        //button.addEventListener("click", async (event) =>
+        //{   event.preventDefault(); });
+        //a.appendChild(button);
+        a.appendChild(send);
     }
     else
     {
@@ -240,8 +242,10 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     bubble.appendChild(header);
     header.appendChild(head);
     bubble.appendChild(message);
-    message.appendChild(send);
-    message.appendChild(invite);
+    if (type === "invite")
+        message.appendChild(a);
+    else
+        message.appendChild(send);
 }
 const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "normal") =>
 {   
