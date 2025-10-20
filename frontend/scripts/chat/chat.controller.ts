@@ -421,3 +421,11 @@ const getAvatar = (sender: string) =>
 {
     return "path";
 }
+
+
+const sendToPlayer = (player: string, message: string, type: string) =>
+{
+    const inbox = document.getElementById('tournament-inbox');
+    if (inbox)
+        messageReciever(message, "Tournament", inbox, "info");
+}

@@ -17,7 +17,7 @@ export const chatWebSocketServer = new WebSocketServer({
     path: '/wss/chat'
 });
 
-const clients: Map<string, HBWebSocket> = new Map();
+export const clients: Map<string, HBWebSocket> = new Map();
 
 export function initChat()
 {
@@ -155,4 +155,23 @@ export function initChat()
         ws.send(JSON.stringify(msg));
     }
 };
+
+
+export function serverToClient(username: string, message: string, sender: string)
+{
+    const client = clients.get(username);
+    if (client && client.readyState === WebSocket.OPEN)
+    {
+        client.send(JSON.stringify({
+            type: "recieve_channel_message",
+            data: {
+                payload: message,
+                sender: sender,
+                channel: sender,
+                is_invite: false
+            }
+        }));     
+
+    }
+}
 
