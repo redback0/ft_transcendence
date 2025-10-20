@@ -225,6 +225,24 @@ export async function tryToApproveFriendship(myId: string, theirId: string): Pro
 
 export async function defriend(myId: string, theirId: string): Promise<boolean>
 {
+
+	const statement = db.prepare(`SELECT 1 FROM friend WHERE my_id = ? AND friend_id = ? LIMIT 1;`);
+	const result = statement.get(theirId, myId);
+	if (result)
+	{
+		try
+		{
+			db.prepare('BEGIN TRANSACTION').run();
+			let statement = db.prepare(`UPDATE friend SET friend_status = 0 WHERE my_id = ? AND friend_id = ?;`);
+			statement.run(theirId, myId);
+			db.prepare('COMMIT').run();
+		}
+		catch (error)
+		{
+			db.prepare('ROLLBACK').run();
+			console.error(`Cannot set friend status to 0 on reciprocal user, they may not have added you as a friend. Their id: ${theirId}: `, error);
+		}
+	}
 	try
 	{
 		db.prepare('BEGIN TRANSACTION').run();
