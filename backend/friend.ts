@@ -156,6 +156,6 @@ export async function registerRoutes(fastify: FastifyInstance)
 	fastify.post('/api/friends/block', routeBlockFriends);
 	fastify.post('/api/friends/unblock', routeUnblockFriends);
 	fastify.post('/api/friends/defriend', routeDefriendFriends);
-	fastify.get('/api/friends/getBlockStatusBoolean', routeGetBlockStatusBoolean);
 	fastify.get('/api/friends/getBlockStatusArray', routeGetBlockFriendsArray);
+	fastify.post('/api/friends/getBlockStatusBoolean', routeGetBlockStatusBoolean);
 }

@@ -225,7 +225,6 @@ export async function tryToApproveFriendship(myId: string, theirId: string): Pro
 
 export async function defriend(myId: string, theirId: string): Promise<boolean>
 {
-
 	const statement = db.prepare(`SELECT 1 FROM friend WHERE my_id = ? AND friend_id = ? LIMIT 1;`);
 	const result = statement.get(theirId, myId);
 	if (result)
