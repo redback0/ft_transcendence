@@ -63,7 +63,11 @@ export function ChatPostLoad(page: HTMLElement)
                 const active = Channels.get(is_active);
                 if (active)
                 {
+<<<<<<< HEAD
                     wssMessageSender({ type: "send_message", data: { payload: MessageInput.value, reciever: is_active, is_invite: false }});
+=======
+                    wssMessageSender({ type: "send_message", data: { payload: MessageInput.value, reciever: is_active }});
+>>>>>>> 82b02e8272185be865e9112c05eb6e863f0792c9
                 }
                 else
                     console.log("is_active value is invalid", is_active);
