@@ -160,6 +160,7 @@ export function initChat()
 export function serverToClient(username: string, message: string, sender: string)
 {
     const client = clients.get(username);
+    console.log(`serverToClient: ${client?.username}`);
     if (client && client.readyState === WebSocket.OPEN)
     {
         client.send(JSON.stringify({
