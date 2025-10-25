@@ -1,4 +1,4 @@
-import { GameID, TournamentID, TournamentMessage, UserInfo } from "../../tournament.schema.js";
+import { ClientTournamentMessage, GameID, TournamentID, TournamentMessage, UserInfo } from "../../tournament.schema.js";
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
 import { TournamentPage } from "./tournament.template.js";
 import { newPage, setCurrentPage } from "../../index.js";
@@ -19,12 +19,10 @@ export class TournamentArea {
 	//tournament_host: UserInfo;
 	me: UserInfo | undefined;
 	//players: UserInfo[];
-    current_games_div: HTMLDivElement;
     matchups: Matchup[];
     byed_html: HTMLParagraphElement | undefined;
     spectating: GameID | undefined;
     game: GameID | undefined;
-    join_button: HTMLButtonElement;
 
 	constructor(page: TournamentPage, lobby_info?: { page: LobbyJoinPage, room_code: TournamentID }) {
         if (!lobby_info) {
@@ -45,24 +43,40 @@ export class TournamentArea {
             this.me = <UserInfo>lobby_info.page.lobby.me;
             //this.players = lobby_info.page.lobby.players.map(p => p.info);
         }
-        this.ws.onmessage = this.wsMessage;
-        this.join_button = document.createElement("button");
-        this.join_button.innerText = "Join next game";
-        this.join_button.disabled = this.game === undefined;
-        this.join_button.onclick = (ev: MouseEvent) => {
-            if (this.game)
-                this.joinGame();
-        };
-        this.page = page;
-        this.page.appendChild(this.join_button);
-
-        this.current_games_div = document.createElement('div');
-        this.current_games_div.className = "flex flex-col justify-center items-center";
-        this.page.appendChild(this.current_games_div);
-        
         this.matchups = [];
+
+        this.page = page;
+        this.page.innerHTML = `
+            <style>
+                #nextGameButton:hover {
+                    color: var(--color1) !important;
+                    background-color: var(--color2);
+                    display: inline-block;
+                    cursor: pointer;
+                }
+                #nextGameButton {
+                    font-weight: bold;
+                    font-size: 3vh;
+                    color: var(--color2);
+                    text-align: left;
+                }
+            </style>
+            <div>
+                <h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh; margin-top: 6vh">TOURNAMENT</h1>
+                <div style="margin-top: 3vh;">
+                    <h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">MATCHUPS:</h1>
+                    <div id="table-matchups" class="flex flex-col justify-center items-center"></div>
+                    <div style="text-align: center;">
+                        <button type="button" id="nextGameButton">JOIN NEXT GAME -></button>
+                    </div>
+                </div>
+            </div>
+        `;
+
         this.log(`me: ${this.me?.username}`);
 	}
+
+
 
     wsMessage = (ev: MessageEvent) => {
         if (typeof ev.data !== "string")
@@ -76,7 +90,9 @@ export class TournamentArea {
             case "go_to_game":
                 this.log(`go to game: ${msg.game_id}`);
                 this.game = msg.game_id;
-                this.join_button.disabled = false;
+                let join_button = document.getElementById("nextGameButton");
+                if (join_button)
+                    (<HTMLButtonElement>join_button).disabled = false;
             break;
             case "game_starting":
                 this.log(`game starting: ${msg.game_id}; (${msg.p1}) vs. (${msg.p2})`);
@@ -110,20 +126,24 @@ export class TournamentArea {
             break;
             case "tournament_finished":
                 this.log(`tournament finished`);
-                for (let ranking of msg.rankings) {
-                    this.log(`${ranking.user_info.username} (${ranking.score})`);
-                }
+                this.displayWinners(msg.rankings);
             break;
             case "byed":
                 this.log(`${msg.player.username} has been byed`);
             break;
             case "next_round_starting":
+                let current_games_div = document.getElementById("table-matchups");
+                if (!current_games_div) {
+                    console.error("no table-matchups elem");
+                    break;
+                }
                 this.matchups.forEach((matchup) => {
-                    this.current_games_div.removeChild(matchup.html.div);
+                    current_games_div.removeChild(matchup.html.div);
                 });
                 this.matchups = [];
             break;
             case "you_are": {
+                this.log(`me: ${msg.you}`);
                 this.me = msg.you;
                 break;
             }
@@ -149,10 +169,12 @@ export class TournamentArea {
 
     leaveGame = () => {
         this.game = undefined;
-        this.join_button.disabled = true;
+        let join_button = document.getElementById("nextGameButton");
+        if (join_button)
+            (<HTMLButtonElement>join_button).disabled = true;
         setTimeout(() => {
             history.pushState({}, "", "/tournament/bracket?bracket_id=" + this.tourney_id);
-            setCurrentPage(this.page);
+            setCurrentPage(this.page, TournamentPostLoad);
         }, 3000);
     }
 
@@ -160,7 +182,7 @@ export class TournamentArea {
         setTimeout(() => {
                 this.spectating = undefined;
                 history.pushState({}, "", "/tournament/bracket?bracket_id=" + this.tourney_id);
-                setCurrentPage(this.page);
+                setCurrentPage(this.page, TournamentPostLoad);
             }, 3000);
         }
 
@@ -188,7 +210,27 @@ export class TournamentArea {
             data: { p1, p2, game_id },
             html: { div: both_div, text: matchup_text, button: spectate_button },
         });
-        this.current_games_div.appendChild(both_div);
+
+        let current_games_div = document.getElementById("table-matchups");
+        if (!current_games_div) {
+            console.error("no table-matchups elem");
+            return;
+        }
+        current_games_div.appendChild(both_div);
+    }
+
+    displayWinners = (rankings: { user_info: UserInfo, score: number }[]) => {
+        let winners_div = document.createElement('div');
+        
+        let i = 1;
+        for (let ranking of rankings) {
+            this.log(`${ranking.user_info.username} (${ranking.score})`);
+            let ranking_text = document.createElement('a');
+            ranking_text.textContent = `${i}. ${ranking.user_info.username} (${ranking.score})`;
+            ++i;
+            winners_div.appendChild(ranking_text);
+        }
+
     }
 
     log = (msg: any) => {
@@ -197,4 +239,21 @@ export class TournamentArea {
         p.innerText = msg;
         //this.page.appendChild(p);
     }
+}
+
+// this is fine
+export function TournamentPostLoad(page: HTMLElement) {
+    let tournament_page = <TournamentPage>page;
+    let join_button_maybe = document.getElementById('nextGameButton');
+    if (join_button_maybe) {
+        let join_button = <HTMLButtonElement>join_button_maybe;
+        join_button.disabled = tournament_page.bracket_area.game === undefined;
+        join_button.onclick = (ev: MouseEvent) => {
+            if (tournament_page.bracket_area.game)
+                tournament_page.bracket_area.joinGame();
+        };
+    }
+    tournament_page.bracket_area.ws.onmessage = tournament_page.bracket_area.wsMessage;
+    let msg: ClientTournamentMessage = { type: "ready" };
+    tournament_page.bracket_area.ws.send(JSON.stringify(msg));
 }

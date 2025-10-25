@@ -18,6 +18,7 @@ import { SettingsPage } from './settings/settings.template.js'
 import './navigation.js'
 import { FriendsPostLoad } from './friends/friends.controller.js'
 import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
+import { TournamentArea, TournamentPostLoad } from './tournament/tournament/tournament.controller.js'
 
 type Page = {
     builder: typeof HTMLElement,
@@ -33,7 +34,7 @@ const pages = new Map<string, Page>([
     ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
     ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
     ['/mypage', {builder: UserPage, title: "My Page"}],
-    ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
+    ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket", postLoad: TournamentPostLoad}],
     ['/settings', {builder: SettingsPage, title: "Settings"}],
 	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]]
 );
@@ -41,13 +42,14 @@ const pages = new Map<string, Page>([
 export let currPage : HTMLElement
 
 // prefer newPage over setCurrentPage
-export function setCurrentPage(page: HTMLElement) {
+export function setCurrentPage(page: TournamentPage, postLoad: (page: HTMLElement) => any) {
     document.title = "page is changing!";
     try {
 		document.body.removeChild(currPage);
     } catch (e) {}
 	currPage = page;
 	document.body.appendChild(currPage);
+    postLoad(page);
 }
 
 // this is available so we don't have to change the index every time we add

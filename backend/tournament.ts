@@ -2,7 +2,7 @@ import { RawData, WebSocketServer, WebSocket, Server } from "ws";
 import { UserID, LobbySessionID } from "./lobby.schema";
 import { AddNewGame, gameWebSocketServers, NewID } from "./game";
 import { Lobby } from "./lobby";
-import { GameID, SessionID, TournamentID, TournamentMessage, UserInfo, TournamentNextRoundStart } from './tournament.schema';
+import { GameID, SessionID, TournamentID, TournamentMessage, UserInfo, TournamentNextRoundStart, ClientTournamentMessage } from './tournament.schema';
 import { db } from "./database";
 import { userInfo } from "os";
 import { serverToClient } from "./betterchat";
@@ -39,6 +39,7 @@ export class TournamentWebSocket extends WebSocket {
 	been_byed: boolean = false;
 	user_info: UserInfo | undefined;
 	wins: number = 0;
+	ready: boolean = false;
 }
 
 // monrad system swiss style tournament
@@ -54,8 +55,10 @@ export class Tournament {
 	current_round: number;
 	total_rounds_needed: number;	
 	prev_pairings: Array<Pair<TournamentWebSocket>>;
+	started: boolean;
 
 	constructor(lobby: Lobby, tourney_id: TournamentID) {
+		this.started = false;
 		this.prev_pairings = [];
 		this.current_round = 0;
 		this.active_games = [];
@@ -91,6 +94,7 @@ export class Tournament {
 					msg: game
 				});
 			});
+			ws.ready = true;
 		});
 
 		this.id = tourney_id;
@@ -115,8 +119,6 @@ export class Tournament {
 		if (!result2) {
 			return ;
 		}
-
-		this.startNextRound();
 	} //end contructor
 
 	insertIntoUserHasTournyDB() {
@@ -157,6 +159,7 @@ export class Tournament {
 	}
 
 	startNextRound = () => {
+		this.started = true;
 		++this.current_round;
 		db.prepare(
 			`UPDATE tournament SET round_number = ? WHERE tour_id = ?`
@@ -260,16 +263,20 @@ export class Tournament {
 
 	wsOnMessage = (ws: TournamentWebSocket, data: RawData, isBinary: boolean) => {
 		console.log(`msg from client in tournament: (${isBinary}, ${data})`);
-		// const request: LobbyRequest = JSON.parse(data.toString());
-		// switch (request.type) {
-		// 	case "infoRequest":
-		// 		break;
-		// 	case "startRequest":
-		// 		console.log(`lobby (${this.room_code}) start request receieved`);
-		// 		break;
-		// 	default:
-		// 		console.warn("unknown lobby request from client");
-		// }
+		const msg: ClientTournamentMessage = JSON.parse(data.toString());	
+		if (msg.type === "ready" && !ws.ready) {
+			ws.ready = true;
+			let all_ready = true;
+			this.wss.clients.forEach(c => {
+				if (!c.ready) {
+					all_ready = false;
+				}
+			})
+
+			if (all_ready && !this.started) {
+				this.startNextRound();
+			}
+		}
 	}
 
 	wsOnClose = (ws: TournamentWebSocket, code: number, reason: Buffer<ArrayBufferLike>) => {
