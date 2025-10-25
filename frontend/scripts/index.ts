@@ -89,6 +89,9 @@ export async function NavOnClick(e: MouseEvent)
         const usernameElement = document.getElementById("username");
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = "";
+        const avatarElement = document.getElementById("avatar");
+        if (avatarElement instanceof HTMLImageElement)
+            avatarElement.classList.add('hidden');
     }
 
     const newURL = e.target.href;
@@ -103,6 +106,7 @@ document.body.onload = async () => {
     document.title = "Transvengence";
 
     const usernameElement = document.getElementById("username");
+    const avatarElement = document.getElementById("avatar");
     const sessionInfo = await fetch("/api/user/session");
 
     if (sessionInfo.ok)
@@ -113,8 +117,14 @@ document.body.onload = async () => {
         const userInfo = await sessionInfo.json();
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = userInfo?.username;
+        if (avatarElement instanceof HTMLImageElement)
+        {
+            avatarElement.src = "/api/user/" + userInfo?.user_id + "/avatar";
+            avatarElement.classList.remove('hidden');
+        }
         if (document.location.pathname === "/")
             history.pushState({}, "", "/game");
+
     }
     else
     {
