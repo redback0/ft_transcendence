@@ -1,3 +1,4 @@
+import { initialiseHeartbeat } from "./heartbeat.js";
 import { NavOnClick, newPage } from "./index.js";
 
 export class IndexPage extends HTMLElement {
@@ -76,6 +77,7 @@ export function IndexPostLoad(page: HTMLElement)
             // change page to play if successful
             if (!response.ok)
             {
+				console.log(`Post Login: response is not okay: ${response.status} ${response.statusText}`);
                 if (response.status >= 400 && response.status < 500)
                 {
                     response.json().then((obj) =>
@@ -96,8 +98,8 @@ export function IndexPostLoad(page: HTMLElement)
             const usernameElement = document.getElementById("username");
             if (usernameElement instanceof HTMLParagraphElement)
                 usernameElement.innerText = user;
-
-
+			
+			initialiseHeartbeat();
             history.pushState({}, "", "/game");
             newPage()
         });

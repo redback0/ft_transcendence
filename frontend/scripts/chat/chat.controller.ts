@@ -1,5 +1,6 @@
 //Authored by Bethany Milford 29/07/25
 import { onPageChange } from "../index.js";
+import { fetchBlockedFriends, fetchBlockedStatus } from "../friends/friends.controller.js";
 
 let ws:  WebSocket | undefined;
 let friends: string[] = [];
@@ -169,7 +170,7 @@ export function ChatPostLoad(page: HTMLElement)
                 wssMessageSender("message", "New Client Connected", "#general");
             }
         }
-        ws.onmessage = function (ev: MessageEvent)
+        ws.onmessage = async function (ev: MessageEvent)
         {
             try {
                 const parsedMessage = JSON.parse(ev.data);
@@ -412,4 +413,22 @@ const setUsername = (username: string) =>
 const getAvatar = (sender: string) =>
 {
     return "path";
+}
+
+async function checkIfBlocked(username: string)
+{
+    const blockedlist = await fetchBlockedFriends();
+    if (blockedlist)
+    {
+        if(blockedlist.indexOf(username) !== -1)
+        {
+            return (-1);
+        }
+    }
+    const ifblocked = await fetchBlockedStatus(username);
+    if (ifblocked === true)
+    {
+        return (-1);
+    }
+    return 0;
 }
