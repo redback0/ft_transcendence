@@ -249,6 +249,16 @@ input:focus {
     width: 100%;
 }
 
+.recieved-msg a {
+    background: var(--color2);
+    color: var(--color1);
+    border-radius: 10px;
+    font-size: 14px;
+    margin-left: 1rem;
+    padding: 1rem;
+    width: 100%;
+}
+
 .received-msg {
     float: left;
     width: auto;

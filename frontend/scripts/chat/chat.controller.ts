@@ -39,17 +39,18 @@ export function ChatPostLoad(page: HTMLElement)
     //         throw Error("Uh oh stinky");
     //     }
     // }
-    if( Channels.has('#general') === false)
+    if( Channels.has('#general') === false && Channels.has('#tournament') === false)
     {
         const generalInbox = document.getElementById('general-inbox');
+        const tourInbox = document.getElementById('tournament-inbox');
         if (generalInbox)
-        {
             Channels.set('#general', generalInbox);
-        }
         else
-        {
             throw Error("Uh oh stinky");
-        }
+        if (tourInbox)
+            Channels.set('#tournament', tourInbox);
+        else
+            throw Error("Uh oh stinky");
     }
     const MessageInput = (document.getElementById('messageInput') as HTMLInputElement);
     if (MessageInput)
@@ -74,6 +75,11 @@ export function ChatPostLoad(page: HTMLElement)
     defaultButton?.addEventListener("click", async (event) =>
     { 
         openChat("#general", event);  
+    });
+    const tourButton = document.getElementById('#tournamentButton');
+    tourButton?.addEventListener("click", async (event) =>
+    { 
+        openChat("#tournament", event);  
     });
     // const dmButton = document.getElementById('direct');
     // dmButton?.addEventListener("click", async (event)=>
@@ -116,6 +122,17 @@ export function ChatPostLoad(page: HTMLElement)
        //SendButton.innerHTML = `<p> Failed </p>`;
     });
 
+    const InviteButton = document.getElementById('inviteButton');
+    InviteButton?.addEventListener("click", async (event) =>
+    {
+        const url = document.location.href;
+        if (url.includes("/game/online")|| url.includes("/tournaments/"))
+            wssMessageSender("invite", url, is_active);
+        else 
+            console.log("Not on an applciable url");
+        console.log(url);
+    });
+
     window.addEventListener("popstate", function disconnectChat(e)
     {
         ws?.close();
@@ -150,7 +167,7 @@ export function ChatPostLoad(page: HTMLElement)
             if (client)
             {
                 messageReciever("connected to chat", "Server", client, "info");
-                wssMessageSender("message", "New Client Connected", '#general');
+                wssMessageSender("message", "New Client Connected", "#general");
             }
         }
         ws.onmessage = async function (ev: MessageEvent)
@@ -160,34 +177,25 @@ export function ChatPostLoad(page: HTMLElement)
                 console.log(parsedMessage.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
                 //if (parsedMessage.username)
                 //    setUsername(parsedMessage.username);
-                const blockstatus = await checkIfBlocked(parsedMessage.sender);
-                if (blockstatus === 0)
+                const inbox = document.getElementById(parsedMessage.sender);
+                if (parsedMessage.channel)
                 {
-                    const inbox = document.getElementById(parsedMessage.sender);
-                    if (parsedMessage.channel)
-                    {
-                        const client = Channels.get('#general');
-                        if (client)
-                            messageReciever(parsedMessage.payload, parsedMessage.sender, client);
-                    }
-                    else if (Channels.has(parsedMessage.sender) === true && inbox)
-                    {
-                        const client = Channels.get(parsedMessage.sender);
-                        if (client)
-                            messageReciever(parsedMessage.payload, parsedMessage.sender, client);
-                        console.log(Channels);
-                    }
-                    else if (parsedMessage.sender !== undefined)
-                    {
-                        newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
-                        friends.push(parsedMessage.sender);
-                    }
-                    console.log(friends);
+                    const client = Channels.get(parsedMessage.channel);
+                    if (client)
+                        messageReciever(parsedMessage.payload, parsedMessage.sender, client, parsedMessage.type);
                 }
-                else if (blockstatus === -1)
-                    console.log("this is a blocked message");
-                else
-                    console.log("unknown other block status error");
+                else if (Channels.has(parsedMessage.sender) === true && inbox)
+                {
+                    const client = Channels.get(parsedMessage.sender);
+                    if (client)
+                        messageReciever(parsedMessage.payload, parsedMessage.sender, client, parsedMessage.type);
+                }
+                else if (parsedMessage.sender !== undefined)
+                {
+                    newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
+                    friends.push(parsedMessage.sender);
+                }
+                console.log(friends);
             }
             catch (e)
             {
@@ -208,28 +216,48 @@ export function ChatPostLoad(page: HTMLElement)
 
 }
 
-const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: "normal" | "info" = "normal") =>
+const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: "message" | "info" | "invite" = "message") =>
 {
     let bubble = document.createElement("div");
     bubble.classList.add('received-chats', 'mb-2');
     let header = document.createElement("div");
     header.classList.add('received-chats-sender', 'text-(--color2)');
+
+    let userlink = document.createElement("a");
+    userlink.href = 'https://localhost/users/' + sender;
+    console.log(userlink.href);
     let head = document.createElement("p");
     head.innerText = sender;
+    userlink.appendChild(head);
+
     let message = document.createElement("div");
     message.classList.add('received-msg');
-    let send = document.createElement("p");
-    send.innerText = msg;
 
-    if (type === "info")
+    const a = document.createElement("a");
+    const send = document.createElement("p");
+    if (type === "invite")
     {
-        send.classList.add('italic', 'var(--color-gray-500)');
+        a.href = msg;
+        send.innerText = "You've been invited to play a game"
+        a.appendChild(send);
+    }
+    else
+    {
+        send.innerText = msg;
+        if (type === "info")
+        {
+            send.classList.add('italic', 'var(--color-gray-500)');
+            userlink.href = "";
+        }
     }
     inbox.insertBefore(bubble, inbox.children[0])
     bubble.appendChild(header);
-    header.appendChild(head);
+    header.appendChild(userlink);
     bubble.appendChild(message);
-    message.appendChild(send);
+    if (type === "invite")
+        message.appendChild(a);
+    else
+        message.appendChild(send);
 }
 const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "normal") =>
 {   
