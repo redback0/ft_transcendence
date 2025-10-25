@@ -5,6 +5,7 @@ import { Lobby } from "./lobby";
 import { GameID, SessionID, TournamentID, TournamentMessage, UserInfo, TournamentNextRoundStart } from './tournament.schema';
 import { db } from "./database";
 import { userInfo } from "os";
+import { serverToClient } from "./betterchat";
 
 type Pair<T> = {
 	first: T,
@@ -197,6 +198,7 @@ export class Tournament {
 				this.sendToAll({ type: "game_finished", msg: game_record });
 				this.sendTo(p1, { type: "go_to_bracket", msg: { tourney_id: this.id } });
 				this.sendTo(p2, { type: "go_to_bracket", msg: { tourney_id: this.id } });
+;
 
 				this.active_games = this.active_games.filter(info => info.game_id !== game_id);
 				this.finished_games.push(game_record);
@@ -235,9 +237,23 @@ export class Tournament {
 				}
 			});
 			if (p1 && p2) {
-				console.log(`sending clients to game: ${p1.user_info?.user_id}, ${p2.user_info?.user_id}`);
+				console.log(`sending clients to game: ${p1.user_info?.username} (${p1.user_info?.user_id}), ${p2.user_info?.username} (${p2.user_info?.user_id})`);
 				this.sendTo(p1, { type: "go_to_game", msg: { game_id: game_id } });
 				this.sendTo(p2, { type: "go_to_game", msg: { game_id: game_id } });
+				if (p1.user_info) {
+					serverToClient(
+						p1.user_info.username,
+						`Your next game of ${this.host?.user_info?.username}'s tournament (${this.id}) is starting, join /game/online?id=${game_id}`,
+						'#tournament'
+					);
+				}
+				if (p2.user_info) {
+					serverToClient(
+						p2.user_info.username,
+						`Your next game of ${this.host?.user_info?.username}'s tournament (${this.id}) is starting, join /game/online?id=${game_id}`,
+						'#tournament'
+					);
+				}
 			}
 		}
 	}

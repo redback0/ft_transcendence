@@ -1,6 +1,7 @@
 //Authored by Bethany Milford 29/07/25
 import { onPageChange } from "../index.js";
 import { fetchBlockedFriends, fetchBlockedStatus } from "../friends/friends.controller.js";
+import { ChatClientSendMessage, ChatClientMessage, ChatServerMessage } from '../chat.schema.js';
 
 let ws:  WebSocket | undefined;
 let friends: string[] = [];
@@ -63,7 +64,7 @@ export function ChatPostLoad(page: HTMLElement)
                 const active = Channels.get(is_active);
                 if (active)
                 {
-                    wssMessageSender("message", MessageInput.value, is_active);
+                    wssMessageSender({ type: "send_message", data: { payload: MessageInput.value, reciever: is_active, is_invite: false }});
                 }
                 else
                     console.log("is_active value is invalid", is_active);
@@ -101,7 +102,7 @@ export function ChatPostLoad(page: HTMLElement)
         const message = messageInput.value;
         if ( is_active === "#general")
         {
-            wssMessageSender("message", message, "#general");
+            wssMessageSender({ type: "send_message", data: { payload: message, reciever: "#general", is_invite: false }});
         }
         // else if (is_active === "Alice")
         // {
@@ -111,7 +112,7 @@ export function ChatPostLoad(page: HTMLElement)
        {
             if (Channels.has(is_active) === true && is_active != undefined)
             {
-                    wssMessageSender("message", message, is_active);
+                    wssMessageSender({ type: "send_message", data: { payload: message, reciever: is_active, is_invite: false }});
             }
             else 
             {
@@ -126,8 +127,16 @@ export function ChatPostLoad(page: HTMLElement)
     InviteButton?.addEventListener("click", async (event) =>
     {
         const url = document.location.href;
-        if (url.includes("/game/online")|| url.includes("/tournaments/"))
-            wssMessageSender("invite", url, is_active);
+        if (url.includes("/game/online")|| url.includes("/tournaments/")) {
+            wssMessageSender({
+                type: "send_message",
+                data: {
+                    reciever: is_active,
+                    payload: url,
+                    is_invite: true,
+                }
+            });
+        }
         else 
             console.log("Not on an applciable url");
         console.log(url);
@@ -167,34 +176,37 @@ export function ChatPostLoad(page: HTMLElement)
             if (client)
             {
                 messageReciever("connected to chat", "Server", client, "info");
-                wssMessageSender("message", "New Client Connected", "#general");
+                wssMessageSender({type: "send_message", data: { payload: "New Client Connected", reciever: "#general", is_invite: false }});
             }
         }
         ws.onmessage = async function (ev: MessageEvent)
         {
             try {
-                const parsedMessage = JSON.parse(ev.data);
-                console.log(parsedMessage.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
+                const parsedMessage: ChatServerMessage = JSON.parse(ev.data);
+                //console.log(parsedMessage.data.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
                 //if (parsedMessage.username)
                 //    setUsername(parsedMessage.username);
-                const inbox = document.getElementById(parsedMessage.sender);
-                if (parsedMessage.channel)
+
+                if (parsedMessage.type === "recieve_channel_message")
                 {
-                    const client = Channels.get(parsedMessage.channel);
+                    console.log(`new chan msg from '${parsedMessage.data.sender}': ${parsedMessage.data.payload}`);
+                    const client = Channels.get(parsedMessage.data.channel);
                     if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client, parsedMessage.type);
+                        messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client, parsedMessage.data.is_invite ? "invite" : "message");
                 }
-                else if (Channels.has(parsedMessage.sender) === true && inbox)
+                else if (parsedMessage.type === "recieve_direct_message")
                 {
-                    const client = Channels.get(parsedMessage.sender);
+                    console.log(`new dm from '${parsedMessage.data.sender}': ${parsedMessage.data.payload}`);
+                    const client = Channels.get(parsedMessage.data.sender);
                     if (client)
-                        messageReciever(parsedMessage.payload, parsedMessage.sender, client, parsedMessage.type);
+                        messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client, parsedMessage.data.is_invite ? "invite" : "message");
+                    else if (parsedMessage.data.sender !== undefined)
+                    {
+                        newDM(parsedMessage.data.payload, parsedMessage.data.sender, "incoming");
+                        friends.push(parsedMessage.data.sender);
+                    }
                 }
-                else if (parsedMessage.sender !== undefined)
-                {
-                    newDM(parsedMessage.payload, parsedMessage.sender, "incoming");
-                    friends.push(parsedMessage.sender);
-                }
+                
                 console.log(friends);
             }
             catch (e)
@@ -288,22 +300,18 @@ const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "
 
 }
 
-const wssMessageSender = (type: string, message: string, reciever: string) =>
+const wssMessageSender = (msg: ChatClientSendMessage) =>
 {
     if (!ws || ws.readyState === ws.CLOSED)
         return;
-    if (!message.length)
+    if (!msg.data.payload.length)
         return;
-    if (message.length > 0)
+    if (msg.data.payload.length > 0)
     {
-        ws?.send(JSON.stringify({
-            type: type,
-            payload: message,
-            reciever: reciever
-        }));
+        ws?.send(JSON.stringify(msg));
     }
-   outgoingMessage(message, reciever);
-   console.log(type, message, reciever);
+   outgoingMessage(msg.data.payload, msg.data.reciever);
+   console.log(msg.type, msg.data.payload, msg.data.reciever);
 }
 
 const openChat = (chatName: string, event: any) =>
@@ -389,7 +397,7 @@ const newDM = (message: string, sender: string, type: string) =>
                     messageReciever(message, sender, setChannel);
                 }
                 else {
-                    wssMessageSender("message", message, sender);
+                    wssMessageSender({ type: "send_message", data: { payload: message, reciever: sender, is_invite: false }});
                     openChat(sender, event);
                 }
             }
@@ -413,6 +421,14 @@ const setUsername = (username: string) =>
 const getAvatar = (sender: string) =>
 {
     return "path";
+}
+
+
+const sendToPlayer = (player: string, message: string, type: string) =>
+{
+    const inbox = document.getElementById('tournament-inbox');
+    if (inbox)
+        messageReciever(message, "Tournament", inbox, "info");
 }
 
 async function checkIfBlocked(username: string)
