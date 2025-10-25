@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { FastifyInstance } from 'fastify';
 import { UserID } from './lobby.schema';
+import { getFriendsFromDatabase } from './friend.logic';
 import { ChatClientMessage, ChatServerMessage, ChatClientRecieveDirectMessage } from './chat.schema';
 
 

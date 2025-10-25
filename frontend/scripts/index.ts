@@ -11,10 +11,13 @@ import { LobbyNavPage } from './tournament/lobbynav.template.js'
 import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { SignUpPage } from './signup/signup.template.js'
 import { SignUpPostLoad } from './signup/signup.controller.js'
+import { FriendsPage } from './friends/friends.template.js'
 import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
 import { SettingsPage } from './settings/settings.template.js'
 import './navigation.js'
+import { FriendsPostLoad } from './friends/friends.controller.js'
+import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
 
 type Page = {
     builder: typeof HTMLElement,
@@ -31,8 +34,9 @@ const pages = new Map<string, Page>([
     ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
     ['/mypage', {builder: UserPage, title: "My Page"}],
     ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
-    ['/settings', {builder: SettingsPage, title: "Settings"}]
-]);
+    ['/settings', {builder: SettingsPage, title: "Settings"}],
+	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]]
+);
 
 export let currPage : HTMLElement
 
@@ -81,6 +85,7 @@ export async function NavOnClick(e: MouseEvent)
     {
         console.log("attempting to log out");
         await fetch("/api/user/session", { method: "DELETE" });
+		stopHeartbeat();
         const usernameElement = document.getElementById("username");
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = "";
@@ -102,11 +107,18 @@ document.body.onload = async () => {
 
     if (sessionInfo.ok)
     {
+        console.log(`Session is okay`);
+        stopHeartbeat();
+        initialiseHeartbeat();
         const userInfo = await sessionInfo.json();
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = userInfo?.username;
         if (document.location.pathname === "/")
             history.pushState({}, "", "/game");
+    }
+    else
+    {
+        console.log(`Session is not okay: ${sessionInfo.status} ${sessionInfo.statusText}`);
     }
 
     newPage();

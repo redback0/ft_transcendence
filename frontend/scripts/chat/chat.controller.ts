@@ -1,5 +1,6 @@
 //Authored by Bethany Milford 29/07/25
 import { onPageChange } from "../index.js";
+import { fetchBlockedFriends, fetchBlockedStatus } from "../friends/friends.controller.js";
 import { ChatClientSendMessage, ChatClientMessage, ChatServerMessage } from '../chat.schema.js';
 
 let ws:  WebSocket | undefined;
@@ -178,7 +179,7 @@ export function ChatPostLoad(page: HTMLElement)
                 wssMessageSender({type: "send_message", data: { payload: "New Client Connected", reciever: "#general", is_invite: false }});
             }
         }
-        ws.onmessage = function (ev: MessageEvent)
+        ws.onmessage = async function (ev: MessageEvent)
         {
             try {
                 const parsedMessage: ChatServerMessage = JSON.parse(ev.data);
@@ -428,4 +429,22 @@ const sendToPlayer = (player: string, message: string, type: string) =>
     const inbox = document.getElementById('tournament-inbox');
     if (inbox)
         messageReciever(message, "Tournament", inbox, "info");
+}
+
+async function checkIfBlocked(username: string)
+{
+    const blockedlist = await fetchBlockedFriends();
+    if (blockedlist)
+    {
+        if(blockedlist.indexOf(username) !== -1)
+        {
+            return (-1);
+        }
+    }
+    const ifblocked = await fetchBlockedStatus(username);
+    if (ifblocked === true)
+    {
+        return (-1);
+    }
+    return 0;
 }

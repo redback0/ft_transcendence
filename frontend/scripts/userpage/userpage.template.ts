@@ -10,7 +10,7 @@ export class UserPage extends HTMLElement
             <p>This is your User Home Page, Welcome!! </p>
             <h1>User Profile </h1>
             <div class="profile-container">
-                <img src="profile_picture.jpg" alt="User's Profile Picture" class="profile-picture">
+                <img src="avatar.jpg" alt="User's Profile Picture" class="profile-picture">
 
                 <div class="user-info">
                     <h2><b>User Name</b></h2>

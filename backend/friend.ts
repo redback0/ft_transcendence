@@ -1,0 +1,229 @@
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { db } from "./database";
+import { Friend } from "./friend.schema";
+import  { getFriendsFromDatabase, setIBlockThem, defriend, getFriendsIBlockedFromDatabase, getDidIBlockThemFromDatabase, getDidTheyBlockMeFromDatabase, requestFriendship, setIUnblockThem }  from "./friend.logic";
+import { SESSION_ID_COOKIE_NAME, sidToUserIdAndName, getUserInfo } from "./cookie";
+import { getOnlineUsers, isUserOnline } from "./userStatus";
+
+// Get list of friends
+async function routeGetFriends(request: FastifyRequest, reply: FastifyReply)
+{
+		const myUserId = await getUserInfo(request);
+		if (!myUserId)
+		{
+			reply.code(401).send({ error: `Authenticaion error` });
+			return ;
+		}
+		const friends = await getFriendsFromDatabase(myUserId);
+		if (friends)
+			reply.send(friends);
+		else
+			reply.code(500).send({ error: `Cannot find friends` });
+}
+
+async function routeGetUserIdFromUsername(request: FastifyRequest, reply: FastifyReply)
+{
+	const { username } = request.body as { username: string };
+	if (!username || typeof username !== 'string')
+	{
+		reply.code(400).send({ error: 'Username not given.' });
+		return ;
+	}
+	const user = db.getUserIdFromUsername.get(username) as { user_id: string } | undefined;
+	if (!user)
+	{
+		reply.code(404).send({ error: 'User not found.' });
+		return ;
+	}
+	reply.send({ user_id: user.user_id });
+}
+
+async function routeRequestFriendship(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: `Authenticaion error` });
+		return ;
+	}
+	const { friendUsername } = request.body as { friendUsername: string };
+	
+	const friendDbObject = db.getUserIdFromUsername.get(friendUsername) as { user_id: string } | undefined;
+	if (!friendDbObject)
+	{
+		reply.code(404).send({ error: `User not found` });
+		return ;
+	}
+
+	if (myUserId === friendDbObject.user_id)
+	{
+		reply.code(401).send({ error: `Cannot make friends with yourself` });
+		return ;
+	}
+	
+	const result = await requestFriendship(myUserId, friendDbObject.user_id);
+	if (result)
+		reply.send({ message: `Friend request sent, but why?` });
+	else
+		reply.code(401).send({ error: `Person doesn't exist or you are blocked from friending this person.` });
+}
+
+// Block a friend
+async function routeBlockFriends(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const { friendUserId } = request.body as { friendUserId: string };
+	if (!friendUserId)
+		{
+		reply.code(400).send({ error: "Friend id doesnot exist." });
+		return;
+	}
+	const result = await setIBlockThem(myUserId, friendUserId);
+	if (result)
+		reply.send({ message: `User ${friendUserId} blocked.` });
+	else
+		reply.code(500).send({ error: `Failed to block user ${friendUserId}.` });
+}
+
+// Block a friend
+async function routeUnblockFriends(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const { friendUserId } = request.body as { friendUserId: string };
+	if (!friendUserId)
+	{
+		reply.code(400).send({ error: "Friend id doesnot exist." });
+		return;
+	}
+	const result = await setIUnblockThem(myUserId, friendUserId);
+	if (result)
+		reply.send({ message: `User ${friendUserId} blocked.` });
+	else
+		reply.code(500).send({ error: `Failed to unblock user ${friendUserId}.` });
+}
+
+// Defriend
+async function routeDefriendFriends(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const { friendUserId } = request.body as { friendUserId: string };
+	if (!friendUserId)
+	{
+		reply.code(400).send({ error: "Friend id doesnot exist." });
+		return;
+	}
+	const result = await defriend(myUserId, friendUserId);
+	if (result)
+		reply.send({ message: `User ${friendUserId} defriended.` });
+	else
+		reply.code(500).send({ error: `Failed to defriend user ${friendUserId}. Seek counciling` });
+}
+
+async function routeGetBlockStatusBoolean(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const { friendUserId } = request.body as { friendUserId: string };
+	if (!friendUserId)
+	{
+		reply.code(400).send({ error: "Friend id doesnot exist." });
+		return;
+	}
+	const friendIBlocked = await getDidIBlockThemFromDatabase(myUserId, friendUserId);
+	const friendWhomBlockedMe = await getDidTheyBlockMeFromDatabase(myUserId, friendUserId);
+	reply.send({ friendIBlocked, friendWhomBlockedMe });
+}
+
+async function routeGetBlockFriendsArray(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: "Auth error" });
+		return;
+	}
+	const blockedFriends = 	await getFriendsIBlockedFromDatabase(myUserId);
+	reply.send({ blockedFriends });
+}
+
+async function routeGetFriendsWithOnlineStatus(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: `Authentication error` });
+		return;
+	}
+	
+	try 
+	{
+		const friends = await getFriendsFromDatabase(myUserId);
+		if (friends)
+		{
+			const friendsWithStatus = friends.map(friend => ({
+				...friend,
+				online: isUserOnline(friend.user_id)
+			}));
+			reply.send(friendsWithStatus);
+		}
+		else
+		{
+			reply.code(500).send({ error: `Cannot find friends` });
+		}
+	}
+	catch (error)
+	{
+		console.error(`Cannot get friends with online status:`, error);
+		reply.code(500).send({ error: `Cannot find friends with online status` });
+	}
+}
+
+async function routeGetOnlineUsers(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: `Authentication error` });
+		return;
+	}
+	
+	const onlineUserIds = getOnlineUsers();
+	reply.send({ 
+		onlineUsers: onlineUserIds,
+		count: onlineUserIds.length,
+		timestamp: new Date().toISOString()
+	});
+}
+
+export async function registerRoutes(fastify: FastifyInstance)
+{
+	fastify.get('/api/friends', routeGetFriends);
+	fastify.post('/api/friends/request', routeRequestFriendship);
+	fastify.post('/api/friends/block', routeBlockFriends);
+	fastify.post('/api/friends/unblock', routeUnblockFriends);
+	fastify.post('/api/friends/defriend', routeDefriendFriends);
+	fastify.get('/api/friends/getBlockStatusArray', routeGetBlockFriendsArray);
+	fastify.post('/api/friends/getBlockStatusBoolean', routeGetBlockStatusBoolean);
+	fastify.post('/api/friends/getUserIdFromUsername', routeGetUserIdFromUsername);
+	fastify.get('/api/friends/withOnlineStatus', routeGetFriendsWithOnlineStatus);
+	fastify.get('/api/users/online', routeGetOnlineUsers);
+}
