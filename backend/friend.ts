@@ -3,6 +3,7 @@ import { db } from "./database";
 import { Friend } from "./friend.schema";
 import  { getFriendsFromDatabase, setIBlockThem, defriend, getFriendsIBlockedFromDatabase, getDidIBlockThemFromDatabase, getDidTheyBlockMeFromDatabase, requestFriendship, setIUnblockThem }  from "./friend.logic";
 import { SESSION_ID_COOKIE_NAME, sidToUserIdAndName, getUserInfo } from "./cookie";
+import { getOnlineUsers, isUserOnline } from "./userStatus";
 
 // Get list of friends
 async function routeGetFriends(request: FastifyRequest, reply: FastifyReply)
@@ -152,8 +153,6 @@ async function routeGetBlockStatusBoolean(request: FastifyRequest, reply: Fastif
 	reply.send({ friendIBlocked, friendWhomBlockedMe });
 }
 
-
-
 async function routeGetBlockFriendsArray(request: FastifyRequest, reply: FastifyReply)
 {
 	const myUserId = await getUserInfo(request);
@@ -166,6 +165,55 @@ async function routeGetBlockFriendsArray(request: FastifyRequest, reply: Fastify
 	reply.send({ blockedFriends });
 }
 
+async function routeGetFriendsWithOnlineStatus(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: `Authentication error` });
+		return;
+	}
+	
+	try 
+	{
+		const friends = await getFriendsFromDatabase(myUserId);
+		if (friends)
+		{
+			const friendsWithStatus = friends.map(friend => ({
+				...friend,
+				online: isUserOnline(friend.user_id)
+			}));
+			reply.send(friendsWithStatus);
+		}
+		else
+		{
+			reply.code(500).send({ error: `Cannot find friends` });
+		}
+	}
+	catch (error)
+	{
+		console.error(`Cannot get friends with online status:`, error);
+		reply.code(500).send({ error: `Cannot find friends with online status` });
+	}
+}
+
+async function routeGetOnlineUsers(request: FastifyRequest, reply: FastifyReply)
+{
+	const myUserId = await getUserInfo(request);
+	if (!myUserId)
+	{
+		reply.code(401).send({ error: `Authentication error` });
+		return;
+	}
+	
+	const onlineUserIds = getOnlineUsers();
+	reply.send({ 
+		onlineUsers: onlineUserIds,
+		count: onlineUserIds.length,
+		timestamp: new Date().toISOString()
+	});
+}
+
 export async function registerRoutes(fastify: FastifyInstance)
 {
 	fastify.get('/api/friends', routeGetFriends);
@@ -175,5 +223,7 @@ export async function registerRoutes(fastify: FastifyInstance)
 	fastify.post('/api/friends/defriend', routeDefriendFriends);
 	fastify.get('/api/friends/getBlockStatusArray', routeGetBlockFriendsArray);
 	fastify.post('/api/friends/getBlockStatusBoolean', routeGetBlockStatusBoolean);
-    fastify.post('/api/friends/getUserIdFromUsername', routeGetUserIdFromUsername);
+	fastify.post('/api/friends/getUserIdFromUsername', routeGetUserIdFromUsername);
+	fastify.get('/api/friends/withOnlineStatus', routeGetFriendsWithOnlineStatus);
+	fastify.get('/api/users/online', routeGetOnlineUsers);
 }

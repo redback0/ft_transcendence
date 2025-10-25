@@ -1,4 +1,5 @@
 import { renderFriendsTable } from "./friends.render.js";
+import { onPageChange } from "../index.js";
 
 export async function refreshFriendsTable()
 {
@@ -24,6 +25,15 @@ export async function FriendsPostLoad(page: HTMLElement)
 		window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
 
 		await refreshFriendsTable();
+				const handleHeartbeatSuccess = async () => {
+			await refreshFriendsTable();
+		};
+		window.addEventListener('heartbeat-success', handleHeartbeatSuccess);
+				const cleanup = () => {
+			window.removeEventListener('heartbeat-success', handleHeartbeatSuccess);
+		};
+		onPageChange(cleanup);
+
 		const addBtn = document.getElementById('friends-redHover');
 		if (addBtn) {
 			addBtn.addEventListener('click', async () => {
@@ -52,7 +62,7 @@ export async function fetchFriends(): Promise <any[]>
 {
 	try
 	{
-		const response = await fetch('/api/friends', {
+		const response = await fetch('/api/friends/withOnlineStatus', {
 			headers: { 'Cache-Control': 'no-store' }
 		});
 		if (!response.ok)

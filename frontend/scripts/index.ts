@@ -17,6 +17,7 @@ import { TournamentPage } from './tournament/tournament/tournament.template.js'
 import { SettingsPage } from './settings/settings.template.js'
 import './navigation.js'
 import { FriendsPostLoad } from './friends/friends.controller.js'
+import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
 
 type Page = {
     builder: typeof HTMLElement,
@@ -84,6 +85,7 @@ export async function NavOnClick(e: MouseEvent)
     {
         console.log("attempting to log out");
         await fetch("/api/user/session", { method: "DELETE" });
+		stopHeartbeat();
         const usernameElement = document.getElementById("username");
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = "";
@@ -105,11 +107,17 @@ document.body.onload = async () => {
 
     if (sessionInfo.ok)
     {
+        console.log(`Session is okay`);
+        // initialiseHeartbeat();
         const userInfo = await sessionInfo.json();
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = userInfo?.username;
         if (document.location.pathname === "/")
             history.pushState({}, "", "/game");
+    }
+    else
+    {
+        console.log(`Session is not okay: ${sessionInfo.status} ${sessionInfo.statusText}`);
     }
 
     newPage();

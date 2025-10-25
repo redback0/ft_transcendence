@@ -12,6 +12,9 @@ import * as Lobby from './lobby.js';
 import { SESSION_ID_COOKIE_NAME } from './cookie';
 import * as Tournament from './tournament.js';
 import * as Friend from './friend.js';
+import { cleanupExpiredUsers } from './userStatus.js';
+export const heartBeatLogBoolean = true;
+const EXPIRED_USERS_CLEAN_TIMER = 30000;
 
 // all the requests to the backend should go through /api
 fastify.get('/api/buttonpressed', function handler(request, reply)
@@ -33,6 +36,9 @@ const start = async () =>
     try
     {
         Chat.initChat();
+        setInterval(() => {
+            cleanupExpiredUsers();
+        }, EXPIRED_USERS_CLEAN_TIMER);
         fastify.log.info("now listening...");
         await fastify.listen({ port: 3000, host: '0.0.0.0' });
     }

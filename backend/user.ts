@@ -6,9 +6,10 @@
 // TO DO: JACK - Implement cookie stuff
 
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { SESSION_ID_COOKIE_NAME, routeCheckUserSession, routeClearCookie, routeMakeNewCookie, sidToUserIdAndName, sidToUserIdAndNameRequest, validateSession } from "./cookie";
+import { SESSION_ID_COOKIE_NAME, routeCheckUserSession, routeClearCookie, routeMakeNewCookie, sidToUserIdAndName, sidToUserIdAndNameRequest, validateSession, getUserInfo } from "./cookie";
 import { db } from "./database";
 import * as bcrypt from 'bcrypt-ts';
+import { recordUserHeartbeat, removeUserFromOnline } from "./userStatus";
 
 const postCreateUser = {
     body: {
@@ -56,6 +57,30 @@ const postDeleteUser = {
     },
 };
 
+async function routeHeartbeat(request: FastifyRequest, reply: FastifyReply)
+{
+	console.log(`routeHeartbeat()`);
+	try
+	{
+		const userId = await getUserInfo(request);
+		if (!userId)
+		{
+			reply.code(401).send({ error: 'Authentication required' });
+			return ;
+		}
+		recordUserHeartbeat(userId);
+		reply.code(200).send({ 
+			message: 'Heartbeat recorded',
+			userId: userId,
+			timestamp: new Date().toISOString()
+		});
+	}
+	catch (error)
+	{
+		console.error(`Heartbeat: error handling heartbeat:`, error);
+		reply.code(500).send({ error: `Internal server error` });
+	}
+}
 
 export async function registerRoutes(fastify: FastifyInstance)
 {
@@ -65,6 +90,7 @@ export async function registerRoutes(fastify: FastifyInstance)
     fastify.delete('/api/user/session', routeClearCookie);
     fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
     fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
+    fastify.post('/api/user/heartbeat', routeHeartbeat);
 }
 
 
@@ -134,7 +160,7 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
         const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
         if (!sessionId)
         {
-            reply.code(403).send({ error: 'Failed to read cookie.' })
+            reply.code(403).send({ error: 'Failed to read cookie. ChangePw' })
             return ;
         }
 

@@ -6,6 +6,7 @@ import { WebSocket } from 'ws';
 import { SessionID } from './tournament.schema';
 import { IncomingMessage } from 'http';
 import { Duplex } from 'stream';
+import { removeUserFromOnline } from './userStatus';
 
 export const SESSION_ID_COOKIE_NAME = 'session_id';
 
@@ -50,6 +51,7 @@ function defaultCookieCreator(reply: FastifyReply, name: string, value: string)
  */
 export async function routeMakeNewCookie(request: FastifyRequest, reply: FastifyReply, username: string, sendReply: boolean = true): Promise<number | void>
 {
+	console.log(`routeMakeNewCookie()`);
     try
     {
         const result = db.getUserIdFromUsername.get(username) as { user_id: string } | undefined;
@@ -66,9 +68,9 @@ export async function routeMakeNewCookie(request: FastifyRequest, reply: Fastify
             }
         }
         const userId = result.user_id;
-
+		removeUserFromOnline(userId);
         const uuid = await setUuid(userId);
-
+		
         if (sendReply)
         {
             defaultCookieCreator(reply, SESSION_ID_COOKIE_NAME, uuid)
@@ -141,7 +143,7 @@ export async function routeCheckUserSession(request: FastifyRequest, reply: Fast
 
     if (!sessionId)
     {
-        reply.code(403).send({ error: 'Failed to read cookie.' });
+        reply.code(403).send({ error: 'Failed to read cookie routeCheckUserSession.' });
         return ;
     }
     else
@@ -183,19 +185,19 @@ export async function sidToUserIdAndNameRequest(request: FastifyRequest, reply: 
 
     if (!sessionId)
     {
-        reply.code(403).send({ error: 'Failed to read cookie.' });
+        reply.code(403).send({ error: 'Failed to read cookie. sidToUserIdAndNameRequest' });
         return;
     }
 
-    const username = await sidToUserIdAndName(sessionId);
+    const userInfo = await sidToUserIdAndName(sessionId);
 
-    if (!username)
+    if (!userInfo)
     {
         reply.code(401).send({ error: 'Session invalid' });
         return;
     }
 
-    reply.send(username);
+    reply.send(userInfo);
 }
 
 export async function sidToUserIdAndName(sessionId: string): Promise<{ user_id: UserID, username: string } | undefined>
@@ -215,9 +217,11 @@ export async function sidToUserIdAndName(sessionId: string): Promise<{ user_id: 
 /**
  * @param userId The users id. 
  * @description Will remove the cookie from the users browser and attempt to clear the UUID from the databse by calling clearUserSession. 
+ * Will not run if user does not logout but gets a new cookie based on the cookie schedule. 
  */
 export async function routeClearCookie(request: FastifyRequest, reply: FastifyReply): Promise<void>
 {
+	console.log(`routeClearCookie()`);
     const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
     
     if (!sessionId)
@@ -235,6 +239,7 @@ export async function routeClearCookie(request: FastifyRequest, reply: FastifyRe
     try
     {
         await clearUserSession(userId);
+        removeUserFromOnline(userId);
         reply
             .clearCookie(SESSION_ID_COOKIE_NAME, { path: '/' })
             .send({ message: 'Logged out, cookie cleared' });
