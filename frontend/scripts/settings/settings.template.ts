@@ -14,7 +14,7 @@ export class SettingsPage extends HTMLElement {
 					</p>
 				</div>
 				<div class="w-2/3 flex flex-col items-center justify-center">
-					<form id="changePwForm" class="w-3/4 max-w-md">
+					<form id="change-pw-form" class="w-3/4 max-w-md">
 						<p style="font-size:2vh; color:#520404; font-weight:bold">CURRENT PASSWORD</p>
 						<input class="settings-input" type="password" name="username" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
 						<p style="font-size:2vh; color:#520404; font-weight:bold">NEW PASSWORD</p>
@@ -25,7 +25,7 @@ export class SettingsPage extends HTMLElement {
 							INVALID USERNAME/PASSWORD INPUT<br><br>
 						</p>
 						<div>
-							<button type="button" id="changePwButton">CHANGE PASSWORD -></button>
+							<button type="button" id="change-pw-button">CHANGE PASSWORD -></button>
 						</div>
 					</form>
 				</div>
@@ -41,14 +41,14 @@ export class SettingsPage extends HTMLElement {
 					</p>
 				</div>
 				<div class="w-2/3 flex flex-col items-center justify-center">
-					<form id="changePwForm" class="w-3/4 max-w-md">
+					<form id="avatar-form" class="w-3/4 max-w-md">
 						<p style="font-size:2vh; color:#520404; font-weight:bold">UPLOAD IMAGE:</p>
-						<input id="avatar" class="settings-input" type="file" accept="image/png, image/jpeg" name="avatar" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom:1vh; color:#DED19C;" required>
+						<input id="avatar-input" class="settings-input" type="file" accept="image/png, image/jpeg" name="avatar" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom:1vh; color:#DED19C;" required>
 						<p style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;">
 							INVALID UPLOAD FILE<br><br>
 						</p>
 						<div>
-							<button type="button" id="changeAvatarButton">UPDATE AVATAR -></button>
+							<button type="button" id="change-avatar-button">UPDATE AVATAR -></button>
 						</div>
 					</form>
 				</div>
@@ -59,9 +59,9 @@ export class SettingsPage extends HTMLElement {
 					<h1 style="font-weight:bold; font-size:5vh; color:#520404">DELETE PROFILE</h1>
 				</div>
 				<div class="w-2/3 flex flex-col items-center justify-center">
-					<form id="changePwForm" class="w-3/4 max-w-md">
+					<form id="delete-form" class="w-3/4 max-w-md">
 						<div>
-							<button type="button" onclick="openWarning()" id="deleteProfileButton">DELETE PROFILE -></button>
+							<button type="button" id="delete-profile-button">DELETE PROFILE -></button>
 						</div>
 					</form>
 				</div>
