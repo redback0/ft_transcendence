@@ -108,7 +108,8 @@ document.body.onload = async () => {
     if (sessionInfo.ok)
     {
         console.log(`Session is okay`);
-        // initialiseHeartbeat();
+        stopHeartbeat();
+        initialiseHeartbeat();
         const userInfo = await sessionInfo.json();
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = userInfo?.username;
