@@ -27,31 +27,3 @@ export async function CreateOnlineGame(e: MouseEvent)
     history.pushState({}, "", newURL);
     newPage();
 }
-
-export function LocalGame(e: MouseEvent)
-{
-    const newURL = "/game/local";
-
-    history.pushState({}, "", newURL);
-    newPage();
-}
-
-export async function TestGame(e: MouseEvent)
-{
-    if (e.target instanceof HTMLButtonElement)
-        e.target.disabled = true;
-    const game = await api<CreateGameResponse>("api/game/create/test");
-
-    if (!game.success)
-    {
-        if (e.target instanceof HTMLButtonElement)
-            e.target.disabled = false;
-        console.log("create game request failed");
-        return ;
-    }
-
-    const newURL = "/game/online?id=" + game.id;
-
-    history.pushState({}, "", newURL);
-    newPage();
-}

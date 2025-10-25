@@ -3,7 +3,6 @@
 import { api } from './api.js'
 import { IndexPage, IndexPostLoad } from './index.template.js'
 import { GamePage, GamePostLoad } from './game/game.template.js'
-import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPostLoad, closeChat } from './chat/chat.controller.js'
@@ -27,7 +26,6 @@ type Page = {
 const pages = new Map<string, Page>([
     ['/', {builder: IndexPage, postLoad: IndexPostLoad, title: "Login"}],
     ['/game', {builder: GamePage, postLoad: GamePostLoad, title: "Game Select"}],
-    ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage, title: "Play Pong"}],
     ['/lobby', {builder: LobbyNavPage, title: "Tournament Lobby"}],
     ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
