@@ -43,13 +43,13 @@
 
 
 TO DO:
-- Live chat implementation on frontend -- Beth
+- ~~Live chat implementation on frontend -- Beth~~
 - ~~Username in top left of nav bar when logged in -- Nate~~
-- Test frontend functionality for all tournament processes and pages -- Coby
+- Test frontend functionality for all tournament processes and pages -- Coby - requires help for frontend
 - ~~Remove profile page & adjust associated processes -- Nate~~
-- Implement & test active status - Jack
-- Complete edit profile page & functionality -- Nicole & Jack
-- Upload & change avatars -- Nicole & Jack
+- ~~Implement & test active status - Jack~~
+- ~~Complete edit profile page & functionality -- Nicole & Jack~~
+- Upload & change avatars -- Nate
 - Language implementation (Mandarin Chinese & Spanish) -- Nicole
 - Security pen testing (SQL injections/XSS attacks, cookie stuff) -- Beth
 - Functionality testing across the project -- Nate
