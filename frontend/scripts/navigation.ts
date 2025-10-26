@@ -26,7 +26,9 @@ function closeMenu() {
 
 
 function openWarning() {
-  if (warning) {
+
+	const warning = document.getElementById("warning");
+	if (warning) {
     warning.classList.add("active");
     body.style.overflow = "";
   } else {
@@ -35,6 +37,7 @@ function openWarning() {
 }
 
 function closeWarning() {
+	const warning = document.getElementById("warning");
   if (warning) {
     warning.classList.remove("active");
     body.style.overflow = "auto";

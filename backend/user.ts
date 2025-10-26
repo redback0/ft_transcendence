@@ -89,7 +89,7 @@ export async function registerRoutes(fastify: FastifyInstance)
     fastify.get('/api/user/session', sidToUserIdAndNameRequest);
     fastify.delete('/api/user/session', routeClearCookie);
     fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
-    fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
+    fastify.post('/api/user/delete', { schema: postDeleteUser }, DeleteUser);
     fastify.post('/api/user/heartbeat', routeHeartbeat);
 }
 

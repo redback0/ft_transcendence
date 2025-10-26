@@ -16,6 +16,7 @@ import { TournamentPage } from './tournament/tournament/tournament.template.js'
 import { SettingsPage } from './settings/settings.template.js'
 import './navigation.js'
 import { FriendsPostLoad } from './friends/friends.controller.js'
+import { SettingsPostLoad } from './settings/settings.controller.js'
 import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
 
 type Page = {
@@ -32,7 +33,7 @@ const pages = new Map<string, Page>([
     ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
     ['/mypage', {builder: UserPage, title: "My Page"}],
     ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
-    ['/settings', {builder: SettingsPage, title: "Settings"}],
+    ['/settings', {builder: SettingsPage, postLoad: SettingsPostLoad, title: "Settings"}],
 	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]]
 );
 
