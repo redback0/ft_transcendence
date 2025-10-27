@@ -1,6 +1,6 @@
 //Authored by Bethany Milford 29/07/25
 import { onPageChange } from "../index.js";
-import { fetchBlockedFriends, fetchBlockedStatus } from "../friends/friends.controller.js";
+import { fetchBlockedFriends, fetchBlockedStatus, getUserIdFromUsername } from "../friends/friends.controller.js";
 import { ChatClientSendMessage, ChatClientMessage, ChatServerMessage } from '../chat.schema.js';
 
 let ws:  WebSocket | undefined;
@@ -186,24 +186,31 @@ export function ChatPostLoad(page: HTMLElement)
                 //console.log(parsedMessage.data.sender, parsedMessage.payload, parsedMessage.type, parsedMessage.channel);
                 //if (parsedMessage.username)
                 //    setUsername(parsedMessage.username);
-
-                if (parsedMessage.type === "recieve_channel_message")
+                if (parsedMessage.type === "recieve_channel_message" || parsedMessage.type === "recieve_direct_message")
                 {
-                    console.log(`new chan msg from '${parsedMessage.data.sender}': ${parsedMessage.data.payload}`);
-                    const client = Channels.get(parsedMessage.data.channel);
-                    if (client)
-                        messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client, parsedMessage.data.is_invite ? "invite" : "message");
-                }
-                else if (parsedMessage.type === "recieve_direct_message")
-                {
-                    console.log(`new dm from '${parsedMessage.data.sender}': ${parsedMessage.data.payload}`);
-                    const client = Channels.get(parsedMessage.data.sender);
-                    if (client)
-                        messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client, parsedMessage.data.is_invite ? "invite" : "message");
-                    else if (parsedMessage.data.sender !== undefined)
+                    if ( await checkIfBlocked(parsedMessage.data.sender) === true || await checkIfBlocked(parsedMessage.data.sender) === null)
                     {
-                        newDM(parsedMessage.data.payload, parsedMessage.data.sender, "incoming");
-                        friends.push(parsedMessage.data.sender);
+                        console.log("User is blocked or has blocked them or unable to fetch info");
+                        return ;
+                    }
+                    if (parsedMessage.type === "recieve_channel_message")
+                    {
+                        console.log(`new chan msg from '${parsedMessage.data.sender}': ${parsedMessage.data.payload}`);
+                        const client = Channels.get(parsedMessage.data.channel);
+                        if (client)
+                            messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client, parsedMessage.data.is_invite ? "invite" : "message");
+                    }
+                    else if (parsedMessage.type === "recieve_direct_message")
+                    {
+                        console.log(`new dm from '${parsedMessage.data.sender}': ${parsedMessage.data.payload}`);
+                        const client = Channels.get(parsedMessage.data.sender);
+                        if (client)
+                            messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client, parsedMessage.data.is_invite ? "invite" : "message");
+                        else if (parsedMessage.data.sender !== undefined)
+                        {
+                            newDM(parsedMessage.data.payload, parsedMessage.data.sender, "incoming");
+                            friends.push(parsedMessage.data.sender);
+                        }
                     }
                 }
                 
@@ -361,10 +368,10 @@ const newDM = (message: string, sender: string, type: string) =>
         let dmButton = document.createElement("button");
         dmButton.classList.add('tablinks', 'dm-button');
         dmButton.id = sender + "Button";
-        const img = document.createElement("img") as HTMLImageElement;
-        img.classList.add('w-7', 'h-7', 'rounded-full');
-        img.src = getAvatar(sender);
-        dmButton.appendChild(img);
+        // const img = document.createElement("img") as HTMLImageElement;
+        // img.classList.add('w-7', 'h-7', 'rounded-full');
+        // img.src = getAvatar(sender);
+        // dmButton.appendChild(img);
         dmButton.textContent += sender;
         dmButton.addEventListener("click", async (event) =>
         {
@@ -407,44 +414,39 @@ const newDM = (message: string, sender: string, type: string) =>
     }
 }
 
-const setUsername = (username: string) =>
-{
-    const user = document.getElementById('user');
-    const content = document.createElement("p");
-    content.innerText = username;
-    if (user)
-    {
-        user.appendChild(content);
-    }
-}
+// const setUsername = (username: string) =>
+// {
+//     const user = document.getElementById('user');
+//     const content = document.createElement("p");
+//     content.innerText = username;
+//     if (user)
+//     {
+//         user.appendChild(content);
+//     }
+// }
 
-const getAvatar = (sender: string) =>
-{
-    return "path";
-}
+// const getAvatar = (sender: string) =>
+// {
+//     return "path";
+// }
 
 
-const sendToPlayer = (player: string, message: string, type: string) =>
-{
-    const inbox = document.getElementById('tournament-inbox');
-    if (inbox)
-        messageReciever(message, "Tournament", inbox, "info");
-}
+// const sendToPlayer = (player: string, message: string, type: string) =>
+// {
+//     const inbox = document.getElementById('tournament-inbox');
+//     if (inbox)
+//         messageReciever(message, "Tournament", inbox, "info");
+// }
 
 async function checkIfBlocked(username: string)
 {
-    const blockedlist = await fetchBlockedFriends();
-    if (blockedlist)
+    const user_id = await getUserIdFromUsername(username);
+    if (user_id)
     {
-        if(blockedlist.indexOf(username) !== -1)
-        {
-            return (-1);
-        }
+        const ifblocked = await fetchBlockedStatus(user_id);
+        if (ifblocked.friendIBlocked === true || ifblocked.friendWhomBlockedMe === true)
+            return true;
+        return false;
     }
-    const ifblocked = await fetchBlockedStatus(username);
-    if (ifblocked === true)
-    {
-        return (-1);
-    }
-    return 0;
+    return null;
 }
