@@ -124,7 +124,7 @@ async function routeDefriendFriends(request: FastifyRequest, reply: FastifyReply
 	const { friendUserId } = request.body as { friendUserId: string };
 	if (!friendUserId)
 	{
-		reply.code(400).send({ error: "Friend id doesnot exist." });
+		reply.code(400).send({ error: "Friend id does not exist." });
 		return;
 	}
 	const result = await defriend(myUserId, friendUserId);

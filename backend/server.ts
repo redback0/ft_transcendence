@@ -14,7 +14,7 @@ import { registerAvatars } from './avatar.js';
 import * as Tournament from './tournament.js';
 import * as Friend from './friend.js';
 import { cleanupExpiredUsers } from './userStatus.js';
-export const heartBeatLogBoolean = true;
+export const LOG_BACKEND_HEARTBEATS: boolean = false;
 const EXPIRED_USERS_CLEAN_TIMER = 30000;
 
 // all the requests to the backend should go through /api
