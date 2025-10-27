@@ -207,23 +207,6 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
     }
 }
 
-function changeUserID(oldUserId: string)
-{
-	const newUserId = require('crypto').randomUUID();
-	try {
-		db.prepare('BEGIN TRANSACTION').run();
-		const statment = db.prepare(`UPDATE users SET user_id = ? WHERE user_id = ?`);
-	statment.run(newUserId, oldUserId);
-	db.prepare('COMMIT').run();
-	}
-	catch (error)
-	{
-		db.prepare('ROLLBACK').run();
-	}
-}
-
-
-
 export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)
 {
 	console.log("DELETE USER");
@@ -272,7 +255,6 @@ export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)
             if (deleteUserActions.clearUser(username)) {
                 console.log("User deleted successfully");
 				await defriendAll(userId);
-				changeUserID(userId);
                 reply.code(200).send({ message: 'User deleted successfully.' });
                 return;
             } else {
