@@ -18,6 +18,8 @@ import './navigation.js'
 import { FriendsPostLoad } from './friends/friends.controller.js'
 import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
 
+export const LOG_FRONTEND_HEARTBEATS: boolean = false;
+
 type Page = {
     builder: typeof HTMLElement,
     postLoad?: ((page: HTMLElement) => any),

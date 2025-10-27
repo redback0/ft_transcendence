@@ -10,6 +10,7 @@ import { SESSION_ID_COOKIE_NAME, routeCheckUserSession, routeClearCookie, routeM
 import { db } from "./database";
 import * as bcrypt from 'bcrypt-ts';
 import { recordUserHeartbeat, removeUserFromOnline } from "./userStatus";
+import { LOG_BACKEND_HEARTBEATS } from "./server";
 
 const postCreateUser = {
     body: {
@@ -59,7 +60,6 @@ const postDeleteUser = {
 
 async function routeHeartbeat(request: FastifyRequest, reply: FastifyReply)
 {
-	console.log(`routeHeartbeat()`);
 	try
 	{
 		const userId = await getUserInfo(request);
@@ -77,7 +77,8 @@ async function routeHeartbeat(request: FastifyRequest, reply: FastifyReply)
 	}
 	catch (error)
 	{
-		console.error(`Heartbeat: error handling heartbeat:`, error);
+		if (LOG_BACKEND_HEARTBEATS === true)
+			console.error(`Heartbeat: error handling heartbeat:`, error);
 		reply.code(500).send({ error: `Internal server error` });
 	}
 }
@@ -92,7 +93,6 @@ export async function registerRoutes(fastify: FastifyInstance)
     fastify.post('/api/deleteuser', { schema: postDeleteUser }, DeleteUser);
     fastify.post('/api/user/heartbeat', routeHeartbeat);
 }
-
 
 async function CreateUser(request: FastifyRequest, reply: FastifyReply)
 {
