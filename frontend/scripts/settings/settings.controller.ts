@@ -44,11 +44,11 @@ async function routeDeleteProfile()
 
 	
 		const response = await fetch('/api/user/delete', { // taking this from index.template.ts:69-75. 
-			method: 'POST',
+			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ 
-				username: username,
-				password: password })
+				password: password }), 
+			credentials: 'include' // Cookies
 		});
 
 		if (!response.ok)

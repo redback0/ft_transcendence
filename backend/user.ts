@@ -10,6 +10,7 @@ import { SESSION_ID_COOKIE_NAME, routeCheckUserSession, routeClearCookie, routeM
 import { db } from "./database";
 import * as bcrypt from 'bcrypt-ts';
 import { recordUserHeartbeat, removeUserFromOnline } from "./userStatus";
+import { defriendAll } from "./friend.logic";
 
 const postCreateUser = {
     body: {
@@ -49,9 +50,8 @@ const postChangePw = {
 const postDeleteUser = {
     body: {
         type: 'object',
-        required: ['username', 'password'],
+        required: ['password'],
         properties: {
-            username: { type: 'string' },
             password: { type: 'string' }, 
         },
     },
@@ -89,7 +89,7 @@ export async function registerRoutes(fastify: FastifyInstance)
     fastify.get('/api/user/session', sidToUserIdAndNameRequest);
     fastify.delete('/api/user/session', routeClearCookie);
     fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
-    fastify.post('/api/user/delete', { schema: postDeleteUser }, DeleteUser);
+    fastify.delete('/api/user/delete', { schema: postDeleteUser }, DeleteUser);
     fastify.post('/api/user/heartbeat', routeHeartbeat);
 }
 
@@ -134,6 +134,11 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
 {
     try {
         const { username, password } = request.body as { username: string, password: string }
+		if (!username || username === null || username === "")
+		{
+            reply.code(401).send({ error: 'Username or password is incorrect.' });
+            return;
+		}
         const loginUserActions = new IUserActions(username, password);
         if (!loginUserActions.authenticatePw(username, password))
         {
@@ -202,25 +207,81 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
     }
 }
 
+function changeUserID(oldUserId: string)
+{
+	const newUserId = require('crypto').randomUUID();
+	try {
+		db.prepare('BEGIN TRANSACTION').run();
+		const statment = db.prepare(`UPDATE users SET user_id = ? WHERE user_id = ?`);
+	statment.run(newUserId, oldUserId);
+	db.prepare('COMMIT').run();
+	}
+	catch (error)
+	{
+		db.prepare('ROLLBACK').run();
+	}
+}
+
+
+
 export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)
 {
+	console.log("DELETE USER");
     try {
-        const { username, password } = request.body as { username: string, password: string };
+        const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
+        console.log("Session ID:", sessionId);
+        if (!sessionId)
+        {
+            console.log("No session ID found in cookies");
+            reply.code(403).send({ error: 'Failed to read cookie. DeleteUser' })
+            return ;
+        }
+
+        const userId = await validateSession(sessionId);
+        console.log("User ID from session:", userId);
+        if (!userId)
+        {
+            console.log("Session validation failed");
+            reply.code(401).send({ error: 'Unknown session.' });
+            return ;
+        }
+        
+        const userResult = db.getUsernameFromUserId.get(userId) as { username: string } | undefined;
+        console.log("User result from database:", userResult);
+        if (!userResult)
+            {
+                console.log("Failed to get username from database");
+                reply.code(401).send({ error: 'Database lookup failure.' });
+                return ;
+            }
+
+        const username = userResult?.username;
+        console.log("Username:", username);
+
+        const { password } = request.body as { password: string };
+        console.log("Password provided:", password ? "Yes" : "No");
         const deleteUserActions = new IUserActions(username, password);
+        
         if (!deleteUserActions.authenticatePw(username, password))
             {
-                reply.code(401).send({ error: 'Username or password is incorrect.' });
+                console.log("Password authentication failed");
+                reply.code(401).send({ error: 'Password is incorrect.' });
                 return;
             }
+            console.log("Password authentication successful");
             if (deleteUserActions.clearUser(username)) {
+                console.log("User deleted successfully");
+				await defriendAll(userId);
+				changeUserID(userId);
                 reply.code(200).send({ message: 'User deleted successfully.' });
-                //Take user to a page?
                 return;
             } else {
+                console.log("Failed to clear user data");
                 reply.code(401).send({ error: 'Failed to delete user.' });
                 return;
             }
     } catch (error) {
+		console.error(`Cannot delete user:`, error);
         request.log.error('Failed to delete user.', error);
         reply.code(500).send({ error: 'Server error in processing delete user request.' });
     }
@@ -482,12 +543,12 @@ class IUserActions implements UserActions {
 
     clearUser(enteredUser: string): boolean {
         try {
-            db.prepare('BEGIN TRANSATION').run();
+            db.prepare('BEGIN TRANSACTION').run();
             const statement_clr_usr = db.prepare(`
                 UPDATE users
                 SET
                     username = NULL,
-                    user_password = NULL,
+                    user_password = '[DELETED]',
                     longest_rally = NULL,
                     session_id = NULL,
                     num_of_loss = NULL,
@@ -495,7 +556,7 @@ class IUserActions implements UserActions {
                     user_password_prev1 = NULL,
                     user_password_prev2 = NULL,
                     user_password_prev3 = NULL,
-                    avatar = NULL,
+                    avatar = NULL
                 WHERE username = ?
                 `);
             statement_clr_usr.run(enteredUser);
