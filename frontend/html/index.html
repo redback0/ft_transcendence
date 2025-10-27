@@ -4,6 +4,7 @@
 		<title>TRANSVENGENCE</title>
 		<link rel="stylesheet" href="/css/output.css" type="text/css">
 		<script defer src="/scripts/navigation.js"></script>
+		<script defer src="/scripts/translation.js"></script>
 		<meta name="viewport" charset="UTF-8" content="width=device-width, initial-scale=1">
 	</head>
 	<body class="pt-[8vh] pb-[5vh] bg-[#DED19C]">
@@ -22,11 +23,12 @@
 			</nav>
 			<div class="menu-items syne-header">
 				<ul>
-                    <li><a class="nav-button" href="/game">PLAY -></a></li>
-					<li><a class="nav-button" href="/friends">FRIENDS</a></li>
-					<li><a class="nav-button" href="/settings">SETTINGS</a></li>
+                    <li><a id="play-button" class="nav-button" href="/game"></a></li>
+					<li><a id="friends-button" class="nav-button" href="/friends"></a></li>
+					<li><a id="settings-button" class="nav-button" href="/settings"></a></li>
 					<!-- below button says log out, so it should have more action than just change page -->
-					<li><a id="logout" class="nav-button" href="/">LOG OUT</a></li>
+					<li><a id="logout-button" class="nav-button" href="/"></a></li>
+					<li><button id="language-button" class="nav-button"></button></li>
 				</ul>
 			</div>
 		</div>

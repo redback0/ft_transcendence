@@ -1,4 +1,5 @@
 import { newPage } from "../index.js";
+import {t} from '../translation';
 
 export function SignUpPostLoad(page: HTMLElement)
 {
@@ -13,17 +14,17 @@ export function SignUpPostLoad(page: HTMLElement)
         const errorText = document.getElementById("login-error");
         if (!(userInput instanceof HTMLInputElement))
         {
-            if (errorText) errorText.textContent = "NO USERNAME TEXTBOX FOUND";
+            if (errorText) errorText.textContent = t('errUserTextbox');
             return;
         }
         if (!(passInput instanceof HTMLInputElement))
         {
-            if (errorText) errorText.textContent = "NO PASSWORD TEXTBOX FOUND";
+            if (errorText) errorText.textContent = t('errPwTextbox');
             return;
         }
         if (!(repPassInput instanceof HTMLInputElement))
         {
-            if (errorText) errorText.textContent = "NO REPEAT PASSWORD TEXTBOX FOUND";
+            if (errorText) errorText.textContent = t('errRepeatPwTextbox');
             return;
         }
 
@@ -33,17 +34,17 @@ export function SignUpPostLoad(page: HTMLElement)
 
         if (user === "")
         {
-            if (errorText) errorText.textContent = "NO USERNAME GIVEN";
+            if (errorText) errorText.textContent = t('errNoUsername');
             return;
         }
         if (pass === "")
         {
-            if (errorText) errorText.textContent = "NO PASSWORD GIVEN";
+            if (errorText) errorText.textContent = t('errNoUsername');
             return;
         }
         if ( pass !== repPass)
         {
-            if (errorText) errorText.textContent = "PASSWORDS DO NOT MATCH";
+            if (errorText) errorText.textContent = t('errPwMatch');
             return;
         }
 
@@ -70,7 +71,7 @@ export function SignUpPostLoad(page: HTMLElement)
                 else
                 {
                     console.log("Unknown error");
-                    if (errorText) errorText.textContent = "UNKNOWN ERROR";
+                    if (errorText) errorText.textContent = t('errUnknown');
                 }
                 return;
             }

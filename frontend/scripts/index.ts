@@ -18,6 +18,7 @@ import './navigation.js'
 import { FriendsPostLoad } from './friends/friends.controller.js'
 import { SettingsPostLoad } from './settings/settings.controller.js'
 import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
+import { closeMenu } from './navigation.js'
 
 type Page = {
     builder: typeof HTMLElement,

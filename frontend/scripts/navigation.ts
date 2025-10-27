@@ -1,3 +1,5 @@
+import { t } from './translation.js';
+import { Language, translations } from './language.translations';
 const mainMenu = document.getElementById("main-menu");
 const warning = document.getElementById("warning");
 const navBar = document.getElementById("nav-bar");
@@ -12,7 +14,7 @@ function openMenu() {
         console.error("ERROR: mainMenu element not found.");
 }
 
-function closeMenu() {
+export function closeMenu() {
     if (mainMenu) {
         mainMenu.style.height = "0";
         body.style.overflow = "auto";
@@ -49,3 +51,31 @@ function closeWarning() {
 (window as any).openWarning = openWarning;
 (window as any).closeWarning = closeWarning;
 
+const languages: Language[] = ['English', 'Español', '中文'];
+let currentLanguageIndex = 0;
+
+const languageButton = document.getElementById('language-button');
+
+function updateLanguage() {
+  currentLanguageIndex = (currentLanguageIndex + 1) % languages.length;
+  const newLanguage: Language = languages[currentLanguageIndex];
+
+  if (languageButton) {
+    languageButton.textContent = newLanguage.toUpperCase();
+  }
+
+  updateTranslations(newLanguage);
+}
+
+function updateTranslations(language: Language) {
+  document.querySelector('#play-button')!.textContent = t('playButton', language);
+  document.querySelector('#friends-button')!.textContent = t('friendsTitle', language);
+  document.querySelector('#settings-button')!.textContent = t('settingsTitle', language);
+  document.querySelector('#logout-button')!.textContent = t('logOut', language);
+}
+
+if (languageButton) {
+  languageButton.addEventListener('click', updateLanguage);
+}
+
+updateTranslations(languages[currentLanguageIndex]);

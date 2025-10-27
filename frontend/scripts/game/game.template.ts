@@ -2,6 +2,7 @@
 import { api } from "../api.js";
 import * as GameCtrl from "./game.controller.js"
 import * as LobbyCtrl from "../tournament/lobbynav.controller.js"
+import {t} from '../translation';
 
 export class GamePage extends HTMLElement {
     constructor() {
@@ -9,8 +10,12 @@ export class GamePage extends HTMLElement {
         this.innerHTML =
             `
             <ul>
-                <li><button id="gameselect-tourn" class="gameselect-redHover">TOURNAMENT -></a></li>
-                <li><button id="gameselect-online" class="gameselect-redHover">ONLINE -></a></li>
+                <li><button id="gameselect-tourn" class="gameselect-redHover">
+                    ${t('tournament')}
+                </a></li>
+                <li><button id="gameselect-online" class="gameselect-redHover">
+                    ${t('online')}
+                </a></li>
             </ul>
             `
 
