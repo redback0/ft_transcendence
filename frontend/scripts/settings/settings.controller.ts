@@ -1,15 +1,102 @@
 import { onPageChange } from "../index.js";
 import { fetchUserInfo } from "../user/user.service";
 
+// End point on server is probally located in file user.ts
+
 export async function SettingsPostLoad(page: HTMLElement)
 {
 	const deleteButton = document.getElementById('confirmDeleteButton');
 	deleteButton?.addEventListener('click', async () => {
 		await routeDeleteProfile();
 	});
+
+	const changePasswordButton = document.getElementById('changePwButton');
+	changePasswordButton?.addEventListener('click', async () => {
+		await routeChangePassword();
+	});
 }
 
-// End point on server is located in file user.ts
+async function routeChangePassword()
+{
+	var username = "";
+	try
+	{
+		const sessionInfo = await fetch("/api/user/session");
+		if (sessionInfo.ok)
+		{
+			const userInfo = await sessionInfo.json();
+			username = userInfo?.username || "user";
+		}
+	}
+	catch (error)
+	{
+		console.log(`Unable to get username, is the user logged in?`);
+		return ;
+	}
+
+	try
+	{
+		const currentPassword = document.getElementById('currentPassword') as HTMLInputElement;
+		const newPassword1Input = document.getElementById('newPassword1') as HTMLInputElement;
+		const newPassword2Input = document.getElementById('newPassword2') as HTMLInputElement;
+		const oldPassword = currentPassword.value;
+		const newPassword1 = newPassword1Input.value;
+		const newPassword2 = newPassword2Input.value;
+
+		const errorOldPassword = document.getElementById('currentPasswordNotCorrect') as HTMLInputElement;
+		const errorNewPassword1 = document.getElementById('passwordReqNotMet') as HTMLInputElement;
+		const errorNewPassword2 = document.getElementById('passwordNotMatch') as HTMLInputElement;
+		const successPassword = document.getElementById('passwordSuccess') as HTMLInputElement;
+
+		if (errorOldPassword) errorOldPassword.style.display = 'none';
+		if (errorNewPassword1) errorNewPassword1.style.display = 'none';
+		if (errorNewPassword2) errorNewPassword2.style.display = 'none';
+		if (successPassword) successPassword.style.display = 'none';
+
+		if (oldPassword === "")
+		{
+			if (errorOldPassword) errorOldPassword.style.display = '';
+			console.log(`Old password is empty.`);
+			return ;
+		}
+		if (newPassword1 === "")
+		{
+			if (errorNewPassword1) errorNewPassword1.style.display = '';
+			console.log(`New password 1 is empty.`);
+			return ;
+		}
+		if (newPassword2 !== newPassword1)
+		{
+			if (errorNewPassword2) errorNewPassword2.style.display = '';
+			console.log(`Passwords do not match.`);
+			return ;
+		}
+
+		const response = await fetch('/api/user/changePassword', {
+			method: "POST", 
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				oldPassword: oldPassword,
+				newPassword: newPassword1
+			})
+		});
+
+		if (!response.ok)
+		{
+			console.error(`Cannot change password`);
+			return ;
+		}
+		console.log(`Password changed`);
+		if (successPassword) successPassword.style.display = '';
+		return ;
+	}
+	catch (error)
+	{
+		console.error(`Cannot change password: ${error}`);
+		return ;
+	}
+}
+
 async function routeDeleteProfile()
 {
 
@@ -32,14 +119,13 @@ async function routeDeleteProfile()
 
 	try
 	{
-		const warning = document.getElementById('warning');
-		const passwordInput = warning?.querySelector('input[type="password"]') as HTMLInputElement;
+		const passwordInput = document.getElementById('deletePassword') as HTMLInputElement;
 		const password = passwordInput.value;
         if (password === "")
         {
             //if (errorText) errorText.textContent = "NO PASSWORD GIVEN";
             console.log(`No password given`);
-			return;
+			return ;
         }
 
 	
@@ -53,7 +139,7 @@ async function routeDeleteProfile()
 
 		if (!response.ok)
 		{
-			console.error(`Cannot delete user: ${username}`); // Would be good to add username here. 
+			console.error(`Cannot delete user: ${username}`);
 			return ;
 		}
 

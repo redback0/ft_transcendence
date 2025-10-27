@@ -38,11 +38,11 @@ const getLogin = {
 const postChangePw = {
     body: {
         type: 'object',
-        required: ['old_password', 'new_password'],
+        required: ['oldPassword', 'newPassword'],
         properties: {
             username: { type: 'string' },
-            old_password: { type: 'string' },
-            new_password: { type: 'string' }, 
+            oldPassword: { type: 'string' },
+            newPassword: { type: 'string' }, 
         },
     },
 };
@@ -88,7 +88,7 @@ export async function registerRoutes(fastify: FastifyInstance)
     fastify.post('/api/user/session', { schema: getLogin },  LoginUser);
     fastify.get('/api/user/session', sidToUserIdAndNameRequest);
     fastify.delete('/api/user/session', routeClearCookie);
-    fastify.post('/api/changepw', { schema: postChangePw }, ChangePw);
+    fastify.post('/api/user/changePassword', { schema: postChangePw }, ChangePw);
     fastify.delete('/api/user/delete', { schema: postDeleteUser }, DeleteUser);
     fastify.post('/api/user/heartbeat', routeHeartbeat);
 }
@@ -185,15 +185,15 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
 
         const username = userResult?.username;
 
-        const { old_password, new_password } = request.body as { old_password: string, new_password: string }
-        const changePwUserActions = new IUserActions(username, old_password, new_password);
+        const { oldPassword, newPassword } = request.body as { oldPassword: string, newPassword: string }
+        const changePwUserActions = new IUserActions(username, oldPassword, newPassword);
 
-        if (!changePwUserActions.authenticatePw(username, old_password)) {
+        if (!changePwUserActions.authenticatePw(username, oldPassword)) {
             reply.code(401).send({ error: 'Username or password is incorrect.' });
             return;
         }
         
-        if (changePwUserActions.setPw(username, new_password)) {
+        if (changePwUserActions.setPw(username, newPassword)) {
             reply.code(200).send({ message: 'Password changed successfully.' });
             //Take user to profile page
             return;

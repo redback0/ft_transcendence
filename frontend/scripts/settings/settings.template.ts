@@ -16,17 +16,26 @@ export class SettingsPage extends HTMLElement {
 				<div class="w-2/3 flex flex-col items-center justify-center">
 					<form id="changePwForm" class="w-3/4 max-w-md">
 						<p style="font-size:2vh; color:#520404; font-weight:bold">CURRENT PASSWORD</p>
-						<input class="settings-input" type="password" name="username" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
+						<input id="currentPassword" class="settings-input" type="password" name="username" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
+						<p id="currentPasswordNotCorrect" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
+							CURRENT PASSWORD IS NOT CORRECT, TRY AGAIN<br><br>
+						</p>
 						<p style="font-size:2vh; color:#520404; font-weight:bold">NEW PASSWORD</p>
-						<input class="settings-input" type="password" name="username" placeholder="ENTER NEW PASSWORD" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
+						<input id="newPassword1" class="settings-input" type="password" name="password" placeholder="ENTER NEW PASSWORD" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
+						<p id="passwordReqNotMet" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
+						PASSWORD REQUIREMENTS NOT MET<br><br>
+						</p>
 						<p style="font-size:2vh; color:#520404; font-weight:bold">REPEAT NEW PASSWORD</p>
-						<input class="settings-input" type="password" name="password" placeholder="ENTER NEW PASSWORD AGAIN" autocomplete="off" style="color:#DED19C;" required>
-						<p style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;">
-							INVALID USERNAME/PASSWORD INPUT<br><br>
+						<input id="newPassword2" class="settings-input" type="password" name="password" placeholder="ENTER NEW PASSWORD AGAIN" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
+						<p id="passwordNotMatch" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
+							NEW PASSWORDS DO NOT MATCH<br><br>
 						</p>
 						<div>
-							<button type="button" id="changePwButton">CHANGE PASSWORD -></button>
+						<button type="button" id="changePwButton">CHANGE PASSWORD -></button>
 						</div>
+						<p id="passwordSuccess" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
+							PASSWORD CHANGED<br><br>
+						</p>
 					</form>
 				</div>
 			</div>
@@ -78,7 +87,7 @@ export class SettingsPage extends HTMLElement {
 				<div id="warning-content">
 					<h1 style="font-weight:bold; font-size:10vh; text-align:center !important; color:#DED19C; margin-bottom: 3vh">ARE YOU SURE?</h1>
 					<p style="font-size:2vh; margin-left:30vw; color:#DED19C; font-weight:bold">ENTER PASSWORD TO CONFIRM:</p>
-					<input class="deleteProfile-input" type="password" name="password" placeholder="ENTER PASSWORD" autocomplete="off" style="color:#520404; margin-left:30vw" required>
+					<input id="deletePassword" class="deleteProfile-input" type="password" name="password" placeholder="ENTER PASSWORD" autocomplete="off" style="color:#520404; margin-left:30vw" required>
 						<p style="font-weight:bold; margin-left:30vw; font-size:1.25vh; color:red">
 							INVALID USERNAME/PASSWORD INPUT<br><br>
 						</p>

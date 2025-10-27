@@ -11,7 +11,7 @@ import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { SignUpPage } from './signup/signup.template.js'
 import { SignUpPostLoad } from './signup/signup.controller.js'
 import { FriendsPage } from './friends/friends.template.js'
-import { UserPage } from './userpage/userpage.template.js'
+// import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
 import { SettingsPage } from './settings/settings.template.js'
 import './navigation.js'
@@ -31,7 +31,6 @@ const pages = new Map<string, Page>([
     ['/lobby', {builder: LobbyNavPage, title: "Tournament Lobby"}],
     ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
     ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
-    ['/mypage', {builder: UserPage, title: "My Page"}],
     ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket"}],
     ['/settings', {builder: SettingsPage, postLoad: SettingsPostLoad, title: "Settings"}],
 	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]]

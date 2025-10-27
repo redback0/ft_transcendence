@@ -3,6 +3,8 @@
 
 //import { hashPassword } from "../login/signup_action";   <- Beth's input 19/7
 
+// Depricated? 251027 Jack
+
 const ChangePasswordform = document.getElementById('ChangePasswordForm') as HTMLFormElement;
 const ChangePassworderror = document.getElementById('error') as HTMLParagraphElement;
 
