@@ -1,4 +1,4 @@
-import {t} from '../translation';
+import {t} from '../translation.js';
 
 export class SignUpPage extends HTMLElement {
     constructor() {

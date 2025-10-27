@@ -1,4 +1,4 @@
-import { Language, translations } from './language.translations';
+import { Language, translations } from './language.translations.js';
 
 let currentLanguage: Language = 'English';
 

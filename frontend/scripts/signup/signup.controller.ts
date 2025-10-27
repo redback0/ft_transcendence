@@ -1,5 +1,5 @@
 import { newPage } from "../index.js";
-import {t} from '../translation';
+import {t} from '../translation.js';
 
 export function SignUpPostLoad(page: HTMLElement)
 {

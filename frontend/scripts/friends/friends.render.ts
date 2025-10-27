@@ -1,5 +1,5 @@
 import { Friend } from "./friend.schema";
-import {t} from '../translation';
+import {t} from '../translation.js';
 
 export function renderFriendsTable(friends: Friend[])
 {

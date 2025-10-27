@@ -2,7 +2,7 @@
 import { api } from "../api.js";
 import * as GameCtrl from "./game.controller.js"
 import * as LobbyCtrl from "../tournament/lobbynav.controller.js"
-import {t} from '../translation';
+import {t} from '../translation.js';
 
 export class GamePage extends HTMLElement {
     constructor() {
