@@ -102,7 +102,7 @@ export class LobbyJoinArea {
 
 		var textdiv = document.createElement("div");
 		textdiv.id = htmlClientNamePrefix + client.user_id;
-		textdiv.className = "flex px-5 text-center border-black";
+		textdiv.className = "lobby-name flex px-5 text-center border-black";
 		textdiv.appendChild(text);
 
 		this.parent.names_div.appendChild(textdiv);
