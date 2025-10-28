@@ -5,11 +5,11 @@ export class SettingsPage extends HTMLElement {
         super()
         this.innerHTML =
             `
-			<h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 8vh">
+			<h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 8vh; width: fit-content; padding 0 1rem; margin:0 auto;">
 				${t('settingsTitle')}
 			</h1>
 			<div class="flex w-full">
-				<div class="w-1/3 flex flex-col justify-center items-left">
+				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 15vw; padding-top: 10vh;">
 					<h1 style="font-weight:bold; font-size:5vh; color:#520404">
 						${t('changePassword')}
 					</h1>
@@ -19,7 +19,7 @@ export class SettingsPage extends HTMLElement {
 						- ${t('passwordRule2')}
 					</p>
 				</div>
-				<div class="w-2/3 flex flex-col items-center justify-center">
+				<div class="w-2/3 flex flex-col items-center justify-center" style="padding-top: 10vh;">
 					<form id="changePwForm" class="w-3/4 max-w-md">
 						<p style="font-size:2vh; color:#520404; font-weight:bold">
 							${t('currentPassword')}
@@ -41,7 +41,7 @@ export class SettingsPage extends HTMLElement {
 			</div>
 
 			<div class="flex w-full" style="margin-top: 10vh">
-				<div class="w-1/3 flex flex-col justify-center items-left">
+				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 15vw;">
 					<h1 style="font-weight:bold; font-size:5vh; color:#520404">
 						${t('changeAvatar')}
 					</h1>
@@ -70,7 +70,7 @@ export class SettingsPage extends HTMLElement {
 			</div>
 
 			<div class="flex w-full" style="margin-top: 10vh;">
-				<div class="w-1/3 flex flex-col justify-center items-left">
+				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 15vw;">
 					<h1 style="font-weight:bold; font-size:5vh; color:#520404">
 						${t('deleteProfile')}
 					</h1>

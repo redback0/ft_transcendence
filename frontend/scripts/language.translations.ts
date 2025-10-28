@@ -16,7 +16,9 @@ export const translations: Record<Language, Record<string, string>> = {
 		online: 'ONLINE ->',
 		settingsTitle: 'SETTINGS',
 		changePassword: 'CHANGE PASSWORD',
-		passwordRequiremets: 'Minimum password requirements:',
+		newPassword: 'NEW PASSWORD',
+		repeatNewPassword: 'REPEAT NEW PASSWORD',
+		passwordRequirements: 'Minimum password requirements:',
 		passwordRule1: '12 characters, 1 lowercase, 1 uppercase, 1 symbol',
 		passwordRule2: 'Passwords must match',
 		currentPassword: 'CURRENT PASSWORD',
@@ -54,6 +56,7 @@ export const translations: Record<Language, Record<string, string>> = {
 		loginTitle: 'LOGIN',
 		noAccountQuestion: 'No account?',
 		signUpButton: 'SIGN UP ->',
+		currentLanguage: 'CURRENT LANGUAGE: ',
 	  },
 	  Español: {
 		friendsTitle: 'AMIGOS',
@@ -108,6 +111,7 @@ export const translations: Record<Language, Record<string, string>> = {
 		loginTitle: 'INICIAR SESIÓN',
 		noAccountQuestion: '¿No tienes cuenta?',
 		signUpButton: 'REGISTRARSE ->',
+		currentLanguage: 'CURRENT LANGUAGE: ',
 	  },
 	  中文: {
 		friendsTitle: '朋友',
@@ -162,5 +166,6 @@ export const translations: Record<Language, Record<string, string>> = {
 		loginTitle: '登录',
 		noAccountQuestion: '没有账户？',
 		signUpButton: '注册 ->',
+		currentLanguage: '当前语言：',
 	  },
 };

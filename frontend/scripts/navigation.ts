@@ -1,5 +1,6 @@
-import { t } from './translation.js';
-import { Language, translations } from './language.translations';
+import { t, currentLanguage, setLanguage } from './translation.js';
+import { Language } from './language.translations';
+import { newPage } from './index.js';
 const mainMenu = document.getElementById("main-menu");
 const warning = document.getElementById("warning");
 const navBar = document.getElementById("nav-bar");
@@ -63,7 +64,7 @@ function updateLanguage() {
   if (languageButton) {
     languageButton.textContent = newLanguage.toUpperCase();
   }
-
+  setLanguage(newLanguage);
   updateTranslations(newLanguage);
 }
 
@@ -72,9 +73,12 @@ function updateTranslations(language: Language) {
   document.querySelector('#friends-button')!.textContent = t('friendsTitle', language);
   document.querySelector('#settings-button')!.textContent = t('settingsTitle', language);
   document.querySelector('#logout-button')!.textContent = t('logOut', language);
+
+  newPage();
 }
 
 if (languageButton) {
+  languageButton.textContent = t('currentLanguage') + languages[currentLanguageIndex].toUpperCase();
   languageButton.addEventListener('click', updateLanguage);
 }
 
