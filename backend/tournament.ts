@@ -24,6 +24,12 @@ type GameRecord = {
 	}
 }	
 
+type PlayerInfo = {
+	user_info: UserInfo,
+	wins: number,
+	been_byed: boolean,
+}
+
 function compair<T>(pair1: Pair<T>, pair2: Pair<T>): boolean {
 	return (
 		(pair1.first === pair2.first && pair1.second === pair2.second)
@@ -36,25 +42,25 @@ export const tournamentWebSocketServers = new Map<TournamentID, Tournament>;
 // sid must be valid if it is not undefined
 export class TournamentWebSocket extends WebSocket {
 	isAlive: boolean = true;
-	been_byed: boolean = false;
+	//been_byed: boolean = false;
 	user_info: UserInfo | undefined;
-	wins: number = 0;
+	//wins: number = 0;
 	ready: boolean = false;
 }
 
 // monrad system swiss style tournament
 export class Tournament {
 	id: TournamentID;
-	players: UserInfo[];
+	players: PlayerInfo[];
 	wss: Server<typeof TournamentWebSocket>; // can't use ServerWebSocket here or ts will forget that we have LobbyWebSocket's and not regular WebSockets 
 	timeout: NodeJS.Timeout | undefined;
-	host: TournamentWebSocket | undefined;
+	host: PlayerInfo | undefined;
 	byed_player: UserInfo | undefined;
 	active_games: Array<{ game_id: GameID, p1: UserInfo, p2: UserInfo }>;
 	finished_games: Array<GameRecord>;
 	current_round: number;
 	total_rounds_needed: number;	
-	prev_pairings: Array<Pair<TournamentWebSocket>>;
+	prev_pairings: Array<Pair<PlayerInfo>>;
 	started: boolean;
 
 	constructor(lobby: Lobby, tourney_id: TournamentID) {
@@ -63,10 +69,18 @@ export class Tournament {
 		this.current_round = 0;
 		this.active_games = [];
 		this.finished_games = [];
-		this.host = lobby.host;
+		this.host = {
+			user_info: <UserInfo>(lobby.host?.user_info),
+			wins: 0,
+			been_byed: false,
+		};
 		this.wss = lobby.wss;
 		this.players = [];
-		this.wss.clients.forEach(client => this.players.push(<UserInfo>client.user_info));
+		this.wss.clients.forEach(client => this.players.push({ 
+			user_info: <UserInfo>client.user_info,
+			wins: 0,
+			been_byed: false,
+		}));
 		this.total_rounds_needed = Math.ceil(Math.log2(this.wss.clients.size));
 		console.log(`total rounds needed: ${this.total_rounds_needed}`);
 		
@@ -94,6 +108,15 @@ export class Tournament {
 					msg: game
 				});
 			});
+			if (this.active_games.length === 0 && this.current_round >= this.total_rounds_needed) {
+				const tmp: Array<PlayerInfo> = [];
+				this.players.forEach(c => tmp.push(c));
+				tmp.sort((a, b) => b.wins - a.wins);
+				const rankings = tmp.map(client => {
+					return { user_info: <UserInfo>client.user_info, score: client.wins };
+				});
+				this.sendTo(ws, { type: "tournament_finished", msg: { rankings: rankings } });
+			}
 			ws.ready = true;
 		});
 
@@ -129,7 +152,7 @@ export class Tournament {
 				VALUES (?, ?)`
 			);
 			for (const player of this.players) {
-				statement.run(player.user_id, this.id);
+				statement.run(player.user_info.user_id, this.id);
 			}
 			db.prepare(`COMMIT`).run();
 			return (true);
@@ -147,7 +170,7 @@ export class Tournament {
 				`INSERT INTO tournament (tour_id, number_of_players, round_number, tour_name)
 				VALUES (?, ?, ?, ?)`
 			);
-			statement.run(this.id, this.wss.clients.size, this.current_round, "coolio");
+			statement.run(this.id, this.players.length, this.current_round, "coolio");
 			db.prepare("COMMIT").run();
 			return (true);
 		} catch (error) {
@@ -199,9 +222,12 @@ export class Tournament {
 					game_id: game_id,
 				};
 				this.sendToAll({ type: "game_finished", msg: game_record });
-				this.sendTo(p1, { type: "go_to_bracket", msg: { tourney_id: this.id } });
-				this.sendTo(p2, { type: "go_to_bracket", msg: { tourney_id: this.id } });
-;
+				let p1_ws = this.getWsFromPlayerInfo(p1);
+				if (p1_ws)
+					this.sendTo(p1_ws, { type: "go_to_bracket", msg: { tourney_id: this.id } });
+				let p2_ws = this.getWsFromPlayerInfo(p2);
+				if (p2_ws)
+					this.sendTo(p2_ws, { type: "go_to_bracket", msg: { tourney_id: this.id } });
 
 				this.active_games = this.active_games.filter(info => info.game_id !== game_id);
 				this.finished_games.push(game_record);
@@ -214,8 +240,8 @@ export class Tournament {
 						`UPDATE tournament SET tour_winner = ? WHERE tour_id = ?`
 					).run(playerWinner, this.id);
 					console.log(`tourney finished !!!`);
-					const tmp: Array<TournamentWebSocket> = [];
-					this.wss.clients.forEach(c => tmp.push(c));
+					const tmp: Array<PlayerInfo> = [];
+					this.players.forEach(c => tmp.push(c));
 					tmp.sort((a, b) => b.wins - a.wins);
 					const rankings = tmp.map(client => {
 						return { user_info: <UserInfo>client.user_info, score: client.wins };
@@ -241,8 +267,12 @@ export class Tournament {
 			});
 			if (p1 && p2) {
 				console.log(`sending clients to game: ${p1.user_info?.username} (${p1.user_info?.user_id}), ${p2.user_info?.username} (${p2.user_info?.user_id})`);
-				this.sendTo(p1, { type: "go_to_game", msg: { game_id: game_id } });
-				this.sendTo(p2, { type: "go_to_game", msg: { game_id: game_id } });
+				let p1_ws = this.getWsFromPlayerInfo(p1);
+				if (p1_ws)
+					this.sendTo(p1_ws, { type: "go_to_game", msg: { game_id: game_id } });
+				let p2_ws = this.getWsFromPlayerInfo(p2);
+				if (p2_ws)
+					this.sendTo(p2_ws, { type: "go_to_game", msg: { game_id: game_id } });
 				if (p1.user_info) {
 					serverToClient(
 						p1.user_info.username,
@@ -316,11 +346,11 @@ export class Tournament {
         }, interval);
 	}
 
-	matchmakeClients = (): Array<Pair<TournamentWebSocket>> => {
-		var pairs: Array<Pair<TournamentWebSocket>> = [];
+	matchmakeClients = (): Array<Pair<PlayerInfo>> => {
+		var pairs: Array<Pair<PlayerInfo>> = [];
 		
 		var client_pool = [];
-		for (let client of this.wss.clients.values()) {
+		for (let client of this.players.values()) {
 			client_pool.push(client);
 		}
 		client_pool.sort((a, b) => {
@@ -342,10 +372,10 @@ export class Tournament {
 		}
 		while (client_pool.length > 1) {
 			for (let i = 1; i < client_pool.length; ++i) {
-				const p1: TournamentWebSocket = client_pool[0];
-				const p2: TournamentWebSocket = client_pool[i];
+				const p1: PlayerInfo = client_pool[0];
+				const p2: PlayerInfo = client_pool[i];
 				console.log(`p1: ${p1.user_info?.user_id}, p2: ${p2.user_info?.user_id}`);
-				let pair: Pair<TournamentWebSocket> = { first: p1, second: p2 };
+				let pair: Pair<PlayerInfo> = { first: p1, second: p2 };
 				if (i != client_pool.length - 1 && this.prev_pairings.find(prev_pair => compair(prev_pair, pair)) !== undefined) {
 					continue;
 				}	
@@ -361,5 +391,15 @@ export class Tournament {
 			}
 		}
 		return (pairs);
+	}
+
+	getWsFromPlayerInfo = (player_info: PlayerInfo): TournamentWebSocket | null => {
+		let ret: TournamentWebSocket | null = null;
+		this.wss.clients.forEach(ws_client => {
+			if (ws_client.user_info?.user_id === player_info.user_info.user_id) {
+				ret = ws_client; 
+			}
+		})
+		return (ret);
 	}
 }
