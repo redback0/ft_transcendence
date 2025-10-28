@@ -22,7 +22,7 @@ export class LobbyJoinPage extends HTMLElement {
                 text-align: left;
                 margin-bottom: 50px;
             }
-            .lobby-name {
+            .lobby-elem {
                 font-weight: bold;
                 font-size: 3vh;
                 color: var(--color1);

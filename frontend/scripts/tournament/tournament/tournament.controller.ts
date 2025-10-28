@@ -61,6 +61,20 @@ export class TournamentArea {
                     color: var(--color2);
                     text-align: left;
                 }
+                .tournament-elem {
+                    font-weight: bold;
+                    font-size: 3vh;
+                    color: var(--color1);
+                    background-color: var(--color2);
+                    text-align: left;
+                    margin-bottom: 10px;
+                }
+                .tournament-container {
+                    align-items: center;
+                    justify-content: center;
+                    display: flex;
+                    flex-direction: column;
+                }
             </style>
             <div>
                 <h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh; margin-top: 6vh">TOURNAMENT</h1>
@@ -71,6 +85,9 @@ export class TournamentArea {
                     <div style="text-align: center;">
                         <button type="button" id="nextGameButton">JOIN NEXT GAME -></button>
                     </div>
+                </div>
+                <div style="margin-top: 3vh;">
+                    <div id="winners-div" class="tournament-container"></div>
                 </div>
             </div>
         `;
@@ -257,17 +274,22 @@ export class TournamentArea {
     }
 
     displayWinners = (rankings: { user_info: UserInfo, score: number }[]) => {
-        let winners_div = document.createElement('div');
-        
+        let tmp = this.page.querySelector("#winners-div");
+        if (!tmp) {
+            console.error("no winners div :(");
+            return;
+        }
+        let winners_div = <HTMLDivElement>tmp;    
+
         let i = 1;
         for (let ranking of rankings) {
             this.log(`${ranking.user_info.username} (${ranking.score})`);
             let ranking_text = document.createElement('a');
+            ranking_text.className = "tournament-elem gap-4 px-3";
             ranking_text.textContent = `${i}. ${ranking.user_info.username} (${ranking.score})`;
             ++i;
             winners_div.appendChild(ranking_text);
         }
-
     }
 
     log = (msg: any) => {
