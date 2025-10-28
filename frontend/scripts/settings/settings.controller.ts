@@ -14,6 +14,12 @@ export async function SettingsPostLoad(page: HTMLElement)
 	changePasswordButton?.addEventListener('click', async () => {
 		await routeChangePassword();
 	});
+
+    const changeAvatarButton = document.getElementById('changeAvatarButton');
+    changeAvatarButton!.onclick = onUpdateAvatarButton;
+
+    const avatarInput = document.getElementById('avatar-input');
+    avatarInput!.onchange = onChangeAvatar;
 }
 
 async function routeChangePassword()
@@ -150,4 +156,31 @@ async function routeDeleteProfile()
 	{
 		console.error('Cannot delete user: ${username}', error);
 	}
+}
+
+async function onUpdateAvatarButton(e: Event)
+{
+    const changeAvatarForm = document.getElementById('change-avatar-form') as HTMLFormElement;
+
+    const formData = new FormData();
+    const imageEle = document.getElementById('avatar-input') as HTMLInputElement;
+    const image = imageEle?.files?.[0];
+    if (!image)
+        return;
+
+    formData.append("image", image);
+
+    await fetch("/api/user/avatar", {
+        method: "POST",
+        body: formData
+    });
+}
+
+function onChangeAvatar(e: Event)
+{
+    const image = (e.target as HTMLInputElement)?.files?.[0];
+    if (!image) return;
+
+    const changeAvatarButton = document.getElementById('changeAvatarButton');
+    (changeAvatarButton as HTMLButtonElement)!.disabled = false;
 }
