@@ -3,7 +3,6 @@
 import { api } from './api.js'
 import { IndexPage, IndexPostLoad } from './index.template.js'
 import { GamePage, GamePostLoad } from './game/game.template.js'
-import { LocalGamePage } from './game/local/local.template.js'
 import { OnlineGamePage } from './game/online/online.template.js'
 import { ErrorPage } from './error.template.js'
 import { ChatPostLoad, closeChat } from './chat/chat.controller.js'
@@ -12,13 +11,16 @@ import { LobbyJoinPage } from './tournament/lobby/lobby.template.js'
 import { SignUpPage } from './signup/signup.template.js'
 import { SignUpPostLoad } from './signup/signup.controller.js'
 import { FriendsPage } from './friends/friends.template.js'
-import { UserPage } from './userpage/userpage.template.js'
+// import { UserPage } from './userpage/userpage.template.js'
 import { TournamentPage } from './tournament/tournament/tournament.template.js'
 import { SettingsPage } from './settings/settings.template.js'
 import './navigation.js'
 import { FriendsPostLoad } from './friends/friends.controller.js'
+import { SettingsPostLoad } from './settings/settings.controller.js'
 import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
 import { TournamentArea, TournamentPostLoad } from './tournament/tournament/tournament.controller.js'
+
+export const LOG_FRONTEND_HEARTBEATS: boolean = false;
 
 type Page = {
     builder: typeof HTMLElement,
@@ -28,14 +30,12 @@ type Page = {
 const pages = new Map<string, Page>([
     ['/', {builder: IndexPage, postLoad: IndexPostLoad, title: "Login"}],
     ['/game', {builder: GamePage, postLoad: GamePostLoad, title: "Game Select"}],
-    ['/game/local', {builder: LocalGamePage}],
     ['/game/online', {builder: OnlineGamePage, title: "Play Pong"}],
     ['/lobby', {builder: LobbyNavPage, title: "Tournament Lobby"}],
     ['/lobby/join', {builder: LobbyJoinPage, title: "Tournament Lobby"}],
     ['/signup', {builder: SignUpPage, postLoad: SignUpPostLoad, title: "Sign Up"}],
-    ['/mypage', {builder: UserPage, title: "My Page"}],
     ['/tournament/bracket', {builder: TournamentPage, title: "Tournament Bracket", postLoad: TournamentPostLoad}],
-    ['/settings', {builder: SettingsPage, title: "Settings"}],
+    ['/settings', {builder: SettingsPage, postLoad: SettingsPostLoad, title: "Settings"}],
 	['/friends', {builder: FriendsPage, postLoad: FriendsPostLoad }]]
 );
 
@@ -91,6 +91,9 @@ export async function NavOnClick(e: MouseEvent)
         const usernameElement = document.getElementById("username");
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = "";
+        const avatarElement = document.getElementById("avatar");
+        if (avatarElement instanceof HTMLImageElement)
+            avatarElement.classList.add('hidden');
     }
 
     const newURL = e.target.href;
@@ -105,6 +108,7 @@ document.body.onload = async () => {
     document.title = "Transvengence";
 
     const usernameElement = document.getElementById("username");
+    const avatarElement = document.getElementById("avatar");
     const sessionInfo = await fetch("/api/user/session");
 
     if (sessionInfo.ok)
@@ -115,8 +119,14 @@ document.body.onload = async () => {
         const userInfo = await sessionInfo.json();
         if (usernameElement instanceof HTMLParagraphElement)
             usernameElement.innerText = userInfo?.username;
+        if (avatarElement instanceof HTMLImageElement)
+        {
+            avatarElement.src = "/api/user/" + userInfo?.user_id + "/avatar";
+            avatarElement.classList.remove('hidden');
+        }
         if (document.location.pathname === "/")
             history.pushState({}, "", "/game");
+
     }
     else
     {

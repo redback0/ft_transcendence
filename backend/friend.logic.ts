@@ -41,6 +41,18 @@ export async function setupFriendRecordIfNotExist(myId: string, theirId: string)
 	}
 }
 
+export async function defriendAll(userId: string)
+{
+	const friends = await getFriendsFromDatabase(userId);
+	if (friends)
+	{
+		for (const friend of friends)
+		{
+			await defriend(userId, friend.user_id);
+		}
+	}
+}
+
 export async function getFriendsFromDatabase(myId: string): Promise<Friend[] | null>
 {
 	try

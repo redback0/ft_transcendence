@@ -24,7 +24,7 @@
 				<ul>
                     <li><a class="nav-button" href="/game">PLAY -></a></li>
 					<li><a class="nav-button" href="/friends">FRIENDS</a></li>
-					<li><a class="nav-button" href="/setttings">SETTINGS</a></li>
+					<li><a class="nav-button" href="/settings">SETTINGS</a></li>
 					<!-- below button says log out, so it should have more action than just change page -->
 					<li><a id="logout" class="nav-button" href="/">LOG OUT</a></li>
 				</ul>
@@ -104,8 +104,9 @@
 					</svg>
 			</div>
 
-            <div id="login-status">
+            <div id="login-status" class="flex items-center">
                 <p id="username"></p>
+                <img id="avatar" class="h-[32px] w-[32px] object-cover hidden"/>
             </div>
 
 			<!-- BETH: Add onClick="FUNCTION" to open the chat etc

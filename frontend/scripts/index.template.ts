@@ -73,7 +73,7 @@ export function IndexPostLoad(page: HTMLElement)
                 username: user,
                 password: pass
             })
-        }).then((response) => {
+        }).then(async (response) => {
             // change page to play if successful
             if (!response.ok)
             {
@@ -95,11 +95,22 @@ export function IndexPostLoad(page: HTMLElement)
                 return;
             }
 
-            const usernameElement = document.getElementById("username");
-            if (usernameElement instanceof HTMLParagraphElement)
-                usernameElement.innerText = user;
-			
-			initialiseHeartbeat();
+            const sessionInfo = await fetch("/api/user/session");
+            if (sessionInfo.ok)
+            {
+                const userInfo = await sessionInfo.json();
+                const usernameElement = document.getElementById("username");
+                const avatarElement = document.getElementById("avatar");
+                if (usernameElement instanceof HTMLParagraphElement)
+                    usernameElement.innerText = user;
+                if (avatarElement instanceof HTMLImageElement)
+                {
+                    avatarElement.src = "/api/user/" + userInfo?.user_id + "/avatar";
+                    avatarElement.classList.remove('hidden');
+                }
+            }
+
+            initialiseHeartbeat();
             history.pushState({}, "", "/game");
             newPage()
         });

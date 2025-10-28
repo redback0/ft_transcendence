@@ -5,3 +5,4 @@ node_modules
 pong.db
 pong.db-journal
 /frontend/html/css/output.css
+/database/avatars/*
