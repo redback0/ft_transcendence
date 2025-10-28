@@ -4,6 +4,7 @@ import { TournamentStartMessage, UserInfo } from '../../tournament.schema.js';
 import { currPage, newPage } from "../../index.js";
 import { TournamentPage } from "../tournament/tournament.template.js";
 import { setCurrentPage } from '../../index.js';
+import { TournamentPostLoad } from "../tournament/tournament.controller.js";
 
 const htmlClientNamePrefix = "name-of-client-";
 const hostPrefix = "👑 ";
@@ -83,7 +84,7 @@ export class LobbyJoinArea {
 			case "tournament_starting":
 				console.log(`tournament is starting !!! rom code ${data.msg.room_code}`);
 				history.pushState({}, "", "/tournament/bracket?bracket_id=" + data.msg.room_code);
-				setCurrentPage(new TournamentPage({ page: this.parent, room_code: data.msg.room_code }));
+				setCurrentPage(new TournamentPage({ page: this.parent, room_code: data.msg.room_code }), TournamentPostLoad);
 				break;
 			default:
 				console.warn("unrecognised message from lobby !!!");
@@ -101,7 +102,7 @@ export class LobbyJoinArea {
 
 		var textdiv = document.createElement("div");
 		textdiv.id = htmlClientNamePrefix + client.user_id;
-		textdiv.className = "flex px-5 text-center border-black";
+		textdiv.className = "lobby-elem flex px-5 text-center border-black";
 		textdiv.appendChild(text);
 
 		this.parent.names_div.appendChild(textdiv);

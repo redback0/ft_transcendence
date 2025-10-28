@@ -87,3 +87,8 @@ export type TournamentMessage = TournamentStartMessage
 	| TournamentYouAreMessage
 	| LobbyClientLeftMessage;
 
+export type ClientTournamentReadyMessage = {
+	type: "ready"
+}
+
+export type ClientTournamentMessage = ClientTournamentReadyMessage;

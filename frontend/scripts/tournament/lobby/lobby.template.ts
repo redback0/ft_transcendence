@@ -7,13 +7,41 @@ export class LobbyJoinPage extends HTMLElement {
     start_button: HTMLButtonElement;
     constructor() {
         super()
-
-		let createCopyLinkBtn = document.createElement('button');
+        this.innerHTML += `<style>
+            .lobby-button:hover {
+                color: var(--color1) !important;
+                background-color: var(--color2);
+                display: inline-block;
+                cursor: pointer;
+                margin-bottom: 50px;
+            }
+            .lobby-button {
+                font-weight: bold;
+                font-size: 3vh;
+                color: var(--color2);
+                text-align: left;
+                margin-bottom: 50px;
+            }
+            .lobby-elem {
+                font-weight: bold;
+                font-size: 3vh;
+                color: var(--color1);
+                background-color: var(--color2);
+                text-align: left;
+            }
+            .lobby-container {
+                column-gap: 20px;
+            }
+            </style>`;
+		
+        let createCopyLinkBtn = document.createElement('button');
+        createCopyLinkBtn.className = "lobby-button px-5";
         createCopyLinkBtn.textContent = "Copy Link to clipboard";
         createCopyLinkBtn.onclick = () => { navigator.clipboard.writeText(document.location.href) };
 
         // onclick is set in controller class
         this.start_button = document.createElement('button');
+        this.start_button.className = "lobby-button px-5";
         this.start_button.textContent = "Start!";
         this.start_button.disabled = true;
 
@@ -24,7 +52,7 @@ export class LobbyJoinPage extends HTMLElement {
 
         this.names_div = document.createElement("div");
         this.names_div.tabIndex = 0;
-        this.names_div.className = "flex flex-row flex-wrap flex-initial w-3/4 justify-center items-center";
+        this.names_div.className = "lobby-container flex flex-row flex-wrap flex-initial w-3/4 justify-center items-center";
         
         this.appendChild(createCopyLinkBtn);
 		this.appendChild(this.start_button);
