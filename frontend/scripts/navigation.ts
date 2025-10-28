@@ -62,7 +62,7 @@ function updateLanguage() {
   const newLanguage: Language = languages[currentLanguageIndex];
 
   if (languageButton) {
-    languageButton.textContent = newLanguage.toUpperCase();
+    languageButton.textContent = languages[(currentLanguageIndex + 1) % languages.length].toUpperCase();
   }
   setLanguage(newLanguage);
   updateTranslations(newLanguage);
@@ -78,7 +78,7 @@ function updateTranslations(language: Language) {
 }
 
 if (languageButton) {
-  languageButton.textContent = t('currentLanguage') + languages[currentLanguageIndex].toUpperCase();
+  languageButton.textContent = languages[(currentLanguageIndex + 1) % languages.length].toUpperCase();
   languageButton.addEventListener('click', updateLanguage);
 }
 

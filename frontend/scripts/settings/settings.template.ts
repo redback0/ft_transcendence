@@ -25,9 +25,13 @@ export class SettingsPage extends HTMLElement {
 							${t('currentPassword')}
 						</p>
 						<input class="settings-input" type="password" name="username" placeholder="${t('enterUsername')}" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
-						<p style="font-size:2vh; color:#520404; font-weight:bold">NEW PASSWORD</p>
+						<p style="font-size:2vh; color:#520404; font-weight:bold">
+							${t('newPassword')}
+						</p>
 						<input class="settings-input" type="password" name="username" placeholder="${t('enterNewPassword')}" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
-						<p style="font-size:2vh; color:#520404; font-weight:bold">REPEAT NEW PASSWORD</p>
+						<p style="font-size:2vh; color:#520404; font-weight:bold">
+							${t('repeatNewPassword')}
+						</p>
 						<input class="settings-input" type="password" name="password" placeholder="${t('enterNewPasswordAgain')}" autocomplete="off" style="color:#DED19C;" required>
 						<p style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;">
 							${t('invalidUserPwInput')}<br><br>

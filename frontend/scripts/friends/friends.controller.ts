@@ -1,5 +1,6 @@
 import { renderFriendsTable } from "./friends.render.js";
 import { onPageChange } from "../index.js";
+import {t} from '../translation.js';
 
 export async function refreshFriendsTable()
 {
@@ -14,7 +15,9 @@ export async function refreshFriendsTable()
 	}
 	else
 	{
-		tableContainer.innerHTML = '<p style="text-align:center; color:#520404;">You have no friends yet.</p>';
+		tableContainer.innerHTML = `<p style="text-align:center; color:#520404;">
+			${t('noFriends')}
+		</p>`;
 	}
 }
 
