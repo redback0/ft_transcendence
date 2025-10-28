@@ -124,7 +124,7 @@ fastify.server.on("upgrade", async function (req, socket, head)
         }
         if (!user_info)
             return;
-        if (tourney.players.every(player => player.user_id !== user_info.user_id)) {
+        if (tourney.players.every(player => player.user_info.user_id !== user_info.user_id)) {
             console.warn("refusing connection: not part of this tournament");
             return;
         }
