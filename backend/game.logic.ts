@@ -3,6 +3,7 @@ import * as GameSchema from "./game.schema"
 import { WebSocketServer, WebSocket, RawData } from "ws";
 import { gameWebSocketServers } from "./game";
 import { db } from "./database"
+import { TournamentID } from "./tournament.schema";
 
 type UserID = string;
 
@@ -37,10 +38,11 @@ export class GameArea
         player2Y: 0,
         player2MoveDir: 0
     };
-    winFunction: GameWinFunc
+    winFunction: GameWinFunc | undefined;
     id: string = "";
+    tournID: TournamentID | null;
 
-    constructor(wss: WebSocketServer, winFunction: GameWinFunc | undefined, h = 100, w = 200, uid1?: UserID, uid2?: UserID)
+    constructor(wss: WebSocketServer, winFunction: GameWinFunc | undefined, h = 100, w = 200, uid1?: UserID, uid2?: UserID, tournID?: TournamentID)
     {
         this.wss = wss;
         this.h = h;
@@ -48,30 +50,29 @@ export class GameArea
         this.p1 = new Player(0, h / 2, 10, uid1);
         this.p2 = new Player(w, h / 2, 10, uid2);
         this.ball = new Ball(w / 2, h / 2);
+        this.tournID = tournID ? tournID : null;
         const game = this;
         if (winFunction)
 		{
             this.winFunction = winFunction;
 		}
-		else // will not run when causal mode is removed. 
-		{
-            this.winFunction = (winner, p1Score, p2Score) =>
-            {
-                // TODO: game.id IS NOT GARANTEED TO BE UNIQUE CURRENTLY
-                if (game.p1.uid && game.p2.uid)
-                {
-                    db.saveGame.run({
-                        id: game.id,
-                        leftId: game.p1.uid,
-                        rightId: game.p2.uid,
-                        tournId: null,
-                        leftScore: game.p1.score,
-                        rightScore: game.p2.score
-                    });
-                }
-            };
-		}
 	}
+
+    save = () =>
+    {
+        // TODO: game.id IS NOT GARANTEED TO BE UNIQUE CURRENTLY
+        if (this.p1.uid && this.p2.uid)
+        {
+            db.saveGame.run({
+                id: this.id,
+                leftId: this.p1.uid,
+                rightId: this.p2.uid,
+                tournId: this.tournID,
+                leftScore: this.p1.score,
+                rightScore: this.p2.score
+            });
+        }
+    };
 
     getInfo = (): string =>
     {
@@ -189,9 +190,9 @@ export class GameArea
         if (scorer === this.p1)
         {
             this.p1.score++;
-			db.prepare(
-				`UPDATE game SET left_score = ? WHERE game_id = ?`
-			).run(this.p1.score, this.id);
+			// db.prepare(
+			// 	`UPDATE game SET left_score = ? WHERE game_id = ?`
+			// ).run(this.p1.score, this.id);
 			console.log(`Player 1 scored ${this.p1.score} in game ID: ${this.id}`)
 
 			if (this.p1.score >= this.winScore)
@@ -204,9 +205,9 @@ export class GameArea
         else
         {
             this.p2.score++;
-			db.prepare(
-				`UPDATE game SET right_score = ? WHERE game_id = ?`
-			).run(this.p2.score, this.id);
+			// db.prepare(
+			// 	`UPDATE game SET right_score = ? WHERE game_id = ?`
+			// ).run(this.p2.score, this.id);
 			console.log(`Player 2 scored ${this.p2.score} in game ID: ${this.id}`)
 			if (this.p2.score >= this.winScore)
             {
@@ -245,47 +246,48 @@ export class GameArea
         if (winner === this.p1)
 		{
             player = "player1";
-			db.prepare(
-				`UPDATE users SET num_of_win = num_of_win + 1 WHERE user_id = ?`
-				).run(this.p1.uid);
-			db.prepare(
-				`UPDATE users SET num_of_loss = num_of_loss + 1 WHERE user_id = ?`
-				).run(this.p2.uid);
+			// db.prepare(
+			// 	`UPDATE users SET num_of_win = num_of_win + 1 WHERE user_id = ?`
+			// 	).run(this.p1.uid);
+			// db.prepare(
+			// 	`UPDATE users SET num_of_loss = num_of_loss + 1 WHERE user_id = ?`
+			// 	).run(this.p2.uid);
 		}
 		else if (winner === this.p2)
 		{
             player = "player2";
-			db.prepare(
-				`UPDATE users SET num_of_win = num_of_win + 1 WHERE user_id = ?`
-				).run(this.p2.uid);
-			db.prepare(
-				`UPDATE users SET num_of_loss = num_of_loss + 1 WHERE user_id = ?`
-				).run(this.p1.uid);
+			// db.prepare(
+			// 	`UPDATE users SET num_of_win = num_of_win + 1 WHERE user_id = ?`
+			// 	).run(this.p2.uid);
+			// db.prepare(
+			// 	`UPDATE users SET num_of_loss = num_of_loss + 1 WHERE user_id = ?`
+			// 	).run(this.p1.uid);
 		}
 		console.log(`Player ${player} wins`);
 
-		const temp1 = db.prepare(`SELECT longest_rally FROM users WHERE user_id = ?`).get(this.p1.uid) as { longest_rally: number } | undefined;
-		const p1ExistingRally = temp1 ? temp1.longest_rally : 0;
-		console.log(`p1 Existing rally: ${p1ExistingRally}`);
+		// const temp1 = db.prepare(`SELECT longest_rally FROM users WHERE user_id = ?`).get(this.p1.uid) as { longest_rally: number } | undefined;
+		// const p1ExistingRally = temp1 ? temp1.longest_rally : 0;
+		// console.log(`p1 Existing rally: ${p1ExistingRally}`);
 
-		if (this.highestGameRally > p1ExistingRally) {
-		db.prepare(
-			`UPDATE users SET longest_rally = ? WHERE user_id = ?`
-			).run(this.highestGameRally, this.p1.uid);
-		}
+		// if (this.highestGameRally > p1ExistingRally) {
+		// db.prepare(
+		// 	`UPDATE users SET longest_rally = ? WHERE user_id = ?`
+		// 	).run(this.highestGameRally, this.p1.uid);
+		// }
 
-		const temp2 = db.prepare(`SELECT longest_rally FROM users WHERE user_id = ?`).get(this.p2.uid) as { longest_rally: number } | undefined;
-		const p2ExistingRally = temp2 ? temp2.longest_rally : 0;
-		console.log(`p2 Existing rally: ${p2ExistingRally}`);
+		// const temp2 = db.prepare(`SELECT longest_rally FROM users WHERE user_id = ?`).get(this.p2.uid) as { longest_rally: number } | undefined;
+		// const p2ExistingRally = temp2 ? temp2.longest_rally : 0;
+		// console.log(`p2 Existing rally: ${p2ExistingRally}`);
 
-		if (this.highestGameRally > p2ExistingRally) {
-		db.prepare(
-			`UPDATE users SET longest_rally = ? WHERE user_id = ?`
-			).run(this.highestGameRally, this.p2.uid);
-		}
+		// if (this.highestGameRally > p2ExistingRally) {
+		// db.prepare(
+		// 	`UPDATE users SET longest_rally = ? WHERE user_id = ?`
+		// 	).run(this.highestGameRally, this.p2.uid);
+		// }
 
 		console.log(`This rally: ${this.highestGameRally}`);
-        this.winFunction(player, this.p1.score, this.p2.score, this);
+        this.save();
+        if (this.winFunction) this.winFunction(player, this.p1.score, this.p2.score, this);
 
         let win: GameSchema.GameWinData = {
             type: "win",

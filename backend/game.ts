@@ -33,47 +33,43 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
     // TODO: change the game creating gets to ?posts
     fastify.get('/api/game/create/casual', function (request, reply)
     {
-        let id = NewID(5);
-        while (id in gameWebSocketServers.keys)
-        {
-            id = NewID(5);
-        }
+        let id = NewID(10);
         AddNewGame(id);
 
         reply.send({ success: true, id: id });
     });
 
     // TODO: remove this
-    fastify.get('/api/game/create/test', function (request, reply)
-    {
-        let id = NewID(5);
-        while (id in gameWebSocketServers.keys)
-        {
-            id = NewID(5);
-        }
-        AddNewGame(id, (winner, p1Score, p2Score, game) =>
-        {
-            if (winner === "player1")
-                testGameWinner = "Player 1";
-            else
-                testGameWinner = "Player 2";
-            // db.saveGame.run({
-            //     id: game.id,
-            //     leftId: game.p1.userId,
-            //     rightId: game.p2.userId,
-            //     tournId: null,
-            //     leftScore: game.p1Score,
-            //     rightScore: game.p2Score
-            // });
-        }, "1234", "4321");
+    // fastify.get('/api/game/create/test', function (request, reply)
+    // {
+    //     let id = NewID(5);
+    //     while (id in gameWebSocketServers.keys)
+    //     {
+    //         id = NewID(5);
+    //     }
+    //     AddNewGame(id, (winner, p1Score, p2Score, game) =>
+    //     {
+    //         if (winner === "player1")
+    //             testGameWinner = "Player 1";
+    //         else
+    //             testGameWinner = "Player 2";
+    //         // db.saveGame.run({
+    //         //     id: game.id,
+    //         //     leftId: game.p1.userId,
+    //         //     rightId: game.p2.userId,
+    //         //     tournId: null,
+    //         //     leftScore: game.p1Score,
+    //         //     rightScore: game.p2Score
+    //         // });
+    //     }, "1234", "4321");
 
-        reply.send({ success: true, id: id });
-    });
+    //     reply.send({ success: true, id: id });
+    // });
 
-    fastify.get('/api/game/test/winner', function (request, reply)
-    {
-        reply.send({ winner: testGameWinner });
-    })
+    // fastify.get('/api/game/test/winner', function (request, reply)
+    // {
+    //     reply.send({ winner: testGameWinner });
+    // })
 
     done();
 }
@@ -117,22 +113,23 @@ class Game extends GameArea
 			WebSocket: GameWebSocket,
             noServer: true,
         });
-		super(wss, winFunction, 100, 200, uid1, uid2);
+		super(wss, winFunction, 100, 200, uid1, uid2, tourneyID);
         this.id = id;
 		const initalScore = 0;
 		
-		try {
-			db.prepare('BEGIN TRANSACTION').run();
-			const statement = db.prepare(
-				`INSERT INTO game (game_id, left_id, right_id, game_tour_id, left_score, right_score, game_tour_id)
-				VALUES (?, ?, ?, ?, ?, ?, ?)`
-			);
-			statement.run(id, uid1, uid2, tourneyID, initalScore, initalScore, tourneyID);
-			db.prepare(`COMMIT`).run();
-		} catch (error) {
-			db.prepare(`ROLLBACK`).run();
-			console.error(`Cannot make game entry`);
-		}
+        // we only want to save game after it's finished
+		// try {
+		// 	db.prepare('BEGIN TRANSACTION').run();
+		// 	const statement = db.prepare(
+		// 		`INSERT INTO game (game_id, left_id, right_id, game_tour_id, left_score, right_score, game_tour_id)
+		// 		VALUES (?, ?, ?, ?, ?, ?, ?)`
+		// 	);
+		// 	statement.run(id, uid1, uid2, tourneyID, initalScore, initalScore, tourneyID);
+		// 	db.prepare(`COMMIT`).run();
+		// } catch (error) {
+		// 	db.prepare(`ROLLBACK`).run();
+		// 	console.error(`Cannot make game entry`);
+		// }
 
         const game = this;
         wss.on("connection", function (ws: GameWebSocket)
