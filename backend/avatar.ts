@@ -3,6 +3,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import fs from 'fs';
 import { SESSION_ID_COOKIE_NAME, validateSession } from "./cookie";
 import { pipeline } from "stream";
+import { db } from "./database";
 
 const avatarsRoot = "/database/avatars/";
 
@@ -25,8 +26,13 @@ function getAvatarRoute(request: FastifyRequest<getAvatar>, reply: FastifyReply)
 
     if (!fs.existsSync(imgPath))
     {
-        // check if userID is a username
-        imgPath = avatarsRoot + "default.png";
+        const realUserID = db.getUserIdFromUsername.get(userID) as { user_id: string } | undefined;
+        if (realUserID?.user_id)
+        {
+            imgPath = avatarsRoot + realUserID.user_id + ".png";
+            if (!fs.existsSync(imgPath))
+                imgPath = avatarsRoot + "default.png";
+        }
     }
 
     const imgBuffer = fs.readFileSync(imgPath);
