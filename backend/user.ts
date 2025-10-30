@@ -103,6 +103,13 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
             reply.code(409).send({ error: 'Username taken.' }); // <-409 = Conflict
             return;
         }
+
+		if (!createUserActions.usernameCharAreValid()){
+			console.log(`Inclaid username`);
+			reply.code(422).send({ error: 'Username doesnot mneet syntax requirments' });  // <-422 = Unprocessable entity
+            return;
+		}
+
         if (!createUserActions.pwCheck(password)) {
             reply.code(422).send({ error: 'Password does not meet syntax requirements.' });  // <-422 = Unprocessable entity
             return;
@@ -280,6 +287,7 @@ userHasNoWhite(): boolean;
 userNoExist(enteredUser: string): boolean;
 
 pwCheck(pw: string): boolean;
+usernameCheck(pw: string): boolean;
 
 pwHasNoWhite(): boolean;
 pwHasMinTwelveChar(): boolean;
@@ -343,6 +351,8 @@ class IUserActions implements UserActions {
             && this.pwHasSymbol()
         );
     }
+
+	usernameCharAreValid(): boolean { return (/^[a-zA-Z0-9]+$/.test(this.enteredUser)) };
 
     pwHasMinTwelveChar(): boolean {return (this.newPw.length >= 12);}
     pwHasNoWhite(): boolean {return (!/\s/.test(this.newPw));}
