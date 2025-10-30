@@ -73,7 +73,23 @@ function updateTranslations(language: Language) {
   document.querySelector('#friends-button')!.textContent = t('friendsTitle', language);
   document.querySelector('#settings-button')!.textContent = t('settingsTitle', language);
   document.querySelector('#logout-button')!.textContent = t('logOut', language);
-
+  document.querySelector('#workspace')!.textContent = t('workspace', language);
+  document.querySelector('#channels')!.textContent = t('channels', language);
+  document.querySelector('#hash-general')!.textContent = t('hashGeneral', language);
+  document.querySelector('#title')!.textContent = t('hashGeneral', language);
+  document.querySelector('#hash-tournament')!.textContent = t('hashTournament', language);
+  document.querySelector('#direct-messages')!.textContent = t('directMessages', language);
+  document.querySelector('#dm-request')!.textContent = t('dmRequest', language);
+  document.querySelector('#dmreqbutton')!.textContent = t('dmRequestButton', language);
+  
+  const dmReceiver = document.getElementById('dmreciever');
+  if (dmReceiver) {
+    dmReceiver.setAttribute('placeholder', t('usernameInput'));
+  }
+  const messageInput = document.getElementById('messageInput');
+  if (messageInput) {
+    messageInput.setAttribute('placeholder', t('messageInput'));
+  }
   newPage();
 }
 

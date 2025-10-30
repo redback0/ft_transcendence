@@ -10,6 +10,7 @@ const BUTTON_BORDER_COLOR = WINDOW_STYLE.getPropertyValue("--color2");
 
 import * as GameSchema from "./../../game.schema.js"
 import { onPageChange } from "../../index.js";
+import {t} from '../../translation.js';
 
 export class GameArea
 {
@@ -58,11 +59,11 @@ export class GameArea
         this.ball = new Ball(w / 2, h / 2);
         this.framerate = 60;
         this.registerButton = new Button(w / 2, h * 3 / 4, w / 3.5, h / 12,
-            this.register, canvas, this, "Click to register!");
+            this.register, canvas, this, t('clickToRegister'));
         this.registerButton.enabled = false;
         this.registerButton.hidden = true;
 
-        this.textBoxes.push(new TextBox("Spectating...", w / 2, h / 6, 
+        this.textBoxes.push(new TextBox(t('spectating'), w / 2, h / 6,
             function (this: TextBox, game)
             {
                 if (game.interval)
@@ -258,11 +259,11 @@ export class GameArea
         ctx.fillStyle = TEXT_COLOR;
         if (scorer == this.p1)
         {
-            ctx.fillText("Left player scored!", this.canvas.width / 2, 200);
+            ctx.fillText(t('leftPlayerScored'), this.canvas.width / 2, 200);
         }
         else
         {
-            ctx.fillText("Right player scored!", this.canvas.width / 2, 200);
+            ctx.fillText(t('rightPlayerScored'), this.canvas.width / 2, 200);
         }
     }
 
@@ -278,11 +279,11 @@ export class GameArea
         ctx.fillStyle = TEXT_COLOR;
         if (winner == this.p1)
         {
-            ctx.fillText("Left player wins!", this.canvas.width / 2, this.canvas.height / 2);
+            ctx.fillText(t('leftPlayerWins'), this.canvas.width / 2, this.canvas.height / 2);
         }
         else
         {
-            ctx.fillText("Right player wins!", this.canvas.width / 2, this.canvas.height / 2);
+            ctx.fillText(t('leftPlayerWins'), this.canvas.width / 2, this.canvas.height / 2);
         }
     }
 
@@ -351,7 +352,7 @@ export class GameArea
         ctx.fillStyle = TEXT_COLOR;
         ctx.textBaseline = "middle"
         ctx.textAlign = "center";
-        ctx.fillText("Spectating", this.canvas.width / 2, 160);
+        ctx.fillText(t('spectating'), this.canvas.width / 2, 160);
     }
 
     pageResize(e: UIEvent)
