@@ -14,6 +14,8 @@ import { registerAvatars } from './avatar.js';
 import * as Tournament from './tournament.js';
 import * as Friend from './friend.js';
 import { cleanupExpiredUsers } from './userStatus.js';
+import { match } from 'node:assert';
+import * as Matches from './matches.js';
 export const LOG_BACKEND_HEARTBEATS: boolean = false;
 const EXPIRED_USERS_CLEAN_TIMER = 30000;
 
@@ -30,6 +32,7 @@ fastify.register(registerCookieRoutes);
 fastify.register(registerAvatars);
 fastify.register(User.registerRoutes);
 fastify.register(Friend.registerRoutes);
+fastify.register(Matches.registerRoutes);
 
 
 // Run the fastify!

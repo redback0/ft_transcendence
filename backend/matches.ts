@@ -17,7 +17,7 @@ export interface Match {
  export async function registerRoutes(fastify: FastifyInstance)
  {
     fastify.post('/api/userpage/matches', routeGetMatches);
-    fastify.post('api/users/results', getMatchResultsFromDatabase);
+    fastify.post('/api/users/results', getMatchResultsFromDatabase);
  }
 
 async function routeGetMatches(request: FastifyRequest, reply: FastifyReply)
@@ -75,20 +75,34 @@ async function getMatchesFromDatabase(username: string): Promise<Match[] | null>
 }
 async function getMatchResultsFromDatabase(request: FastifyRequest, reply: FastifyReply)
 {
-    const user_id = request.body as { user_id: string}
-    if (!user_id)
+	const { username } = request.body as { username: string }
+    if (!username)
 	{
-		reply.code(400).send({ error: "Friend id doesnot exist." });
+		reply.code(400).send({ error: "Username does not exist." });
 		return;
 	}
+
+	const result = db.getUserIdFromUsername.get(username) as { user_id: string } | undefined;
+	if (!result)
+	{
+		reply.code(400).send({ error: "User ID does not exist." });
+		return;
+	}
+
+	const user_id = result.user_id;
+
     try 
     {
-        db.prepare('BEGIN TRANSACTION').run();
-        const wins_statement = db.prepare('COUNT * (WHERE left_id == userid AND left_score > right_score) OR (WHERE right_id == userid AND right_score > left_score) FROM game');
-        const wins = wins_statement.get(user_id) as number | undefined;
+		console.log(`A`);
+		const wins_statement = db.prepare("SELECT COUNT (*) as count FROM game WHERE (left_id = ? AND left_score > right_score) OR (right_id = ? AND right_score > left_score)");
+        const winObject = wins_statement.get(user_id, user_id) as { count: number };
+		const wins = winObject.count;
+		console.log(`B`);
 
-        const loss_statement = db.prepare('COUNT * (WHERE left_id == userid AND left_score < right_score) OR (WHERE right_id == userid AND right_score < left_score) FROM game');
-        const losses = loss_statement.get(user_id) as number | undefined;
+		const losses_statement = db.prepare("SELECT COUNT (*) as count FROM game WHERE (left_id = ? AND left_score < right_score) OR (right_id = ? AND right_score < left_score)");
+        const lossObject = losses_statement.get(user_id, user_id) as { count: number };
+		const losses = lossObject.count;
+		console.log(`Wins: ${wins}, Losses ${losses}`);
         reply.send({ wins, losses })
     }
     catch (error)

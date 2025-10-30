@@ -85,10 +85,10 @@ export async function fetchResults(username: string)
 {
 	try
 	{
-		const response = await fetch('api/users/results', {
+		const response = await fetch('/api/users/results', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username})
+            body: JSON.stringify({ username }),
 		});
 		if (!response.ok)
 		{

@@ -19,11 +19,11 @@ export class UserPage extends HTMLElement
 
                 <section class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
                     <div>
-                        <p class="text-3xl font-extrabold" id="wins_tally">1</p>
+                        <p class="text-3xl font-extrabold" id="wins_tally"></p>
                         <p class="font-semibold">Wins</p>
                     </div>
                     <div>
-                        <p class="text-3xl font-extrabold" id="loss_tally">2</p>
+                        <p class="text-3xl font-extrabold" id="loss_tally"></p>
                         <p class="font-semibold">Losses</p>
                     </div>
                 </section>
