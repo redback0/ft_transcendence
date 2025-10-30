@@ -69,7 +69,8 @@ export class GameArea
                 rightId: this.p2.uid,
                 tournId: this.tournID,
                 leftScore: this.p1.score,
-                rightScore: this.p2.score
+                rightScore: this.p2.score,
+                dateFinished: new Date().toISOString()
             });
         }
     };
