@@ -10,7 +10,7 @@ export class SettingsPage extends HTMLElement {
 				${t('settingsTitle')}
 			</h1>
 			<div class="flex w-full">
-				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 15vw; padding-top: 10vh;">
+				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 10vw; padding-top: 10vh;">
 					<h1 style="font-weight:bold; font-size:5vh; color:#520404">
 						${t('changePassword')}
 					</h1>
@@ -56,7 +56,7 @@ export class SettingsPage extends HTMLElement {
 			</div>
 
 			<div class="flex w-full" style="margin-top: 10vh">
-				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 15vw;">
+				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 10vw;">
 					<h1 style="font-weight:bold; font-size:5vh; color:#520404">
 						${t('changeAvatar')}
 					</h1>
@@ -85,7 +85,7 @@ export class SettingsPage extends HTMLElement {
 			</div>
 
 			<div class="flex w-full" style="margin-top: 10vh;">
-				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 15vw;">
+				<div class="w-1/3 flex flex-col justify-center items-left" style="padding-left: 10vw;">
 					<h1 style="font-weight:bold; font-size:5vh; color:#520404">
 						${t('deleteProfile')}
 					</h1>
