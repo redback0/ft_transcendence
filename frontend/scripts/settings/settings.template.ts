@@ -3,6 +3,8 @@ export class SettingsPage extends HTMLElement {
         super()
         this.innerHTML =
             `
+			<div id="settings-main-content">
+
 			<h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 8vh">SETTINGS</h1>
 			<div class="flex w-full">
 				<div class="w-1/3 flex flex-col justify-center items-left">
@@ -74,6 +76,7 @@ export class SettingsPage extends HTMLElement {
 						</div>
 					</form>
 				</div>
+			</div>
 			</div>
 			<div id="warning" class="warning">
 				<div id="warning-exit" onclick="closeWarning()">

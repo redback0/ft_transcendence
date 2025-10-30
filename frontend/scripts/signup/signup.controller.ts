@@ -10,7 +10,7 @@ export function SignUpPostLoad(page: HTMLElement)
         const userInput = document.getElementById("username-input");
         const passInput = document.getElementById("password-input");
         const repPassInput = document.getElementById("password-repeat-input");
-        const errorText = document.getElementById("login-error");
+        const errorText = document.getElementById("signup-error");
         if (!(userInput instanceof HTMLInputElement))
         {
             if (errorText) errorText.textContent = "NO USERNAME TEXTBOX FOUND";
@@ -36,7 +36,14 @@ export function SignUpPostLoad(page: HTMLElement)
             if (errorText) errorText.textContent = "NO USERNAME GIVEN";
             return;
         }
-        if (pass === "")
+
+        if (!/^[a-zA-Z0-9]+$/.test(user))
+        {
+            if (errorText) errorText.textContent = "USERNAME MUST ONLY BE LETTERS AND NUMBERS";
+            return;
+        }
+
+		if (pass === "")
         {
             if (errorText) errorText.textContent = "NO PASSWORD GIVEN";
             return;
