@@ -46,18 +46,18 @@ export class SettingsPage extends HTMLElement {
 					<p style="font-weight:bold; font-size:1.25vh; color:#520404; margin: 0;">
 						File requirements:<br>
 						- Size: 128 x 128 px<br>
-						- File Type: PNG/JPG<br>
+						- File Type: PNG<br>
 					</p>
 				</div>
 				<div class="w-2/3 flex flex-col items-center justify-center">
-					<form id="changePwForm" class="w-3/4 max-w-md">
+					<form id="change-avatar-form" class="w-3/4 max-w-md">
 						<p style="font-size:2vh; color:#520404; font-weight:bold">UPLOAD IMAGE:</p>
-						<input id="avatar" class="settings-input" type="file" accept="image/png, image/jpeg" name="avatar" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom:1vh; color:#DED19C;" required>
+						<input id="avatar-input" class="settings-input" type="file" accept="image/png" style="margin-bottom:1vh; color:#DED19C;">
 						<p style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;">
 							INVALID UPLOAD FILE<br><br>
 						</p>
 						<div>
-							<button type="button" id="changeAvatarButton">UPDATE AVATAR -></button>
+							<button type="button" id="changeAvatarButton" disabled="true">UPDATE AVATAR -></button>
 						</div>
 					</form>
 				</div>
