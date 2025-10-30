@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS game (
   game_tour_id TEXT,
   left_score INTEGER DEFAULT 0,
   right_score INTEGER DEFAULT 0,
+  date_finished TEXT,
   FOREIGN KEY (left_id) REFERENCES users(user_id),
   FOREIGN KEY (right_id) REFERENCES users(user_id),
   FOREIGN KEY (game_tour_id) REFERENCES tournament(tour_id)

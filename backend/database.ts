@@ -14,7 +14,7 @@ class SiteDatabase extends Database
 
     saveGame = this.prepare(`
         INSERT INTO game VALUES (
-        @id, @leftId, @rightId, @tournId, @leftScore, @rightScore
+        @id, @leftId, @rightId, @tournId, @leftScore, @rightScore, @dateFinished
         );
     `);
 
