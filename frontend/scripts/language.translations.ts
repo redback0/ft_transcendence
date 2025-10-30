@@ -69,6 +69,9 @@ export const translations: Record<Language, Record<string, string>> = {
 		createLobby: 'CREATE LOBBY',
 		start: 'START!',
 		copyLinkToClipboard: 'Copy Link to Clipboard',
+		winner: 'WINNER',
+		loser: 'LOSER',
+
 	  },
 	  Español: {
 		friendsTitle: 'AMIGOS',
@@ -136,6 +139,11 @@ export const translations: Record<Language, Record<string, string>> = {
 		matchHistory: 'HISTORIAL DE PARTIDOS:',
 		loadingMatches: 'CARGANDO PARTIDOS...',
 		versus: 'VS'    ,
+		createLobby: 'CREAR SALA',
+		start: '¡COMENZAR!',
+		copyLinkToClipboard: 'Copiar enlace al portapapeles',
+		winner: 'GANADOR',
+		loser: 'PERDEDOR',
 	  },
 	  中文: {
 		friendsTitle: '朋友',
@@ -203,5 +211,10 @@ export const translations: Record<Language, Record<string, string>> = {
 		matchHistory: '比赛历史:',
 		loadingMatches: '加载比赛中...',
 		versus: '对     ',
+		createLobby: '创建房间',
+		start: '开始!',
+		copyLinkToClipboard: '复制链接到剪贴板',
+		winner: '胜者',
+		loser: '败者',
 	  },
 };

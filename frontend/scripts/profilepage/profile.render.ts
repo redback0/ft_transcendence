@@ -46,6 +46,10 @@ export function renderMatchesTable(matches: Match[])
 					<a href="/users?id=${match.right_username}" class="profile-name font-bold text-[#DED19C]" style="font-size:2rem">${match.right_username}</a>
                     <p class="font-bold text-[#DED19C]" style="font-size:2rem">${match.right_score}</p>
                     <p class="font-bold text-[#DED19C]" style="font-size:2rem">${match.right_result}</p>
+
+					!-- BETH THIS IS THE TEXT FOR 'WINNER' AND 'LOSER': --!
+					${t('winner')}
+					${t('loser')}
 				</div>
 			</div>
 		`;
