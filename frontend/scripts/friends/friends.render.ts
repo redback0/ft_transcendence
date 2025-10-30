@@ -15,7 +15,7 @@ export function renderFriendsTable(friends: Friend[])
 		const friendItem = `
 			<div class="flex items-center gap-4 p-3 bg-[#520404] mb-2" style="height: 5vh;">
 				<div class="profile-container flex items-center gap-4" style="padding-left:1rem;">
-					<a href="/profile/${friend.username}">
+					<a href="/users?id=${friend.username}">
 						<img src="${friend.profilePicture}" alt="user-profile-picture" class="w-7 h-7 rounded-full ${onlineIndicator}">
 					</a>
 					<a href="/profile/${friend.username}" class="profile-name font-bold text-[#DED19C]" style="font-size:1.25rem">${friend.username}</a>
