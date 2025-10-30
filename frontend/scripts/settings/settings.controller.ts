@@ -170,10 +170,25 @@ async function onUpdateAvatarButton(e: Event)
 
     formData.append("image", image);
 
-    await fetch("/api/user/avatar", {
+    const resp = await fetch("/api/user/avatar", {
         method: "POST",
         body: formData
-    });
+    })
+
+    if (resp.ok)
+    {
+        const sucPara = document.getElementById('avatar-upload-success');
+        const failPara = document.getElementById('avatar-upload-fail');
+        sucPara!.hidden = false;
+        failPara!.hidden = true;
+    }
+    else
+    {
+        const sucPara = document.getElementById('avatar-upload-success');
+        const failPara = document.getElementById('avatar-upload-fail');
+        sucPara!.hidden = true;
+        failPara!.hidden = false;
+    }
 }
 
 function onChangeAvatar(e: Event)
