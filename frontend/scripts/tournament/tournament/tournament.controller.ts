@@ -2,7 +2,7 @@ import { ClientTournamentMessage, GameID, TournamentID, TournamentMessage, UserI
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
 import { TournamentPage } from "./tournament.template.js";
 import { newPage, setCurrentPage } from "../../index.js";
-import {t} from '../translation.js';
+import {t} from '../../translation.js';
 
 type Matchup = { 
     data: { p1: UserInfo, p2: UserInfo, game_id: GameID },
