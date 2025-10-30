@@ -1,4 +1,5 @@
 import { api } from '../api.js'
+import {t} from '../translation.js';
 import { CreateLobby } from './lobbynav.controller.js';
 
 function isRoomCode(room_code: string): boolean {
@@ -19,7 +20,7 @@ export class LobbyNavPage extends HTMLElement {
             `;
 
         let createCreateLobbyBtn = document.createElement('button');
-        createCreateLobbyBtn.textContent = "Create lobby";
+        createCreateLobbyBtn.textContent = t('createLobby');
         createCreateLobbyBtn.onclick = CreateLobby;
 
 		this.appendChild(createCreateLobbyBtn);

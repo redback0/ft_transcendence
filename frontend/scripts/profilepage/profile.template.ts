@@ -1,3 +1,4 @@
+import {t} from '../translation.js';
 
 export class UserPage extends HTMLElement 
 {
@@ -20,19 +21,27 @@ export class UserPage extends HTMLElement
                 <section class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
                     <div>
                         <p class="text-3xl font-extrabold" id="wins_tally"></p>
-                        <p class="font-semibold">Wins</p>
+                        <p class="font-semibold">
+                            ${t('wins')}
+                        </p>
                     </div>
                     <div>
                         <p class="text-3xl font-extrabold" id="loss_tally"></p>
-                        <p class="font-semibold">Losses</p>
+                        <p class="font-semibold">
+                            ${t('losses')}
+                        </p>
                     </div>
                 </section>
 
                 <div id="match-main-content">
 
                     <div style="margin-top: 3vh;">
-                        <h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">MATCH HISTORY:</h1>
-                        <div id="table-matches"><p style="text-align:center; color:#520404; opacity:0.7;">Loading matches...</p></div>
+                        <h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">
+                                ${t('matchHistory')}
+                            </h1>
+                        <div id="table-matches"><p style="text-align:center; color:#520404; opacity:0.7;">
+                                ${t('loadingMatches')}
+                            </p></div>
                     </div>
 
                 </div>

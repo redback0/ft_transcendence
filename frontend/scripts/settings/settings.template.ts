@@ -27,14 +27,14 @@ export class SettingsPage extends HTMLElement {
 						</p>
 						<input id="currentPassword" class="settings-input" type="password" name="username" placeholder="${t('enterUsername')}" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
                         <p id="currentPasswordNotCorrect" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
-							CURRENT PASSWORD IS NOT CORRECT, TRY AGAIN<br><br>
+							${t('incorrectPassword')}<br><br>
 						</p>
                         <p style="font-size:2vh; color:#520404; font-weight:bold">
 							${t('newPassword')}
 						</p>
 						<input id="newPassword1" class="settings-input" type="password" name="username" placeholder="${t('enterNewPassword')}" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
                         <p id="passwordReqNotMet" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
-                            PASSWORD REQUIREMENTS NOT MET<br><br>
+                            ${t('requirementsNotMet')}<br><br>
 						</p>
 						<p style="font-size:2vh; color:#520404; font-weight:bold">
 							${t('repeatNewPassword')}
@@ -48,8 +48,8 @@ export class SettingsPage extends HTMLElement {
 							${t('changePwButton')}
                         </button>
 						</div>
-						<p id="passwordSuccess" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
-							PASSWORD CHANGED<br><br>
+						<p id="passwordSuccess" style="font-weight:bold; font-size:1.25vh; color:#520404; margin: 0; display:none">
+							${t('passwordChanged')}<br><br>
 						</p>
 					</form>
 				</div>

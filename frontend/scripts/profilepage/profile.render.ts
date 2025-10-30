@@ -1,4 +1,6 @@
 //Authored By Bethany Milford 27/10/25
+import {t} from '../translation.js';
+
 export interface Match {
   left_id: string;
   left_username: string;
@@ -34,7 +36,9 @@ export function renderMatchesTable(matches: Match[])
 						<img src="/api/user/${match.left_id}/avatar" alt="user-profile-picture" class="w-7 h-7 rounded-full">
 					</a>
 				</div>
-                <p class="profile-name font-bold text-[#DED19C]" style="font-size:2rem">V        </p>
+                <p class="profile-name font-bold text-[#DED19C]" style="font-size:2rem">
+						${t('versus')}
+					</p>
 				<div class="profile-container flex items-center gap-4" style="padding-right:1rem;">
 					<a href="/users/${match.right_username}">
 						<img src="/api/user/${match.right_id}/avatar" alt="user-profile-picture" class="w-7 h-7 rounded-full">

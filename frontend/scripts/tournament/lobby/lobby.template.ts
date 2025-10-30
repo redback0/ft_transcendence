@@ -1,5 +1,6 @@
 import { LobbyStartRequest } from "../../lobby.schema.js";
 import { LobbyJoinArea } from "./lobby.controller.js";
+import {t} from '../../translation.js';
 
 export class LobbyJoinPage extends HTMLElement {
 	lobby: LobbyJoinArea;
@@ -36,13 +37,13 @@ export class LobbyJoinPage extends HTMLElement {
 		
         let createCopyLinkBtn = document.createElement('button');
         createCopyLinkBtn.className = "lobby-button px-5";
-        createCopyLinkBtn.textContent = "Copy Link to clipboard";
+        createCopyLinkBtn.textContent = t('copyLinkToClipboard');
         createCopyLinkBtn.onclick = () => { navigator.clipboard.writeText(document.location.href) };
 
         // onclick is set in controller class
         this.start_button = document.createElement('button');
         this.start_button.className = "lobby-button px-5";
-        this.start_button.textContent = "Start!";
+        this.start_button.textContent = t('start');
         this.start_button.disabled = true;
 
         //this.className = "";
