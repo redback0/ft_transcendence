@@ -2,6 +2,7 @@ import { ClientTournamentMessage, GameID, TournamentID, TournamentMessage, UserI
 import { LobbyJoinPage } from "../lobby/lobby.template.js";
 import { TournamentPage } from "./tournament.template.js";
 import { newPage, setCurrentPage } from "../../index.js";
+import {t} from '../translation.js';
 
 type Matchup = { 
     data: { p1: UserInfo, p2: UserInfo, game_id: GameID },
@@ -77,13 +78,19 @@ export class TournamentArea {
                 }
             </style>
             <div>
-                <h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh; margin-top: 6vh">TOURNAMENT</h1>
+                <h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh; margin-top: 6vh">
+                    ${t('tournamentTitle')}
+                </h1>
                 <div style="margin-top: 3vh;">
-                    <h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">MATCHUPS:</h1>
+                    <h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">
+                            ${t('matchups')}
+                        </h1>
                     <div id="table-matchups" class="flex flex-col justify-center items-center"></div>
                     <div id="byed-div" class="flex flex-col justify-center items-center"></div>
                     <div style="text-align: center;">
-                        <button type="button" id="nextGameButton">JOIN NEXT GAME -></button>
+                        <button type="button" id="nextGameButton">
+                        ${t('joinNextGame')}
+                        </button>
                     </div>
                 </div>
                 <div style="margin-top: 3vh;">

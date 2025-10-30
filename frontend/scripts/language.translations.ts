@@ -71,6 +71,9 @@ export const translations: Record<Language, Record<string, string>> = {
 		copyLinkToClipboard: 'Copy Link to Clipboard',
 		winner: 'WINNER',
 		loser: 'LOSER',
+		tournamenTitle: 'TOURNAMENT',
+		matchups: 'MATCHUPS: ',
+		joinNextGame: 'JOIN NEXT GAME ->',
 
 	  },
 	  Español: {
@@ -144,6 +147,9 @@ export const translations: Record<Language, Record<string, string>> = {
 		copyLinkToClipboard: 'Copiar enlace al portapapeles',
 		winner: 'GANADOR',
 		loser: 'PERDEDOR',
+		tournamentTitle: 'TORNEO',
+    	matchups: 'ENFRENTAMIENTOS: ',
+    	joinNextGame: 'UNIRSE AL SIGUIENTE JUEGO ->',
 	  },
 	  中文: {
 		friendsTitle: '朋友',
@@ -216,5 +222,8 @@ export const translations: Record<Language, Record<string, string>> = {
 		copyLinkToClipboard: '复制链接到剪贴板',
 		winner: '胜者',
 		loser: '败者',
+		tournamentTitle: '锦标赛',
+		matchups: '对阵: ',
+		joinNextGame: '加入下一场比赛 ->',
 	  },
 };
