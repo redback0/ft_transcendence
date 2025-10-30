@@ -71,7 +71,7 @@ export const translations: Record<Language, Record<string, string>> = {
 		copyLinkToClipboard: 'Copy Link to Clipboard',
 		winner: 'WINNER',
 		loser: 'LOSER',
-		tournamenTitle: 'TOURNAMENT',
+		tournamentTitle: 'TOURNAMENT',
 		matchups: 'MATCHUPS: ',
 		joinNextGame: 'JOIN NEXT GAME ->',
 
