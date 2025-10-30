@@ -243,7 +243,7 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     header.classList.add('received-chats-sender', 'text-(--color2)');
 
     let userlink = document.createElement("a");
-    userlink.href = 'https://localhost/users/' + sender;
+    userlink.href = '/users?id=' + sender;
     console.log(userlink.href);
     let head = document.createElement("p");
     head.innerText = sender;

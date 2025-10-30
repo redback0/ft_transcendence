@@ -33,6 +33,8 @@ function getAvatarRoute(request: FastifyRequest<getAvatar>, reply: FastifyReply)
             if (!fs.existsSync(imgPath))
                 imgPath = avatarsRoot + "default.png";
         }
+        else
+            imgPath = avatarsRoot + "default.png";
     }
 
     const imgBuffer = fs.readFileSync(imgPath);
