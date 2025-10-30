@@ -450,6 +450,7 @@ index-page {
     color: var(--color2) !important;
     background-color: var(--color1);
     display: inline-block;
+    cursor: pointer;
 }
 
 #warning.active {
@@ -491,6 +492,7 @@ index-page {
     color: var(--color1) !important;
     background-color: var(--color2);
     display: inline-block;
+    cursor: pointer;
 }
 #changePwButton, #changeAvatarButton, #deleteProfileButton {
     font-weight: bold;
@@ -797,6 +799,11 @@ li {
     padding: 0 5px;
 }
 
+#language-button:hover {
+    cursor: pointer;
+    color: var(--color2) !important;
+    background-color: var(--color1);
+}
 #main-menu {
     position: fixed;
     top: 0;
@@ -812,6 +819,10 @@ li {
 
 #menu-exit > svg {
     width: min(7vw, 30px);
+}
+
+#menu-exit > svg:hover {
+    cursor: pointer;
 }
 
 /********************************************************/

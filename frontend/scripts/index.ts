@@ -19,6 +19,7 @@ import './navigation.js'
 import { FriendsPostLoad } from './friends/friends.controller.js'
 import { SettingsPostLoad } from './settings/settings.controller.js'
 import { initialiseHeartbeat, stopHeartbeat } from './heartbeat.js'
+import { closeMenu } from './navigation.js'
 import { TournamentArea, TournamentPostLoad } from './tournament/tournament/tournament.controller.js'
 import { ProfilePostLoad } from './profilepage/profile.controller.js'
 

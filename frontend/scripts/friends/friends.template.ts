@@ -1,3 +1,5 @@
+import {t} from '../translation.js';
+
 export class FriendsPage extends HTMLElement 
 {
     constructor() {
@@ -10,17 +12,29 @@ export class FriendsPage extends HTMLElement
 		<!-- Main Content -->
 		<div id="friends-main-content">
 			<form method="POST" id="addFriend">
-				<h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh">FRIENDS</h1>
-				<p style="font-size:2vh; color:#520404; margin-top:1vh; font-weight:bold">ADD FRIENDS:</p>
-				<input id="friends-user-search" type="text" name="username" placeholder="ENTER USERNAME" autocomplete="off" style="color:#DED19C;" required>
-				<h1 id="friend-error" style="font-weight:bold; font-size:1.5vh; color:red; display:none;">USER DOES NOT EXIST</h1>
-				<h1 id="friends-redHover" style="font-weight:bold; font-size:5vh; color:#520404; cursor:pointer; user-select:none;">ADD -></h1>
+				<h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh">
+					${t('friendsTitle')}
+				</h1>
+				<p style="font-size:2vh; color:#520404; margin-top:1vh; font-weight:bold">
+					${t('addFriends')}
+				</p>
+				<input id="friends-user-search" type="text" name="username" placeholder="${t('enterUsername')}" autocomplete="off" style="color:#DED19C;" required>
+				<h1 id="friend-error" style="font-weight:bold; font-size:1.5vh; color:red; display:none;">
+					${t('userDoesNotExist')}
+				</h1>
+				<h1 id="friends-redHover" style="font-weight:bold; font-size:5vh; color:#520404; cursor:pointer; user-select:none;">
+					${t('addFriendButton')}
+				</h1>
 				<!--button type="button" id="addFriendButton" style="font-weight:bold; font-size:5vh; color:#520404;>Add Friend</button>-->
 			</form>
 
 			<div style="margin-top: 3vh;">
-				<h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">YOUR FRIENDS:</h1>
-				<div id="table-friends"><p style="text-align:center; color:#520404; opacity:0.7;">Loading friends...</p></div>
+				<h1 style="text-align:center; font-weight:bold; font-size:5vh; color:#520404">
+					${t('yourFriends')}
+				</h1>
+				<div id="table-friends"><p style="text-align:center; color:#520404; opacity:0.7;">
+					${t('loadingFriends')}
+				</p></div>
 			</div>
 
 		</div>

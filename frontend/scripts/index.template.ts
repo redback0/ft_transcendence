@@ -1,5 +1,6 @@
 import { initialiseHeartbeat } from "./heartbeat.js";
 import { NavOnClick, newPage } from "./index.js";
+import { t } from './translation.js';
 
 export class IndexPage extends HTMLElement {
     constructor() {
@@ -7,22 +8,34 @@ export class IndexPage extends HTMLElement {
         this.innerHTML =
             `
             <form id="login-form">
-                <h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh">LOGIN</h1>
+                <h1 style="font-weight:bold; font-size:10vh; text-align:center !important; background-color:#520404; color:#DED19C; margin-bottom: 3vh">
+                    ${t('loginTitle')}
+                </h1>
 
-                <p style="font-size:2vh; color:#520404; margin-top:3vh; font-weight:bold">USERNAME</p>
-                <input id="username-input" class="loginhome-input" type="text" name="username" placeholder="ENTER USERNAME" autocomplete="off" style="margin-bottom: 2vh; color:#DED19C;" required>
+                <p style="font-size:2vh; color:#520404; margin-top:3vh; font-weight:bold">
+                    ${t('username')}
+                </p>
+                <input id="username-input" class="loginhome-input" type="text" name="username" placeholder="${t('enterUsername')}" autocomplete="off" style="margin-bottom: 2vh; color:#DED19C;" required>
 
-                <p style="font-size:2vh; color:#520404; margin-top: 2vh; font-weight:bold">PASSWORD</p>
-                <input id="password-input" class="loginhome-input" type="password" name="password" placeholder="ENTER PASSWORD" autocomplete="off" style="color:#DED19C;" required>
+                <p style="font-size:2vh; color:#520404; margin-top: 2vh; font-weight:bold">
+                    ${t('password')}
+                </p>
+                <input id="password-input" class="loginhome-input" type="password" name="password" placeholder="${t('enterPassword')}" autocomplete="off" style="color:#DED19C;" required>
 
                 <div style="display: flex; justify-content:space-between; align-items:center; width: 100%;">
                     <p id="login-error" style="font-weight:bold; font-size:1.5vh; color:red; margin: 0;"></p>
                     <div>
-                        <p style="font-size:1.75vh; color:#520404; margin:0; display:inline;">No account?</p>
-                        <p style="font-weight:bold; font-size:1.75vh; color:#520404; margin:0; display:inline;"><a id="signup-nav-button" href="/signup">SIGN UP -></a></p>
+                        <p style="font-size:1.75vh; color:#520404; margin:0; display:inline;">
+                            ${t('noAccountQuestion')}
+                        </p>
+                        <p style="font-weight:bold; font-size:1.75vh; color:#520404; margin:0; display:inline;"><a id="signup-nav-button" href="/signup">
+                            ${t('signUpButton')}
+                        </a></p>
                     </div>
                 </div>
-                <h1 id="login-button" class="loginhome-redHover" style="font-weight:bold; font-size:10vh; color:#520404">PLAY -></h1>
+                <h1 id="login-button" class="loginhome-redHover" style="font-weight:bold; font-size:10vh; color:#520404">
+                    ${t('playButton')}
+                </h1>
             </form>
             `
     }
@@ -43,12 +56,12 @@ export function IndexPostLoad(page: HTMLElement)
         const errorText = document.getElementById("login-error");
         if (!(userInput instanceof HTMLInputElement))
         {
-            if (errorText) errorText.textContent = "NO USERNAME TEXTBOX FOUND";
+            if (errorText) errorText.textContent = t('errUserTextbox');
             return;
         }
         if (!(passInput instanceof HTMLInputElement))
         {
-            if (errorText) errorText.textContent = "NO PASSWORD TEXTBOX FOUND";
+            if (errorText) errorText.textContent = t('errPwTextbox');
             return;
         }
 
@@ -57,12 +70,12 @@ export function IndexPostLoad(page: HTMLElement)
 
         if (user === "")
         {
-            if (errorText) errorText.textContent = "NO USERNAME GIVEN";
+            if (errorText) errorText.textContent = t('errNoUsername');
             return;
         }
         if (pass === "")
         {
-            if (errorText) errorText.textContent = "NO PASSWORD GIVEN";
+            if (errorText) errorText.textContent = t('errNoPw');
             return;
         }
 
@@ -90,7 +103,7 @@ export function IndexPostLoad(page: HTMLElement)
                 else
                 {
                     console.log("Unknown error");
-                    if (errorText) errorText.textContent = "UNKNOWN ERROR";
+                    if (errorText) errorText.textContent = t('errUnknown');
                 }
                 return;
             }

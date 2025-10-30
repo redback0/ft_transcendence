@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "bcrypt-ts": "^7.1.0"
+    "bcrypt-ts": "^7.1.0",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
