@@ -9,8 +9,6 @@ export interface Match {
   left_score: number;
   right_score: number;
   date_game_made: string;
-  theirProfilePicture: string;
-
 }
 
 export function renderMatchesTable(matches: Match[])
@@ -26,22 +24,22 @@ export function renderMatchesTable(matches: Match[])
 	matches.forEach(match => {
 		//const onlineIndicator = match.online ? 'ring-2 ring-green-500' : '';
 		const matchItem = `
-			<div class="flex items-center gap-4 p-3 bg-[#520404] mb-2" style="height: 5vh;">
-                <p>${match.date_game_made}</p>
+			<div class="flex items-center gap-4 p-3 bg-[#520404] mb-2 h-[5vh] w-full">
+                <p>${match.date_game_made ? match.date_game_made : "not found"}</p>
 				<div class="profile-container flex items-center gap-4" style="padding-right:1rem;">
-					<a href="/profile/${match.left_username}">
-						<img src="${match.theirProfilePicture}" alt="user-profile-picture" class="w-7 h-7 rounded-full">
-					</a>
-					<a href="/profile/${match.left_username}" class="profile-name font-bold text-[#DED19C]" style="font-size:1.25rem">${match.left_username}</a>
-                    <p class="font-bold text-[#DED19C]" style="font-size:2rem">${match.left_score}</p>
                     <p class="font-bold text-[#DED19C]" style="font-size:2rem">${match.left_result}</p>
+                    <p class="font-bold text-[#DED19C]" style="font-size:2rem">${match.left_score}</p>
+                    <a href="/profile/${match.left_username}" class="profile-name font-bold text-[#DED19C]" style="font-size:1.25rem">${match.left_username}</a>
+                    <a href="/users?id=${match.left_username}">
+						<img src="/api/user/${match.left_id}/avatar" alt="user-profile-picture" class="w-7 h-7 rounded-full">
+					</a>
 				</div>
-
+                <p>--</p>
 				<div class="profile-container flex items-center gap-4" style="padding-right:1rem;">
 					<a href="/users/${match.right_username}">
-						<img src="${match.theirProfilePicture}" alt="user-profile-picture" class="w-7 h-7 rounded-full">
+						<img src="/api/user/${match.right_id}/avatar" alt="user-profile-picture" class="w-7 h-7 rounded-full">
 					</a>
-					<a href="/users/${match.right_username}" class="profile-name font-bold text-[#DED19C]" style="font-size:1.25rem">${match.right_username}</a>
+					<a href="/users?id=${match.right_username}" class="profile-name font-bold text-[#DED19C]" style="font-size:1.25rem">${match.right_username}</a>
                     <p class="font-bold text-[#DED19C]" style="font-size:2rem">${match.right_score}</p>
                     <p class="font-bold text-[#DED19C]" style="font-size:2rem">${match.right_result}</p>
 				</div>

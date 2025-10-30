@@ -39,8 +39,13 @@ async function getMatchesFromDatabase(username: string): Promise<Match[] | null>
 {
     try
     {
-        //const username = db.getUserIdFromUsername.run(username);
-        const matches = db.getAllOfAUsersGames.all(username) as Match[];
+        const { user_id } = db.getUserIdFromUsername.get(username) as { user_id: string };
+        if (!user_id)
+        {
+            console.error("Matches: user not found");
+            return null;
+        }
+        const matches = db.getAllOfAUsersGames.all(user_id, user_id) as Match[];
         matches.forEach(match => {
             const lusername = db.getUsernameFromUserId.get(match.left_id) as {username: string } | undefined;
             const rusername = db.getUsernameFromUserId.get(match.right_id) as {username: string } | undefined;
@@ -54,15 +59,10 @@ async function getMatchesFromDatabase(username: string): Promise<Match[] | null>
                 match.right_result = "Winner";
                 match.left_result = "Loser";
             }
-            else if (match.right_score > match.left_score)
+            else
             {
                 match.right_result = "Loser";
                 match.left_result = "Winner";
-            }
-            else if (match.right_score === match.left_score)
-            {
-                match.right_result = "Tie";
-                match.left_result = "Tie";
             }
         })
         return(matches);
@@ -93,16 +93,14 @@ async function getMatchResultsFromDatabase(request: FastifyRequest, reply: Fasti
 
     try 
     {
-		console.log(`A`);
 		const wins_statement = db.prepare("SELECT COUNT (*) as count FROM game WHERE (left_id = ? AND left_score > right_score) OR (right_id = ? AND right_score > left_score)");
         const winObject = wins_statement.get(user_id, user_id) as { count: number };
 		const wins = winObject.count;
-		console.log(`B`);
 
 		const losses_statement = db.prepare("SELECT COUNT (*) as count FROM game WHERE (left_id = ? AND left_score < right_score) OR (right_id = ? AND right_score < left_score)");
         const lossObject = losses_statement.get(user_id, user_id) as { count: number };
 		const losses = lossObject.count;
-		console.log(`Wins: ${wins}, Losses ${losses}`);
+
         reply.send({ wins, losses })
     }
     catch (error)
