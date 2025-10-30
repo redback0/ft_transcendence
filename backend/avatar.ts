@@ -64,6 +64,12 @@ async function postAvatarRoute(request: FastifyRequest, reply: FastifyReply)
         return;
     }
 
+    if (imgData.mimetype !== "image/png")
+    {
+        reply.code(400).send("File is not a png");
+        return;
+    }
+
     // const image = imgData as Blob;
 
     const imgPath = avatarsRoot + userID + ".png";
