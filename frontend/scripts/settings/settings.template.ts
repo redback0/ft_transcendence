@@ -71,14 +71,17 @@ export class SettingsPage extends HTMLElement {
 						<p style="font-size:2vh; color:#520404; font-weight:bold">
                             ${t('uploadImage')}
                         </p>
-						<input id="avatar-input" class="settings-input" type="file" accept="image/png, image/jpeg" name="avatar" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom:1vh; color:#DED19C;" required>
-						<p style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;">
+						<input id="avatar-input" class="settings-input" type="file" accept="image/png" name="avatar" placeholder="ENTER CURRENT PASSWORD" autocomplete="off" style="margin-bottom:1vh; color:#DED19C;" required>
+						<p id="avatar-upload-fail" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;" hidden="true">
 							${t('invalidUploadFile')}<br><br>
 						</p>
 						<div>
 							<button type="button" id="changeAvatarButton" disabled="true">
 								${t('changeAvatarButton')}
 							</button>
+                            <p id="avatar-upload-success" hidden="true" class="font-bold text-(--color2)">
+                                Upload Success!
+                            </p>
 						</div>
 					</form>
 				</div>

@@ -22,9 +22,7 @@ export class SignUpPage extends HTMLElement {
                 </p>
                 <input id="password-repeat-input" class="signup-input" type="password" name="password" placeholder="${t('enterPasswordAgain')}" autocomplete="off" style="color:#DED19C;" required>
 
-                <p id="signup-error" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;">
-                    ${t('enterPasswordAgain')}
-                </p>
+                <p id="signup-error" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;"></p>
                 <h1 id="signup-button" class="signin-redHover" style="font-weight:bold; font-size:10vh; color:#520404">
                     ${t('playButton')}
                 </h1>
