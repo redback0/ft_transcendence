@@ -73,7 +73,7 @@ function updateTranslations(language: Language) {
   document.querySelector('#friends-button')!.textContent = t('friendsTitle', language);
   document.querySelector('#settings-button')!.textContent = t('settingsTitle', language);
   document.querySelector('#logout-button')!.textContent = t('logOut', language);
-  document.querySelector('#workspace')!.textContent = t('workspace', language);
+  document.querySelector('#chat')!.textContent = t('chat', language);
   document.querySelector('#channels')!.textContent = t('channels', language);
   document.querySelector('#hash-general')!.textContent = t('hashGeneral', language);
   document.querySelector('#title')!.textContent = t('hashGeneral', language);
