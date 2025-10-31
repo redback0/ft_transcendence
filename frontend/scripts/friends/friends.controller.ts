@@ -1,5 +1,5 @@
 import { renderFriendsTable } from "./friends.render.js";
-import { onPageChange } from "../index.js";
+import { newPage, onPageChange } from "../index.js";
 import {t} from '../translation.js';
 
 export async function refreshFriendsTable()
@@ -299,4 +299,19 @@ export function attachBlockListeners()
 				return ;
 		});
 	});
+
+    Array.from(document.getElementsByClassName('profile-nav-button')).forEach((button) => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            if (!(e.target instanceof HTMLAnchorElement))
+                return;
+
+            const newURL = e.target.href;
+
+            history.pushState({}, "", newURL);
+
+            newPage();
+        })
+    })
 }
