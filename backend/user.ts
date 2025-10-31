@@ -105,8 +105,8 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
         }
 
 		if (!createUserActions.usernameCharAreValid()){
-			console.log(`Inclaid username`);
-			reply.code(422).send({ error: 'Username doesnot mneet syntax requirments' });  // <-422 = Unprocessable entity
+			console.log(`Invalid username`);
+			reply.code(422).send({ error: 'Username does not mneet syntax requirements' });  // <-422 = Unprocessable entity
             return;
 		}
 
