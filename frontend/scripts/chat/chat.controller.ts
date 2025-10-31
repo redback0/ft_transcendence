@@ -189,7 +189,9 @@ export function ChatPostLoad(page: HTMLElement)
                 //    setUsername(parsedMessage.username);
                 if (parsedMessage.type === "recieve_channel_message" || parsedMessage.type === "recieve_direct_message")
                 {
-                    if ( await checkIfBlocked(parsedMessage.data.sender) === true || await checkIfBlocked(parsedMessage.data.sender) === null)
+                    const is_blocked = await checkIfBlocked(parsedMessage.data.sender);
+                    if (is_blocked === true 
+                        || (!parsedMessage.data.sender.startsWith('#') && is_blocked === null))
                     {
                         console.log("User is blocked or has blocked them or unable to fetch info");
                         return ;
