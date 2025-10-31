@@ -21,7 +21,7 @@
 
 - ✅ 0.5 Use a database for the backend -- Jack
 
-- 🔧 1 Standard user management, authentication, users across tournaments -- Beth/Nicole/Jack
+- ✅ 1 Standard user management, authentication, users across tournaments -- Beth/Nicole/Jack
 
 - ✅ 1 Remote players
 
@@ -31,13 +31,13 @@
 
 - ✅ 1 Live chat -- Beth
 
-- 🔧 0.5 Multiple language support -- Nicole
+- ✅ 0.5 Multiple language support -- Nicole
   
 - ❔ 0.5 Support on all devices -- Nate
 
-✅ 5.5/7
-🔧 1.5
-❔ 2
+✅ 7/7
+🔧 0
+❔ 0.5
 
 
 TO DO:
