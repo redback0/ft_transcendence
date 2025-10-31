@@ -81,7 +81,9 @@ function updateTranslations(language: Language) {
   document.querySelector('#direct-messages')!.textContent = t('directMessages', language);
   document.querySelector('#dm-request')!.textContent = t('dmRequest', language);
   document.querySelector('#dmreqbutton')!.textContent = t('dmRequestButton', language);
-  
+  document.querySelector('#sendButton')!.textContent = t('sendButton', language);
+  document.querySelector('#inviteButton')!.textContent = t('inviteButton', language);
+
   const dmReceiver = document.getElementById('dmreciever');
   if (dmReceiver) {
     dmReceiver.setAttribute('placeholder', t('usernameInput'));
