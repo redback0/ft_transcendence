@@ -7,7 +7,6 @@ import { TournamentID } from "./tournament.schema";
 
 type UserID = string;
 
-// TODO: remove unnecessary p1/p2Score parameters
 export type GameWinFunc = (winner: "player1" | "player2" | undefined, p1Score: number, p2Score: number, game: GameArea) => void;
 
 export class GameArea
@@ -60,7 +59,6 @@ export class GameArea
 
     save = () =>
     {
-        // TODO: game.id IS NOT GARANTEED TO BE UNIQUE CURRENTLY
         if (this.p1.uid && this.p2.uid)
         {
             db.saveGame.run({

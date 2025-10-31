@@ -152,13 +152,11 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
             reply.code(401).send({ error: 'Username or password is incorrect.' });
             return;
         }
-        //TODO:  run function to add session cookie
         const result = await routeMakeNewCookie(request, reply, username, false);
         if (result === 200)
             reply.code(200).send({ message: 'User logged in successfully.' });
         else
             reply.code(500).send({ error: 'Failed to set session cookie when creating user.' });
-        //TODO: Take user to profile page
     } catch (error) {
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });

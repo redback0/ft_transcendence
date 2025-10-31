@@ -13,7 +13,6 @@ export class OnlineGamePage extends HTMLElement {
             return;
         }
 
-        // TODO: resize canvas when page resized
         var canvas = document.createElement('canvas');
 
         let width = window.outerWidth * 3 / 4;

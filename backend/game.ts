@@ -30,7 +30,6 @@ export function NewID(length: number)
 
 export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: Function)
 {
-    // TODO: change the game creating gets to ?posts
     fastify.get('/api/game/create/casual', function (request, reply)
     {
         let id = NewID(10);
@@ -38,38 +37,6 @@ export function gameInit(fastify: FastifyInstance, opts: RegisterOptions, done: 
 
         reply.send({ success: true, id: id });
     });
-
-    // TODO: remove this
-    // fastify.get('/api/game/create/test', function (request, reply)
-    // {
-    //     let id = NewID(5);
-    //     while (id in gameWebSocketServers.keys)
-    //     {
-    //         id = NewID(5);
-    //     }
-    //     AddNewGame(id, (winner, p1Score, p2Score, game) =>
-    //     {
-    //         if (winner === "player1")
-    //             testGameWinner = "Player 1";
-    //         else
-    //             testGameWinner = "Player 2";
-    //         // db.saveGame.run({
-    //         //     id: game.id,
-    //         //     leftId: game.p1.userId,
-    //         //     rightId: game.p2.userId,
-    //         //     tournId: null,
-    //         //     leftScore: game.p1Score,
-    //         //     rightScore: game.p2Score
-    //         // });
-    //     }, "1234", "4321");
-
-    //     reply.send({ success: true, id: id });
-    // });
-
-    // fastify.get('/api/game/test/winner', function (request, reply)
-    // {
-    //     reply.send({ winner: testGameWinner });
-    // })
 
     done();
 }
@@ -150,26 +117,26 @@ class Game extends GameArea
                 {
                 case ("identify"):
                 {
-                    const identify = parsed as GameSchema.GameIdentify;
+                    // DEPRICATED
+                    // const identify = parsed as GameSchema.GameIdentify;
 
-                    if (identify.uid && identify.sessionToken)
-                    {
-                        // TODO: check that the user is not lying
-                        if (true)
-                        {
-                            ws.uid = identify.uid;
-                        }
-                        else
-                        {
-                            this.close(); // user lied, fuck them
-                        }
-                    }
-                    const canRegister: GameSchema.GameCanRegister = {
-                        type: "canRegister",
-                        player1: game.p1.canJoin(ws.uid),
-                        player2: game.p2.canJoin(ws.uid)
-                    }
-                    this.send(JSON.stringify(canRegister), { binary: false});
+                    // if (identify.uid && identify.sessionToken)
+                    // {
+                    //     if (true)
+                    //     {
+                    //         ws.uid = identify.uid;
+                    //     }
+                    //     else
+                    //     {
+                    //         this.close(); // user lied, fuck them
+                    //     }
+                    // }
+                    // const canRegister: GameSchema.GameCanRegister = {
+                    //     type: "canRegister",
+                    //     player1: game.p1.canJoin(ws.uid),
+                    //     player2: game.p2.canJoin(ws.uid)
+                    // }
+                    // this.send(JSON.stringify(canRegister), { binary: false});
                     break;
                 }
                 case "register":
@@ -259,24 +226,12 @@ class Game extends GameArea
                 ws.isAlive = true;
             });
 
-
-            // if game slots available, ask the client to identify
-            if (!game.p1.ws || !game.p2.ws)
-            {
-                const identifyRequest: GameSchema.GameIdentifyRequest = {
-                    type: "identifyRequest"
-                };
-                ws.send(JSON.stringify(identifyRequest), { binary: false});
+            const canRegister: GameSchema.GameCanRegister = {
+                type: "canRegister",
+                player1: game.p1.canJoin(ws.uid),
+                player2: game.p2.canJoin(ws.uid)
             }
-            else
-            {
-                const canRegister: GameSchema.GameCanRegister = {
-                    type: "canRegister",
-                    player1: false,
-                    player2: false
-                }
-                ws.send(JSON.stringify(canRegister), { binary: false })
-            }
+            ws.send(JSON.stringify(canRegister), { binary: false })
         });
 
 

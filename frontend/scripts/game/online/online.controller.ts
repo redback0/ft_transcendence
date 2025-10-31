@@ -112,14 +112,14 @@ export class GameArea
         {
         case "identifyRequest":
         {
-            // TODO: make this actually send identity
-            const identify: GameSchema.GameIdentify = {
-                type: "identify",
-                uid: null,
-                sessionToken: null
-            }
+            // DEPRICATED
+            // const identify: GameSchema.GameIdentify = {
+            //     type: "identify",
+            //     uid: null,
+            //     sessionToken: null
+            // }
 
-            this.ws.send(JSON.stringify(identify));
+            // this.ws.send(JSON.stringify(identify));
             break;
         }
         case "canRegister":
