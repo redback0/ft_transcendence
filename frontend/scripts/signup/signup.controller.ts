@@ -40,7 +40,7 @@ export function SignUpPostLoad(page: HTMLElement)
 
         if (!/^[a-zA-Z0-9]+$/.test(user))
         {
-            if (errorText) errorText.textContent = "USERNAME MUST ONLY BE LETTERS AND NUMBERS";
+            if (errorText) errorText.textContent = t('errAlphaNum');
             return;
         }
 
