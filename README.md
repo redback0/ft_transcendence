@@ -47,10 +47,10 @@ TO DO:
 - ~~Implement & test active status - Jack~~
 - ~~Complete edit profile page & functionality -- Nicole & Jack~~
 - - Test frontend functionality for all tournament processes and pages -- Coby
-- Upload & change avatars -- Nate
-- Language implementation (Mandarin Chinese & Spanish) -- Nicole
-- Profile pages (wins/losses stats & match history on 1v1 games/dates -- Beth
+- ~~Upload & change avatars -- Nate~~
+- ~~Language implementation (Mandarin Chinese & Spanish) -- Nicole~~
+- ~~Profile pages (wins/losses stats & match history on 1v1 games/dates -- Beth~~
 - Delete users & pw changes, implement user checks (only ascii numbers & letters allowed, no white spaces, username does not currently exist on db, char limit?) -- Jack
-- Language translations for all pages except for profile/user page -- Nicole
+- ~~Language translations for all pages except for profile/user page -- Nicole~~
 - Functionality testing across the project -- Nate
 - Security pen testing (SQL injections/XSS attacks, cookie stuff) -- Beth
