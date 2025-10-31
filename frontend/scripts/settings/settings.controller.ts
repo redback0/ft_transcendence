@@ -3,6 +3,8 @@ import { fetchUserInfo } from "../user/user.service";
 
 // End point on server is probally located in file user.ts
 
+const _url = window.URL || window.webkitURL;
+
 export async function SettingsPostLoad(page: HTMLElement)
 {
 	const deleteButton = document.getElementById('confirmDeleteButton');
@@ -160,35 +162,45 @@ async function routeDeleteProfile()
 
 async function onUpdateAvatarButton(e: Event)
 {
-    const changeAvatarForm = document.getElementById('change-avatar-form') as HTMLFormElement;
-
     const formData = new FormData();
+    const sucPara = document.getElementById('avatar-upload-success');
+    const failPara = document.getElementById('avatar-upload-fail');
     const imageEle = document.getElementById('avatar-input') as HTMLInputElement;
-    const image = imageEle?.files?.[0];
-    if (!image)
+    const file = imageEle?.files?.[0];
+    if (!file)
         return;
 
-    formData.append("image", image);
+    const image = new Image();
 
-    const resp = await fetch("/api/user/avatar", {
-        method: "POST",
-        body: formData
-    })
+    image.onload = async function()
+    {
+        if (image.width > 128 || image.height > 128)
+        {
+            sucPara!.hidden = true;
+            failPara!.hidden = false;
+            return;
+        }
 
-    if (resp.ok)
-    {
-        const sucPara = document.getElementById('avatar-upload-success');
-        const failPara = document.getElementById('avatar-upload-fail');
-        sucPara!.hidden = false;
-        failPara!.hidden = true;
-    }
-    else
-    {
-        const sucPara = document.getElementById('avatar-upload-success');
-        const failPara = document.getElementById('avatar-upload-fail');
-        sucPara!.hidden = true;
-        failPara!.hidden = false;
-    }
+        formData.append("image", file);
+
+        const resp = await fetch("/api/user/avatar", {
+            method: "POST",
+            body: formData
+        })
+    
+        if (resp.ok)
+        {
+            sucPara!.hidden = false;
+            failPara!.hidden = true;
+        }
+        else
+        {
+            sucPara!.hidden = true;
+            failPara!.hidden = false;
+        }
+    };
+
+    image.src = _url.createObjectURL(file);
 }
 
 function onChangeAvatar(e: Event)
