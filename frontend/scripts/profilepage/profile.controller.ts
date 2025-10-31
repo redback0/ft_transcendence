@@ -1,5 +1,6 @@
 import { renderMatchesTable, Match } from "./profile.render.js";
 import { onPageChange } from "../index.js";
+import { getUserIdFromUsername } from "../friends/friends.controller.js";
 
 export async function refreshMatchesTable(username: string)
 {
@@ -26,6 +27,9 @@ export async function ProfilePostLoad(page: HTMLElement)
 		try
 		{
 			window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+			const user_id = await getUserIdFromUsername(username);
+			const img = document.getElementById('avatar') as HTMLImageElement;
+			img.src = "/api/user/" + user_id + "/avatar";
 
 			const results = await fetchResults(username);
 			const wins = results.wins;

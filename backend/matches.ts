@@ -12,7 +12,8 @@ export interface Match {
   right_result: string;
   left_score: number;
   right_score: number;
-  date_game_made: string;
+  date_finished: string;
+  date_aus: string;
 };
  export async function registerRoutes(fastify: FastifyInstance)
  {
@@ -64,6 +65,12 @@ async function getMatchesFromDatabase(username: string): Promise<Match[] | null>
                 match.right_result = "Loser";
                 match.left_result = "Winner";
             }
+            const date = new Date(match.date_finished);
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            match.date_aus = day + "/" + month + "/" + year;
+
         })
         return(matches);
     }
