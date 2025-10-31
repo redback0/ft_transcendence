@@ -1,4 +1,6 @@
-import { t, currentLanguage, setLanguage } from './translation.js';
+//Authored by Nicole Lehmeyer
+
+import { t, setLanguage, getLanguage, currentLanguageIndex, language } from './translation.js';
 import { Language } from './language.translations';
 import { newPage } from './index.js';
 const mainMenu = document.getElementById("main-menu");
@@ -52,21 +54,40 @@ function closeWarning() {
 (window as any).openWarning = openWarning;
 (window as any).closeWarning = closeWarning;
 
+
+
+
+
 const languages: Language[] = ['English', 'Español', '中文'];
-let currentLanguageIndex = 0;
+const currentLanguage = getLanguage();
 
 const languageButton = document.getElementById('language-button');
 
-function updateLanguage() {
-  currentLanguageIndex = (currentLanguageIndex + 1) % languages.length;
-  const newLanguage: Language = languages[currentLanguageIndex];
-
-  if (languageButton) {
-    languageButton.textContent = languages[(currentLanguageIndex + 1) % languages.length].toUpperCase();
-  }
-  setLanguage(newLanguage);
-  updateTranslations(newLanguage);
+function getNextLanguage(index: number): Language {
+  return language[(index + 1) % language.length];
 }
+
+if (languageButton) {
+  languageButton.textContent = getNextLanguage(currentLanguageIndex).toUpperCase();
+  languageButton.addEventListener('click', () => {
+    updateLanguage(languageButton, updateTranslations);
+    languageButton.textContent = getNextLanguage(currentLanguageIndex).toUpperCase();
+  });
+}
+
+export function updateLanguage(languageButton?: HTMLElement | null, updateTranslations?: (lang: Language) => void) {
+  const newIndex = (currentLanguageIndex + 1) % language.length;
+  const newLanguage: Language = language[newIndex];
+
+  setLanguage(newLanguage);
+
+  if (typeof updateTranslations === 'function') {
+    updateTranslations(newLanguage);
+  }
+}
+
+
+
 
 function updateTranslations(language: Language) {
   document.querySelector('#play-button')!.textContent = t('playButton', language);
@@ -93,11 +114,6 @@ function updateTranslations(language: Language) {
     messageInput.setAttribute('placeholder', t('messageInput'));
   }
   newPage();
-}
-
-if (languageButton) {
-  languageButton.textContent = languages[(currentLanguageIndex + 1) % languages.length].toUpperCase();
-  languageButton.addEventListener('click', updateLanguage);
 }
 
 updateTranslations(languages[currentLanguageIndex]);

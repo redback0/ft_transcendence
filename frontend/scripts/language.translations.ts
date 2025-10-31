@@ -1,3 +1,5 @@
+//Authored by Nicole Lehmeyer
+
 export type Language = 'English' | 'Español' | '中文';
 
 export const translations: Record<Language, Record<string, string>> = {
