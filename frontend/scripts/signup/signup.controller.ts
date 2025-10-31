@@ -46,7 +46,7 @@ export function SignUpPostLoad(page: HTMLElement)
 
 		if (pass === "")
         {
-            if (errorText) errorText.textContent = t('errNoUsername');
+            if (errorText) errorText.textContent = t('errNoPw');
             return;
         }
         if ( pass !== repPass)

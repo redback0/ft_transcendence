@@ -13,7 +13,8 @@ export class UserPage extends HTMLElement
         this.innerHTML = 
             ` 
               <section class="flex flex-col items-center text-center">
-                    <img alt="user-profile-picture" id="avatar"
+                    <img alt="user-profile-picture" id="avatar" src="/api/user/${username}/avatar"
+                    <img alt="User Avatar" id="avatar" src="/api/user/${username}/avatar"
                         class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-[#520404] object-cover">
                     <h2 class="mt-4 text-2xl sm:text-3xl font-extrabold text-[#520404]" id="user">${username}</h2>
                 </section>
