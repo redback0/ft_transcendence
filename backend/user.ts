@@ -340,7 +340,6 @@ class IUserActions implements UserActions {
     }
 
     pwCheck(newPw: string): boolean {
-        return (true);
         return (this.pwHasMinTwelveChar()
             && this.pwHasNoWhite()
             && this.pwHasUpper()
