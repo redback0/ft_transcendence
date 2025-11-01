@@ -83,6 +83,7 @@ export function updateLanguage(languageButton?: HTMLElement | null, updateTransl
 
   if (typeof updateTranslations === 'function') {
     updateTranslations(newLanguage);
+    newPage();
   }
 }
 
@@ -113,7 +114,6 @@ function updateTranslations(language: Language) {
   if (messageInput) {
     messageInput.setAttribute('placeholder', t('messageInput'));
   }
-  newPage();
 }
 
 updateTranslations(languages[currentLanguageIndex]);
