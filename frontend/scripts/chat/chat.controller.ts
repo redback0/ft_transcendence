@@ -127,8 +127,9 @@ export function ChatPostLoad(page: HTMLElement)
     InviteButton?.addEventListener("click", async (event) =>
     {
         // TODO: make this send only important info (game/id)
-        const url = document.location.href;
-        if (url.includes("/game/online")|| url.includes("/tournaments/")) {
+        const fullURL = document.location.href;
+        const url = fullURL.substring(fullURL.indexOf(document.location.pathname));
+        if (url.includes("/game/online")|| url.includes("/lobby/")) {
             wssMessageSender({
                 type: "send_message",
                 data: {
