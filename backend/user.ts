@@ -58,6 +58,16 @@ const postDeleteUser = {
     },
 };
 
+const postVerifyPassword = {
+    body: {
+        type: 'object',
+        required: ['password'],
+        properties: {
+            password: { type: 'string' }, 
+        },
+    },
+};
+
 async function routeHeartbeat(request: FastifyRequest, reply: FastifyReply)
 {
 	try
@@ -90,6 +100,7 @@ export async function registerRoutes(fastify: FastifyInstance)
     fastify.get('/api/user/session', sidToUserIdAndNameRequest);
     fastify.delete('/api/user/session', routeClearCookie);
     fastify.post('/api/user/changePassword', { schema: postChangePw }, ChangePw);
+    fastify.post('/api/user/verifyPassword', { schema: postVerifyPassword }, VerifyPassword);
     fastify.delete('/api/user/delete', { schema: postDeleteUser }, DeleteUser);
     fastify.post('/api/user/heartbeat', routeHeartbeat);
 }
@@ -198,17 +209,61 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
             return;
         }
         
-        if (changePwUserActions.setPw(username, newPassword)) {
+        const result = changePwUserActions.setPw(username, newPassword);
+        if (result.success) {
             reply.code(200).send({ message: 'Password changed successfully.' });
             //Take user to profile page
             return;
         } else {
-            reply.code(401).send({ error: 'Failed to change password.' });
+            reply.code(422).send({ error: result.error || 'Failed to change password.' });
             return;
         }
     } catch (error) {
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });
+    }
+}
+
+export async function VerifyPassword(request: FastifyRequest, reply: FastifyReply)
+{
+    try
+    {
+        const sessionId = request.cookies[SESSION_ID_COOKIE_NAME];
+        if (!sessionId)
+        {
+            reply.code(403).send({ error: 'Failed to read cookie. VerifyPassword' })
+            return ;
+        }
+
+        const userId = await validateSession(sessionId);
+        if (!userId)
+        {
+            reply.code(401).send({ error: 'Unknown session.' });
+            return ;
+        }
+        
+        const userResult = db.getUsernameFromUserId.get(userId) as { username: string } | undefined;
+        if (!userResult)
+            {
+                reply.code(401).send({ error: 'Database lookup failure.' });
+                return ;
+            }
+
+        const username = userResult?.username;
+
+        const { password } = request.body as { password: string }
+        const verifyUserActions = new IUserActions(username, password);
+
+        if (verifyUserActions.authenticatePw(username, password)) {
+            reply.code(200).send({ message: 'Password verified successfully.' });
+            return;
+        } else {
+            reply.code(401).send({ error: 'Password is incorrect.' });
+            return;
+        }
+    } catch (error) {
+        request.log.error('Failed to verify password.', error);
+        reply.code(500).send({ error: 'Server error in processing password verification request.' });
     }
 }
 
@@ -296,7 +351,7 @@ pwHasSymbol(): boolean;
 
 pwNotPrevFourHash(enteredUser: string, newPw: string):boolean;
 authenticatePw(enteredUser: string, currentPw: string): boolean;
-setPw(enteredUser: string, newPw: string): boolean;
+setPw(enteredUser: string, newPw: string): { success: boolean, error?: string };
 createUser(enteredUser: string, newPw: string): boolean;
 clearUser(enteredUser: string): boolean;
 };
@@ -339,14 +394,23 @@ class IUserActions implements UserActions {
         }
     }
 
-    pwCheck(newPw: string): boolean {
-        return (this.pwHasMinTwelveChar()
+    pwCheck(newPw: string): boolean
+	{
+        const originalNewPw = this.newPw;
+        this.newPw = newPw;
+        
+        const result = (this.pwHasMinTwelveChar()
             && this.pwHasNoWhite()
             && this.pwHasUpper()
             && this.pwHasLower()
             && this.pwHasNb()
             && this.pwHasSymbol()
         );
+        
+        this.newPw = originalNewPw;
+        
+        console.log(`Overall password check result: ${result}`);
+        return result;
     }
 
 	usernameCharAreValid(): boolean { return (/^[a-zA-Z0-9]+$/.test(this.enteredUser)) };
@@ -436,7 +500,7 @@ class IUserActions implements UserActions {
         }
     }
 
-    setPw(enteredUser: string, newPw: string): boolean
+    setPw(enteredUser: string, newPw: string): { success: boolean, error?: string }
     {
 
         try {
@@ -444,13 +508,13 @@ class IUserActions implements UserActions {
             if (!this.pwCheck(newPw))
             {
                 console.log('New password does not pass syntax checks.');
-                return false;
+                return { success: false, error: 'Password does not meet syntax requirements.' };
             }
             // 2. Is enteredPw same as previous 4 passwords?
             if (!this.pwNotPrevFourHash(enteredUser, newPw))
             {
                 console.log('New password is the same as one of the previous stored passwords.');
-                return false;
+                return { success: false, error: 'Cannot reuse any of the last 4 passwords.' };
             }
             // 3. Hash password
             const salt = bcrypt.genSaltSync(this.saltRounds);
@@ -473,7 +537,7 @@ class IUserActions implements UserActions {
                 {
                     console.log(`User ${enteredUser} not found in database.`);
                     db.prepare('ROLLBACK').run();
-                    return false;
+                    return { success: false, error: 'User not found in database.' };
                 }
 
                 const update_statement_db_pw = db.prepare(`
@@ -489,15 +553,15 @@ class IUserActions implements UserActions {
 
                 db.prepare('COMMIT').run();
                 console.log(`Password updated sucessfully for user: ${enteredUser}.`);
-                return true;
+                return { success: true };
             } catch(dbError) {
                 db.prepare('ROLLBACK').run();
                 console.error('Database error in attempt to update password.', dbError);
-                return false;
+                return { success: false, error: 'Database error occurred while updating password.' };
             }
         } catch(error) {
             console.log('Error in setPw.', error);
-            return false;
+            return { success: false, error: 'Internal error occurred while changing password.' };
         }
     }
 
