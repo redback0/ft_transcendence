@@ -1,5 +1,5 @@
 //Authored by Bethany Milford 29/07/25
-import { onPageChange } from "../index.js";
+import { newPage, onPageChange } from "../index.js";
 import { fetchBlockedFriends, fetchBlockedStatus, getUserIdFromUsername } from "../friends/friends.controller.js";
 import { ChatClientSendMessage, ChatClientMessage, ChatServerMessage } from '../chat.schema.js';
 
@@ -247,21 +247,33 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
 
     let userlink = document.createElement("a");
     userlink.href = '/users?id=' + sender;
+    userlink.onclick = (e) =>
+    {
+        e.preventDefault();
+        
+        if (!(e.target instanceof HTMLAnchorElement))
+            return;
+
+        const newURL = e.target.href;
+
+        history.pushState({}, "", newURL);
+
+        newPage();
+    }
     console.log(userlink.href);
-    let head = document.createElement("p");
-    head.innerText = sender;
-    userlink.appendChild(head);
+    userlink.innerText = sender;
 
     let message = document.createElement("div");
     message.classList.add('received-msg');
 
-    const a = document.createElement("a");
     const send = document.createElement("p");
     if (type === "invite")
     {
+        const a = document.createElement("a");
         a.href = msg;
         send.innerText = "You've been invited to play a game"
         a.appendChild(send);
+        message.appendChild(a);
     }
     else
     {
@@ -271,15 +283,12 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
             send.classList.add('italic', 'var(--color-gray-500)');
             userlink.href = "";
         }
+        message.appendChild(send);
     }
     inbox.insertBefore(bubble, inbox.children[0])
     bubble.appendChild(header);
     header.appendChild(userlink);
     bubble.appendChild(message);
-    if (type === "invite")
-        message.appendChild(a);
-    else
-        message.appendChild(send);
 }
 const outgoingMessage = (msg: string, inbox: string, type: "normal" | "info" = "normal") =>
 {   
@@ -405,6 +414,10 @@ const newDM = (message: string, sender: string, type: string) =>
                 if (type === "incoming")
                 {
                     messageReciever(message, sender, setChannel);
+                }
+                else if (type === "invite")
+                {
+                    messageReciever(message, sender, setChannel, "invite");
                 }
                 else {
                     wssMessageSender({ type: "send_message", data: { payload: message, reciever: sender, is_invite: false }});
