@@ -78,7 +78,7 @@ export function SignUpPostLoad(page: HTMLElement)
                 else
                 {
                     console.log("Unknown error");
-                    if (errorText) errorText.textContent = t('errUnknown');
+                    if (errorText) errorText.textContent = t('errAndRequirements');
                 }
                 return;
             }
