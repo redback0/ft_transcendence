@@ -5,10 +5,10 @@ import { currPage, newPage } from "../../index.js";
 import { TournamentPage } from "../tournament/tournament.template.js";
 import { setCurrentPage } from '../../index.js';
 import { TournamentPostLoad } from "../tournament/tournament.controller.js";
+import { t } from "../../translation.js";
 
 const htmlClientNamePrefix = "name-of-client-";
 const hostPrefix = "👑 ";
-const meSuffix = " (You)";
 
 function NewID(length: number)
 {
@@ -98,7 +98,7 @@ export class LobbyJoinArea {
 		var text = document.createElement("b");
 		text.innerText = client.username;
 		if (client.user_id === this.me?.user_id)
-			text.innerText += meSuffix;
+			text.innerText += t('lobbySelfText');
 
 		var textdiv = document.createElement("div");
 		textdiv.id = htmlClientNamePrefix + client.user_id;
