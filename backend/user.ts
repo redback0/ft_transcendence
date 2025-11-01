@@ -141,7 +141,7 @@ async function CreateUser(request: FastifyRequest, reply: FastifyReply)
         }
         //Take user to profile page.
     }
-    catch (error)
+    catch (error: any)
     {
         request.log.error('Failed to create user.', error);
         reply.code(500).send({ error: 'Server error in processing create user request.' });
@@ -168,7 +168,7 @@ async function LoginUser(request: FastifyRequest, reply: FastifyReply)
             reply.code(200).send({ message: 'User logged in successfully.' });
         else
             reply.code(500).send({ error: 'Failed to set session cookie when creating user.' });
-    } catch (error) {
+    } catch (error: any) {
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });
     }
@@ -218,7 +218,7 @@ export async function ChangePw(request: FastifyRequest, reply: FastifyReply)
             reply.code(422).send({ error: result.error || 'Failed to change password.' });
             return;
         }
-    } catch (error) {
+    } catch (error: any) {
         request.log.error('Failed to change password.', error);
         reply.code(500).send({ error: 'Server error in processing password change request.' });
     }
@@ -261,7 +261,7 @@ export async function VerifyPassword(request: FastifyRequest, reply: FastifyRepl
             reply.code(401).send({ error: 'Password is incorrect.' });
             return;
         }
-    } catch (error) {
+    } catch (error: any) {
         request.log.error('Failed to verify password.', error);
         reply.code(500).send({ error: 'Server error in processing password verification request.' });
     }
@@ -322,7 +322,7 @@ export async function DeleteUser(request: FastifyRequest, reply: FastifyReply)
                 reply.code(401).send({ error: 'Failed to delete user.' });
                 return;
             }
-    } catch (error) {
+    } catch (error: any) {
 		console.error(`Cannot delete user:`, error);
         request.log.error('Failed to delete user.', error);
         reply.code(500).send({ error: 'Server error in processing delete user request.' });
@@ -340,7 +340,6 @@ userHasNoWhite(): boolean;
 userNoExist(enteredUser: string): boolean;
 
 pwCheck(pw: string): boolean;
-usernameCheck(pw: string): boolean;
 
 pwHasNoWhite(): boolean;
 pwHasMinTwelveChar(): boolean;
