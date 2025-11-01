@@ -157,7 +157,7 @@ export function ChatPostLoad(page: HTMLElement)
         const targetclient = friends.indexOf(reciever);
         if (targetclient === -1 && reciever !== "" && targetclient != undefined)
         {
-            newDM("New Message Request", reciever, "outgoing");
+            newDM("New Message Request", reciever, "outgoing", false);
             friends.push(reciever);
         }
         else
@@ -211,7 +211,7 @@ export function ChatPostLoad(page: HTMLElement)
                             messageReciever(parsedMessage.data.payload, parsedMessage.data.sender, client, parsedMessage.data.is_invite ? "invite" : "message");
                         else if (parsedMessage.data.sender !== undefined)
                         {
-                            newDM(parsedMessage.data.payload, parsedMessage.data.sender, "incoming");
+                            newDM(parsedMessage.data.payload, parsedMessage.data.sender, "incoming", parsedMessage.data.is_invite);
                             friends.push(parsedMessage.data.sender);
                         }
                     }
@@ -267,11 +267,25 @@ const messageReciever = (msg: string, sender: string, inbox: HTMLElement, type: 
     message.classList.add('received-msg');
 
     const send = document.createElement("p");
+    console.log(type);
     if (type === "invite")
     {
         const a = document.createElement("a");
         a.href = msg;
+        a.onclick = (e) => {
+            e.preventDefault();
+        
+            if (!(e.target instanceof HTMLAnchorElement))
+                return;
+
+            const newURL = e.target.href;
+
+            history.pushState({}, "", newURL);
+
+            newPage();
+        }
         send.innerText = "You've been invited to play a game"
+        send.style.pointerEvents = "none";
         a.appendChild(send);
         message.appendChild(a);
     }
@@ -372,7 +386,7 @@ const openChat = (chatName: string, event: any) =>
 //     is_active = dmName;
 // }
 
-const newDM = (message: string, sender: string, type: string) =>
+const newDM = (message: string, sender: string, type: string, is_invite: boolean) =>
 {
     if (sender)
     {
@@ -411,13 +425,10 @@ const newDM = (message: string, sender: string, type: string) =>
             if (setChannel)
             {
                 Channels.set(sender, setChannel);
+                console.log(`kuh ${type}`);
                 if (type === "incoming")
                 {
-                    messageReciever(message, sender, setChannel);
-                }
-                else if (type === "invite")
-                {
-                    messageReciever(message, sender, setChannel, "invite");
+                    messageReciever(message, sender, setChannel, is_invite ? "invite" : "message");
                 }
                 else {
                     wssMessageSender({ type: "send_message", data: { payload: message, reciever: sender, is_invite: false }});
