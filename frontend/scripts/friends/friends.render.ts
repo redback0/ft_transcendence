@@ -17,9 +17,9 @@ export function renderFriendsTable(friends: Friend[])
 			<div class="flex items-center gap-4 p-3 bg-[#520404] mb-2" style="height: 5vh;">
 				<div class="profile-container flex items-center gap-4" style="padding-left:1rem;">
 					<a class="profile-nav-button" href="/users?id=${friend.username}">
-						<img src="/api/user/${friend.user_id}/avatar" alt="user-profile-picture" class="w-7 h-7 rounded-full ${onlineIndicator}">
+						<img src="/api/user/${friend.user_id}/avatar" alt="user-profile-picture" class="w-7 h-7 rounded-full pointer-events-none ${onlineIndicator}">
 					</a>
-					<a class="profile-nav-button" href="/users?id=${friend.username}" class="profile-name font-bold text-[#DED19C]" style="font-size:1.25rem">${friend.username}</a>
+					<a class="profile-nav-button profile-name font-bold text-[#DED19C]" style="font-size:1.25rem" href="/users?id=${friend.username}">${friend.username}</a>
 				</div>
 				<div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0" style="margin-left:auto; padding-right:1rem;">
 					<div class="relative inline-block text-left">
