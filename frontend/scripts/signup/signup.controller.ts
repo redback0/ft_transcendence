@@ -1,5 +1,6 @@
 import { newPage } from "../index.js";
 import {t} from '../translation.js';
+import { validatePasswordRequirements } from '../settings/settings.controller.js'
 
 export function SignUpPostLoad(page: HTMLElement)
 {
@@ -49,9 +50,10 @@ export function SignUpPostLoad(page: HTMLElement)
             if (errorText) errorText.textContent = t('errNoPw');
             return;
         }
+		if (!validatePasswordRequirements(pass))
         if ( pass !== repPass)
         {
-            if (errorText) errorText.textContent = t('errPwMatch');
+            if (errorText) errorText.textContent = t('passwordRequirements') + ' ' + t('passwordRule1');
             return;
         }
 

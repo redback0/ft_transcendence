@@ -1,6 +1,37 @@
 import { onPageChange } from "../index.js";
 import { fetchUserInfo } from "../user/user.service";
 
+export function validatePasswordRequirements(password: string): boolean {
+
+	const hasMinTwelveChar = password.length >= 12;
+	const hasNoWhite = !/\s/.test(password);
+	const hasUpper = /[A-Z]/.test(password);
+	const hasLower = /[a-z]/.test(password);
+	const hasNumber = /[0-9]/.test(password);
+	const hasSymbol = /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/.test(password);
+	
+	return (hasMinTwelveChar && hasNoWhite && hasUpper && hasLower && hasNumber && hasSymbol);
+}
+
+async function verifyPassword(password: string): Promise<boolean>
+{
+	try
+	{
+		const response = await fetch('/api/user/verifyPassword', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ password: password }),
+			credentials: 'include'
+		});
+		return response.ok;
+	}
+	catch (error)
+	{
+		console.error('Error verifying password:', error);
+		return false;
+	}
+}
+
 // End point on server is probally located in file user.ts
 
 const _url = window.URL || window.webkitURL;
@@ -52,6 +83,7 @@ async function routeChangePassword()
 		const newPassword2 = newPassword2Input.value;
 
 		const errorOldPassword = document.getElementById('currentPasswordNotCorrect') as HTMLInputElement;
+		const passwordSameLast = document.getElementById('passwordSameAsLast') as HTMLInputElement;
 		const errorNewPassword1 = document.getElementById('passwordReqNotMet') as HTMLInputElement;
 		const errorNewPassword2 = document.getElementById('passwordNotMatch') as HTMLInputElement;
 		const successPassword = document.getElementById('passwordSuccess') as HTMLInputElement;
@@ -60,22 +92,36 @@ async function routeChangePassword()
 		if (errorNewPassword1) errorNewPassword1.style.display = 'none';
 		if (errorNewPassword2) errorNewPassword2.style.display = 'none';
 		if (successPassword) successPassword.style.display = 'none';
+		if (passwordSameLast) passwordSameLast.style.display = 'none';
 
 		if (oldPassword === "")
 		{
-			if (errorOldPassword) errorOldPassword.style.display = '';
+			if (errorOldPassword) errorOldPassword.style.display = 'block';
 			console.log(`Old password is empty.`);
+			return ;
+		}
+		const passwordVerified = await verifyPassword(oldPassword);
+		if (!passwordVerified)
+		{
+			if (errorOldPassword) errorOldPassword.style.display = 'block';
+			console.log(`Old password verification failed.`);
 			return ;
 		}
 		if (newPassword1 === "")
 		{
-			if (errorNewPassword1) errorNewPassword1.style.display = '';
+			if (errorNewPassword1) errorNewPassword1.style.display = 'block';
 			console.log(`New password 1 is empty.`);
+			return ;
+		}
+		if (!validatePasswordRequirements(newPassword1))
+		{
+			if (errorNewPassword1) errorNewPassword1.style.display = 'block';
+			console.log(`New password does not meet requirements.`);
 			return ;
 		}
 		if (newPassword2 !== newPassword1)
 		{
-			if (errorNewPassword2) errorNewPassword2.style.display = '';
+			if (errorNewPassword2) errorNewPassword2.style.display = 'block';
 			console.log(`Passwords do not match.`);
 			return ;
 		}
@@ -86,11 +132,23 @@ async function routeChangePassword()
 			body: JSON.stringify({
 				oldPassword: oldPassword,
 				newPassword: newPassword1
-			})
+			}),
+			credentials: 'include' // Include cookies for session
 		});
 
 		if (!response.ok)
 		{
+			if (response.status === 422) {
+				const errorData = await response.json();
+				const errorMessage = errorData.error;
+				
+				if (errorMessage && errorMessage.includes('Cannot reuse any of the last 4 passwords'))
+				{
+					if (passwordSameLast) passwordSameLast.style.display = 'block';
+					console.log(`Cannot use last 4 passwords`);
+					return ;
+				}
+			}
 			console.error(`Cannot change password`);
 			return ;
 		}
@@ -107,6 +165,8 @@ async function routeChangePassword()
 
 async function routeDeleteProfile()
 {
+	const deleteUserError = document.getElementById('deleteUserError');
+	if (deleteUserError) deleteUserError.style.display = 'none';
 
 	var username = "";
 	try
@@ -137,6 +197,15 @@ async function routeDeleteProfile()
         }
 
 	
+		const passwordVerified = await verifyPassword(password);
+		if (!passwordVerified)
+		{
+			console.error(`Password verification failed for user: ${username}`);
+			const deleteUserError = document.getElementById('deleteUserError');
+			if (deleteUserError) deleteUserError.style.display = 'block';
+			return ;
+		}
+
 		const response = await fetch('/api/user/delete', { // taking this from index.template.ts:69-75. 
 			method: 'DELETE',
 			headers: { 'Content-Type': 'application/json' },
@@ -148,6 +217,8 @@ async function routeDeleteProfile()
 		if (!response.ok)
 		{
 			console.error(`Cannot delete user: ${username}`);
+			const deleteUserError = document.getElementById('deleteUserError');
+			if (deleteUserError) deleteUserError.style.display = 'block';
 			return ;
 		}
 

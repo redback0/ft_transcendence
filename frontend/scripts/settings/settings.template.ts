@@ -22,13 +22,15 @@ export class SettingsPage extends HTMLElement {
 				</div>
 				<div class="w-2/3 flex flex-col items-center justify-center" style="padding-top: 10vh;">
 					<form id="changePwForm" class="w-3/4 max-w-md">
+
 						<p style="font-size:2vh; color:#520404; font-weight:bold">
 							${t('currentPassword')}
 						</p>
-						<input id="currentPassword" class="settings-input" type="password" name="username" placeholder="${t('enterUsername')}" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
+						<input id="currentPassword" class="settings-input" type="password" name="username" placeholder="${t('enterPassword')}" autocomplete="off" style="margin-bottom: 1vh; color:#DED19C;" required>
                         <p id="currentPasswordNotCorrect" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
 							${t('incorrectPassword')}<br><br>
 						</p>
+
                         <p style="font-size:2vh; color:#520404; font-weight:bold">
 							${t('newPassword')}
 						</p>
@@ -36,12 +38,16 @@ export class SettingsPage extends HTMLElement {
                         <p id="passwordReqNotMet" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
                             ${t('requirementsNotMet')}<br><br>
 						</p>
+                        <p id="passwordSameAsLast" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
+                            ${t('errPwLast4')}<br><br>
+						</p>
+
 						<p style="font-size:2vh; color:#520404; font-weight:bold">
 							${t('repeatNewPassword')}
 						</p>
 						<input id="newPassword2" class="settings-input" type="password" name="password" placeholder="${t('enterNewPasswordAgain')}" autocomplete="off" style="color:#DED19C;" required>
-						<p style="font-weight:bold; font-size:1.25vh; color:red; margin: 0;">
-							${t('invalidUserPwInput')}<br><br>
+						<p id="passwordNotMatch" style="font-weight:bold; font-size:1.25vh; color:red; margin: 0; display:none">
+							${t('errPwMatch')}<br><br>
 						</p>
 						<div>
                         <button type="button" id="changePwButton">
@@ -121,7 +127,7 @@ export class SettingsPage extends HTMLElement {
 						${t('confirmWithPw')}
 					</p>
 					<input id="deletePassword" class="deleteProfile-input" type="password" name="password" placeholder="${t('enterPassword')}" autocomplete="off" style="color:#520404; margin-left:30vw" required>
-						<p style="font-weight:bold; margin-left:30vw; font-size:1.25vh; color:red">
+						<p id="deleteUserError" style="font-weight:bold; margin-left:30vw; font-size:1.25vh; color:red; display:none">
 							${t('invalidUserPwInput')}<br><br>
 						</p>
 						<div>
