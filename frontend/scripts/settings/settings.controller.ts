@@ -245,14 +245,33 @@ async function onUpdateAvatarButton(e: Event)
 
     image.onload = async function()
     {
-        if (image.width > 128 || image.height > 128)
-        {
-            sucPara!.hidden = true;
-            failPara!.hidden = false;
-            return;
-        }
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
-        formData.append("image", file);
+        const imageSize = 512
+        const scale = Math.min((imageSize / image.width), (imageSize / image.height));
+
+        const sw = image.width * scale;
+        const sh = image.width * scale;
+
+        canvas.width = sw;
+        canvas.height = sh;
+        ctx?.drawImage(image, 0, 0, sw, sh);
+
+        const imgData = canvas.toDataURL();
+        const byteChars = atob(imgData.substring(imgData.indexOf(',') + 1));
+        const byteNums = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++)
+        {
+            byteNums[i] = byteChars.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNums);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        const fileFinal = new File([blob], "avatar.png", { type: 'image/png' });
+
+        // const url = _url.createObjectURL(blob);
+
+        formData.append("image", fileFinal);
 
         const resp = await fetch("/api/user/avatar", {
             method: "POST",
