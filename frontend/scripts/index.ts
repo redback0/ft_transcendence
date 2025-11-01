@@ -88,7 +88,7 @@ export async function NavOnClick(e: MouseEvent)
     if (!(e.target instanceof HTMLAnchorElement))
         return;
 
-    if (e.target.id === "logout")
+    if (e.target.id === "logout-button")
     {
         console.log("attempting to log out");
         await fetch("/api/user/session", { method: "DELETE" });
